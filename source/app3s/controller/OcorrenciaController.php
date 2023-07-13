@@ -131,7 +131,7 @@ class OcorrenciaController
 	}
 	public function canCancel($order)
 	{
-		return $this->sessao->getIdUsuario() == $order->id_usuario_cliente && ($order->status == self::STATUS_REABERTO ||  $order->status == self::STATUS_ABERTO);
+		return $this->sessao->getIdUsuario() == $order->id_usuario_cliente && $order->status == self::STATUS_ABERTO;
 	}
 	public function canWait($currentStatus)
 	{
