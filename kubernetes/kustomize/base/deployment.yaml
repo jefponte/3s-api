@@ -54,8 +54,8 @@ spec:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: 8
+          periodSeconds: 8
 
         readinessProbe:
           exec:
@@ -63,8 +63,8 @@ spec:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: 8
+          periodSeconds: 8
 
         volumeMounts:
         - name: tz-america
