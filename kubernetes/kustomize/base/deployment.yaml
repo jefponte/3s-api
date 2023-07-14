@@ -30,7 +30,7 @@ spec:
           runAsUser: 33
       containers:
       - name: app3s-laravel
-        image: dti-registro.unilab.edu.br/unilab/app-3s:main
+        image: dti-registro.unilab.edu.br/unilab/app-3s:latest
         resources: {}
         imagePullPolicy: Always
         command:
@@ -40,21 +40,15 @@ spec:
           source /vault/secrets/config
           php artisan config:clear
           apache2-foreground
-        ports:
-        - containerPort: 80
-          name: http
-        envFrom:
-        - configMapRef:
-            name: app3s-config
-
+          
         livenessProbe:
           exec:
             command:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 12
-          periodSeconds: 12
+          initialDelaySeconds: 20
+          periodSeconds: 20
 
         readinessProbe:
           exec:
@@ -62,9 +56,15 @@ spec:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 15
-          periodSeconds: 15
+          initialDelaySeconds: 19
+          periodSeconds: 19
 
+        ports:
+        - containerPort: 80
+          name: http
+        envFrom:
+        - configMapRef:
+            name: app3s-config
         volumeMounts:
         - name: tz-america
           mountPath: /etc/localtime

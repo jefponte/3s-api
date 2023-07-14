@@ -4,9 +4,9 @@ namespace: app3s-prod
 resources:
 - ../../base
 images:
-- name: dti-registro.unilab.edu.br/unilab/app-3s:main
+- name: dti-registro.unilab.edu.br/unilab/app-3s:latest
   newName: dti-registro.unilab.edu.br/unilab/app-3s
-  newTag: latest
+  newTag: main
 patches:
 - path: configmap.yaml
 - path: deployment.yaml
