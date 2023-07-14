@@ -43,7 +43,6 @@ spec:
         ports:
         - containerPort: 80
           name: http
-          
         envFrom:
         - configMapRef:
             name: app3s-config
@@ -54,8 +53,8 @@ spec:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 8
-          periodSeconds: 8
+          initialDelaySeconds: 12
+          periodSeconds: 12
 
         readinessProbe:
           exec:
@@ -63,8 +62,8 @@ spec:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 8
-          periodSeconds: 8
+          initialDelaySeconds: 15
+          periodSeconds: 15
 
         volumeMounts:
         - name: tz-america
