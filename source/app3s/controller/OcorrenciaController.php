@@ -438,16 +438,17 @@ class OcorrenciaController
 		$lista = $queryPendding->limit(300)->get();
 		$lista2 = $queryFinished->limit(300)->get();
 
-		$listNoLate = array();
+
 		$listaAtrasados = array();
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
 			$listNoLate = $lista;
 		} else {
+			$listNoLate = array();
 			foreach ($lista as $ocorrencia) {
 				if ($this->atrasado($ocorrencia)) {
 					$listaAtrasados[] = $ocorrencia;
 				} else {
-					$listaNoLate[] = $ocorrencia;
+					$listNoLate[] = $ocorrencia;
 				}
 			}
 		}
