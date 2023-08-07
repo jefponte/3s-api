@@ -200,34 +200,34 @@ pipeline {
       }
     }
 
-    stage('Deploy em Staging') {
-      steps {
-        script {
+    // stage('Deploy em Staging') {
+    //   steps {
+    //     script {
 
-          sh '''
-            sed -i "s/aGFyYm9y/${HARBOR_REGCRED}/" ./kubernetes/kustomize/base/secret-regcred.yaml
-            sed -i "s/main/${DOCKER_TAG}/" ./kubernetes/kustomize/overlays/staging/kustomization.yaml
-            # sed -i "s/alfa1/${TAG}-beta/" ./kubernetes/kustomize/overlays/staging/configmap.yaml
-            kubectl kustomize ./kubernetes/kustomize/overlays/staging > /tmp/temp-staging.yaml
-            cat /tmp/temp-staging.yaml
-          '''
+    //       sh '''
+    //         sed -i "s/aGFyYm9y/${HARBOR_REGCRED}/" ./kubernetes/kustomize/base/secret-regcred.yaml
+    //         sed -i "s/main/${DOCKER_TAG}/" ./kubernetes/kustomize/overlays/staging/kustomization.yaml
+    //         # sed -i "s/alfa1/${TAG}-beta/" ./kubernetes/kustomize/overlays/staging/configmap.yaml
+    //         kubectl kustomize ./kubernetes/kustomize/overlays/staging > /tmp/temp-staging.yaml
+    //         cat /tmp/temp-staging.yaml
+    //       '''
 
-          withKubeConfig([credentialsId: 'kubeconfig-c3', serverUrl: 'https://dti-k8s-c3.unilab.edu.br:6443']) {
-            sh 'kubectl create namespace $APP_NAMESPACE_STAG --dry-run=client -o yaml | kubectl apply -f -'
-            def status = sh(script: 'kubectl get pods -n ${APP_NAMESPACE_STAG} --field-selector=status.phase=Running --no-headers 2>/dev/null | wc -l', returnStdout: true).trim()
-            if (Integer.parseInt(status) > 0) { sh 'kubectl delete -k ./kubernetes/kustomize/overlays/staging/ --ignore-not-found --cascade=orphan' }
-            sh '''
-              kubectl apply -k ./kubernetes/kustomize/overlays/staging/ --record
-              kubectl get all,ing,pvc,sa,secret -n $APP_NAMESPACE_STAG -o wide
-            '''
-            env.APP_URI_STAGING = sh(script: 'kubectl get ingress $INGRESS_NAME -n $APP_NAMESPACE_STAG -o jsonpath="{.spec.rules[0].host}" | sed "s/^/http:\\/\\//"', returnStdout: true).trim()
-            withEnv(["APP_URI=${env.APP_URI_STAGING}"]) {
-              sh 'echo Endpoint: $APP_URI_STAGING'
-            }
-          }
-        }
-      }
-    }
+    //       withKubeConfig([credentialsId: 'kubeconfig-c3', serverUrl: 'https://dti-k8s-c3.unilab.edu.br:6443']) {
+    //         sh 'kubectl create namespace $APP_NAMESPACE_STAG --dry-run=client -o yaml | kubectl apply -f -'
+    //         def status = sh(script: 'kubectl get pods -n ${APP_NAMESPACE_STAG} --field-selector=status.phase=Running --no-headers 2>/dev/null | wc -l', returnStdout: true).trim()
+    //         if (Integer.parseInt(status) > 0) { sh 'kubectl delete -k ./kubernetes/kustomize/overlays/staging/ --ignore-not-found --cascade=orphan' }
+    //         sh '''
+    //           kubectl apply -k ./kubernetes/kustomize/overlays/staging/ --record
+    //           kubectl get all,ing,pvc,sa,secret -n $APP_NAMESPACE_STAG -o wide
+    //         '''
+    //         env.APP_URI_STAGING = sh(script: 'kubectl get ingress $INGRESS_NAME -n $APP_NAMESPACE_STAG -o jsonpath="{.spec.rules[0].host}" | sed "s/^/http:\\/\\//"', returnStdout: true).trim()
+    //         withEnv(["APP_URI=${env.APP_URI_STAGING}"]) {
+    //           sh 'echo Endpoint: $APP_URI_STAGING'
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
     stage('Aprovar Deploy') {
       steps {
