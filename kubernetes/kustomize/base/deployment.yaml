@@ -40,15 +40,15 @@ spec:
           source /vault/secrets/config
           php artisan config:clear
           apache2-foreground
-          
+
         livenessProbe:
           exec:
             command:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 20
-          periodSeconds: 20
+          initialDelaySeconds: 40
+          periodSeconds: 40
 
         readinessProbe:
           exec:
@@ -56,8 +56,8 @@ spec:
             - /bin/bash
             - -c
             - /health-check.sh
-          initialDelaySeconds: 19
-          periodSeconds: 19
+          initialDelaySeconds: 29
+          periodSeconds: 29
 
         ports:
         - containerPort: 80
