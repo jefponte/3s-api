@@ -22,7 +22,6 @@ spec:
         - |
           mkdir -p /var/www/html/storage/framework/{sessions,views,cache}
           chown -R www-data:www-data /var/www/html/storage
-          php artisan storage:link
         volumeMounts:
         - name: app3s-storage
           mountPath: /var/www/html/storage
@@ -40,6 +39,7 @@ spec:
         - |
           source /vault/secrets/config
           php artisan config:clear
+          php artisan storage:link
           apache2-foreground
 
         livenessProbe:
