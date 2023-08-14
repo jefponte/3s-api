@@ -3,7 +3,7 @@
 <html lang="pt-br">
 
 <head>
-
+    <!--VERSAO: {{ env('APP_VERSION') }} -->
     <meta http-equiv="cache-control" content="max-age=0" />
     <meta http-equiv="cache-control" content="no-cache" />
     <meta http-equiv="expires" content="0" />
