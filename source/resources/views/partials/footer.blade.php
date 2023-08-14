@@ -56,5 +56,5 @@
     <script src="js/painel_tabela.js?a=142"></script>
 @endif
 <script src="js/status_ocorrencia.js"></script>
-
+<!--VERSAO: {{ env('APP_VERSION') }} -->
 </html>
