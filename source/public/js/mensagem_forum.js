@@ -81,7 +81,7 @@ function alocaMensagem(item, index) {
 	if (item.tipo == 1) {
 		div += '<li>' + item.mensagem + '</li>';
 	} else {
-		div += '<li>Anexo: <a href="uploads/' + item.mensagem + '">Download</a></li>';
+		div += '<li>Anexo: <a href="./storage/uploads/' + item.mensagem + '" download>Download</a></li>';
 	}
 
     div += '</ul>';
