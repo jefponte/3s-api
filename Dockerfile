@@ -118,6 +118,7 @@ RUN php artisan route:cache && \
   php artisan cache:clear && \
   php artisan config:clear && \
   php artisan view:clear && \
+  php artisan storage:link && \
   php artisan key:generate && \
   a2enmod rewrite
 
