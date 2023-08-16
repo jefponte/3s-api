@@ -38,7 +38,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev locales curl nano unzip \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
 
 RUN docker-php-ext-install pdo pdo_pgsql
 RUN docker-php-ext-configure opcache --enable-opcache
