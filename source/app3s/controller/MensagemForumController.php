@@ -154,17 +154,15 @@ class MensagemForumController
 
             					</ul>
             				</div>
-            				<!-- <img src="https://www.gstatic.com/webp/gallery/2.jpg"
-            					alt="Picture">-->
             				<div class="clearfix"></div>
             				<div class="ul_section_full">
             					<ul class="ul_msg">
                                     <li><strong>' . $nome . '</strong></li>';
             if ($mensagemForum->getTipo() == self::TIPO_ARQUIVO) {
-                echo '<li>Anexo: <a href="'.env('APP_URL').'/storage/uploads/'.$mensagemForum->getMensagem().'">Clique aqui</a></li>';
+                echo '<li>Anexo: <a href="./storage/uploads/'.$mensagemForum->getMensagem().'">Clique aqui</a></li>';
             } else {
                 echo '
-                        <li>' . strip_tags($mensagemForum->getMensagem()) . '</li>';
+                        <li>' . nl2br(htmlspecialchars($mensagemForum->getMensagem())) . '</li>';
             }
             echo '
 
@@ -196,7 +194,9 @@ class MensagemForumController
                   <label class="custom-file-label" for="anexo" data-browse="Anexar">Anexar um Arquivo</label>
             </div>
   <div class="input-group">
-    <input name="mensagem" id="campo-texto" type="text" class="form-control input-sm chat_set_height" placeholder="Digite sua mensagem aqui..." tabindex="0" dir="ltr" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" contenteditable="true" />
+    <textarea style="resize: none;" name="mensagem" rows="3" cols="40"  name="mensagem" id="campo-texto" t></textarea>
+
+
                 <span class="input-group-btn"> <button class="btn bt_bg btn-sm" id="botao-enviar-mensagem">Enviar</button></span>
   </div>
         </form>';

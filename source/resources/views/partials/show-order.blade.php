@@ -29,10 +29,9 @@
 
             <div class="card mb-4">
                 <div class="card-body">
-                    <b> Descricao: </b>{{ $order->descricao }}<br>
-
+                    <b> Descricao: </b>{!! nl2br(htmlspecialchars($order->descricao)) !!}<br>
                     @if ($order->anexo != '')
-                        <b>Anexo: </b><a href="{{asset('storage/uploads/'.$order->anexo)}}" download> Clique aqui</a> <br>
+                        <b>Anexo: </b><a href="{{'./storage/uploads/'.$order->anexo}}" download> Clique aqui</a> <br>
                     @endif
 
                 </div>
@@ -51,7 +50,7 @@
             </div>
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Solucao: </b>{{ $order->solucao }}<br>
+                    <b>Solucao: </b>{!! nl2br(htmlspecialchars($order->solucao)) !!}<br>
                     @if ($canEditSolution)
                         <button id="botao-editar-solucao" type="button" acao="editar_solucao"
                             class="dropdown-item text-right" data-toggle="modal" data-target="#modalStatus">
