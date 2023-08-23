@@ -19,14 +19,14 @@ return new class extends Migration
 
         // Criar uma nova coluna com o tipo enum
         Schema::table('order_status_logs', function (Blueprint $table) {
-            $table->enum('status', ['opened', 'pending customer response', 'reserved', 'closed', 'pending it resource', 'canceled', 'committed', 'in progress'])->nullable();
+            $table->enum('status', ['opened', 'reopened', 'pending customer response', 'reserved', 'closed', 'pending it resource', 'canceled', 'committed', 'in progress'])->nullable();
         });
 
         // Preencher os valores da nova coluna com base na coluna temporária
         DB::table('order_status_logs')->update([
             'status' => DB::raw("CASE
                 WHEN status_temp = '2' THEN 'opened'
-                WHEN status_temp = '7' THEN 'opened'
+                WHEN status_temp = '7' THEN 'reopened'
                 WHEN status_temp = '8' THEN 'opened'
                 WHEN status_temp = '10' THEN 'pending customer response'
                 WHEN status_temp = '1' THEN 'reserved'
@@ -61,6 +61,7 @@ return new class extends Migration
             'status' => DB::raw("CASE
                 WHEN status_temp = 'opened' THEN '2'
                 WHEN status_temp = 'pending customer response' THEN '10'
+                WHEN status_temp = 'reopened' THEN '7'
                 WHEN status_temp = 'reserved' THEN '1'
                 WHEN status_temp = 'closed' THEN '5'
                 WHEN status_temp = 'pending it resource' THEN '9'
