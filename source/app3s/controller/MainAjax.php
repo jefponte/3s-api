@@ -26,18 +26,6 @@ class MainAjax
                 $controller = new OcorrenciaController();
                 $controller->ajaxPedirAjuda();
                 break;
-            case 'painel_kamban':
-                $controller = new PainelKambanController();
-                $controller->quadroKamban();
-                break;
-            case 'painel_tabela':
-                $controller = new PainelTabelaController();
-                $controller->tabelaChamados();
-                break;
-            case 'login':
-                $controller = new UsuarioController();
-                $controller->ajaxLogin();
-                break;
             case 'mudar_nivel':
                 $controller = new UsuarioController();
                 $controller->mudarNivel();

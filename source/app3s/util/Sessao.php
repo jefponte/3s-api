@@ -106,8 +106,8 @@ class Sessao
     }
 
     const NIVEL_DESLOGADO = null;
-    const NIVEL_COMUM = 'c';
-    const NIVEL_TECNICO = 't';
-    const NIVEL_ADM = 'a';
+    const NIVEL_COMUM = 'customer';
+    const NIVEL_TECNICO = 'provider';
+    const NIVEL_ADM = 'administrator';
     const NIVEL_DISABLED = 'd';
 }

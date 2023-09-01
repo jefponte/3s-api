@@ -17,12 +17,12 @@ use app3s\controller\MainIndex;
 
 Route::get('/', function () {
     $main = new MainIndex();
-    return $main->main(auth()->user());
+    return $main->main();
 })->name('root');
 
 Route::post('/', function () {
     $main = new MainIndex();
-    return $main->main(auth()->user());
+    return $main->main();
 })->name('root-post');
 
 

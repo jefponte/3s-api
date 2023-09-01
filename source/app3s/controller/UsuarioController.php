@@ -26,59 +26,6 @@ class UsuarioController
 	}
 
 
-	public function autenticar(Usuario $usuario)
-	{
-
-		$login = $usuario->getLogin();
-		$senha = $usuario->getSenha();
-		$data = ['login' =>  $login, 'senha' => $senha];
-		$response = Http::post(env('UNILAB_API_ORIGIN') . '/authenticate', $data);
-		$responseJ = json_decode($response->body());
-
-		$idUsuario  = 0;
-
-		if (isset($responseJ->id)) {
-			$idUsuario = intval($responseJ->id);
-		}
-		if ($idUsuario === 0) {
-			return false;
-		}
-		$headers = [
-			'Authorization' => 'Bearer ' . $responseJ->access_token,
-		];
-		$response = Http::withHeaders($headers)->get(env('UNILAB_API_ORIGIN') . '/user', $headers);
-		$responseJ2 = json_decode($response->body());
-
-		$response = Http::withHeaders($headers)->get(env('UNILAB_API_ORIGIN') . '/bond', $headers);
-		$responseJ3 = json_decode($response->body());
-		$nivel = 'c';
-		if ($responseJ2->id_status_servidor != 1) {
-			$nivel = 'd';
-		}
-
-		$data = DB::table('usuario')->where("id", $idUsuario)->first();
-		if ($data === null) {
-			DB::table('usuario')->insert(
-				[
-					'id' => $idUsuario,
-					'nome' => $responseJ2->nome,
-					'email' => $responseJ2->email,
-					'login' => $responseJ2->login,
-					'nivel' => $nivel
-				]
-			);
-		} else {
-			$nivel = $data->nivel;
-		}
-		$usuario->setId($idUsuario);
-		$usuario->setNome($responseJ2->nome);
-		$usuario->setEmail($responseJ2->email);
-		$usuario->setNivel($nivel);
-
-		$usuario->idUnidade = $responseJ3[0]->id_unidade;
-		$usuario->siglaUnidade = $responseJ3[0]->sigla_unidade;
-		return true;
-	}
 	public function mudarNivel()
 	{
 
@@ -98,30 +45,6 @@ class UsuarioController
 			return;
 		}
 		echo ':falha:';
-	}
-
-	public function ajaxLogin()
-	{
-		if (!isset($_POST['logar'])) {
-			return ":falha";
-		}
-		$usuario = new Usuario();
-		$usuario->setLogin($_POST['usuario']);
-		$usuario->setSenha($_POST['senha']);
-
-		if ($this->autenticar($usuario)) {
-
-			$sessao = new Sessao();
-			$sessao->criaSessao($usuario->getId(), $usuario->getNivel(), $usuario->getLogin(), $usuario->getNome(), $usuario->getEmail());
-
-
-
-			$sessao->setIDUnidade($usuario->idUnidade);
-			$sessao->setUnidade($usuario->siglaUnidade);
-			echo ":sucesso:" . $sessao->getNivelAcesso();
-		} else {
-			echo ":falha";
-		}
 	}
 
 	public function getStrNivel($nivel) {

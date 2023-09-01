@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -12,6 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         if (Schema::hasTable('usuario')) {
+
             Schema::table('usuario', function (Blueprint $table) {
 
                 $table->unsignedBigInteger('id')->change();
@@ -24,8 +26,8 @@ return new class extends Migration
                 $table->timestamp('email_verified_at')->nullable();
                 $table->string('remember_token', 100)->nullable();
                 $table->timestamps();
-
             });
+
             Schema::table('usuario', function (Blueprint $table) {
                 $table->string('name', 255)->change()->nullable();
                 $table->string('password', 255)->change()->nullable();
@@ -33,10 +35,17 @@ return new class extends Migration
                 $table->string('email', 255)->change()->nullable();
                 $table->unsignedBigInteger('division_id')->change()->nullable();
                 $table->string('role')->change()->nullable();
-
-
             });
             Schema::rename('usuario', 'users');
+            DB::table('users')
+                ->whereIn('role', ['a', 'c', 't'])
+                ->update([
+                    'role' => DB::raw("CASE
+                    WHEN role = 'a' THEN 'administrator'
+                    WHEN role = 'c' THEN 'customer'
+                    WHEN role = 't' THEN 'provider'
+                END"),
+                ]);
         } else {
             Schema::create('users', function (Blueprint $table) {
                 $table->id();
@@ -53,8 +62,6 @@ return new class extends Migration
                 $table->timestamp('email_verified_at')->nullable();
                 $table->rememberToken();
                 $table->timestamps();
-
-
             });
         }
     }
