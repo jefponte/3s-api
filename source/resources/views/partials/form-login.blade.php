@@ -16,6 +16,9 @@
                         <h3>Entrar no sistema 3s</h3>
 
                     </div>
+
+
+
                     <form id="login-form" class="form" method="post" action=".">
 
                         <div class="form-group">
@@ -32,13 +35,15 @@
                                 senha?</a>
                         </div>
                         <button type="submit" id="botao-login" class="btn-primary btn-lg btn-block">
-                            <span id="spinner-submit" class="escondido spinner-border spinner-border-sm" role="status"
-                                aria-hidden="true"></span>
                             Entrar
                         </button>
 
                         <input type="hidden" class="btn btn-info btn-md" name="logar" value="Entrar">
                     </form>
+
+
+
+
 
 
                 </div>
