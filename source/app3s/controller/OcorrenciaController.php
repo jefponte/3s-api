@@ -163,9 +163,9 @@ class OcorrenciaController
 		}
 
 		$orderStatusLog = DB::table('status_ocorrencia')
-			->join('usuario', 'status_ocorrencia.id_usuario', '=', 'usuario.id')
+			->join('users', 'status_ocorrencia.id_usuario', '=', 'users.id')
 			->join('status', 'status_ocorrencia.id_status', '=', 'status.id')
-			->select('status.sigla', 'status.nome', 'status_ocorrencia.mensagem', 'usuario.nome as nome_usuario', 'status_ocorrencia.data_mudanca')
+			->select('status.sigla', 'status.nome', 'status_ocorrencia.mensagem', 'users.name as nome_usuario', 'status_ocorrencia.data_mudanca')
 			->where('status_ocorrencia.id_ocorrencia', $selected->id)
 			->get();
 
@@ -174,7 +174,8 @@ class OcorrenciaController
 		$currentStatus = DB::table('status')->where('sigla', $this->selecionado->getStatus())->first();
 
 
-		$listaUsuarios = DB::table('usuario')->whereIn('nivel', ['t', 'a'])->get();
+		$listaUsuarios = DB::table('users')->whereIn('role', [Sessao::NIVEL_TECNICO,
+		Sessao::NIVEL_ADM])->get();
 		$listaServicos = DB::table('servico')->whereIn('visao', [1, 2])->get();
 		$listaAreas = DB::table('area_responsavel')->get();
 
@@ -722,7 +723,7 @@ class OcorrenciaController
 			return;
 		}
 
-		$usersList = DB::table('usuario')->where('id_setor', $ocorrencia->getAreaResponsavel()->getId())->get();
+		$usersList = DB::table('users')->where('division_id', $ocorrencia->getAreaResponsavel()->getId())->get();
 
 		$mail = new Mail();
 

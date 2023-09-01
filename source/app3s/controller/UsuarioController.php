@@ -11,6 +11,7 @@ use app3s\dao\AreaResponsavelDAO;
 use app3s\dao\UsuarioDAO;
 use app3s\model\Usuario;
 use app3s\util\Sessao;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -85,10 +86,10 @@ class UsuarioController
 		}
 		$selected = new Usuario();
 		$selected->setId(intval($_GET['edit']));
-		$this->dao->fillById($selected);
+
 
 		$setores = DB::table('area_responsavel')->get();
-		$user = DB::table('usuario')->where('id', $_GET['edit'])->first();
+		$user = User::findOrFail(intval($_GET['edit']));
 		if (!isset($_POST['edit_usuario'])) {
 			echo view('partials.form-edit-user', ['user' => $user, 'divisions' => $setores]);
 			return;
@@ -105,10 +106,11 @@ class UsuarioController
 			return;
 		}
 
-		$selected->setNivel($_POST['nivel']);
-		$selected->setIdSetor($_POST['id_setor']);
+		$user->role = $_POST['nivel'];
+		$user->division_id = $_POST['id_setor'];
 
-		if ($this->dao->update($selected)) {
+
+		if ($user->save()) {
 			echo '
 
 <div class="alert alert-success" role="alert">
