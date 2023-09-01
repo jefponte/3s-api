@@ -34,13 +34,12 @@
 </body>
 
 
-<script src="https://cdn.datatables.net/1.10.21/js/jquery.js"></script>
-<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.10.21/js/dataTables.bootstrap4.min.js"></script>
-
-{{--
-
-
+<script src="js/barra_2.0.js"></script>
+<script src="js/jquery-3.5.1.min.js"></script>
+<script src="vendor/popper.min.js"></script>
+<script src="vendor/bootstrap-4.6.0/js/bootstrap.min.js"></script>
+<script src="vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
 <script src="js/demo/datatables-demo.js"></script>
 <script src="js/selectize.js"></script>
 <script src="js/login_load.js?a=12"></script>
@@ -52,6 +51,11 @@
 @if (isset($_GET['page']) && $_GET['page'] == 'ocorrencia' && isset($_GET['selecionar']))
     <script src="js/mensagem_forum.js?a=174"></script>
 @endif
-<script src="js/status_ocorrencia.js"></script> --}}
-<!--VERSAO:  -->
+@if (isset($_GET['page']) && $_GET['page'] == 'painel_kamban')
+    <script src="js/painel_kamban.js?123=1243"></script>
+@endif
+@if (isset($_GET['page']) && $_GET['page'] == 'painel_tabela')
+    <script src="js/painel_tabela.js?a=142"></script>
+@endif
+<script src="js/status_ocorrencia.js"></script>
 </html>

@@ -16,12 +16,12 @@ $('#select-setores-filtro2').selectize({
     maxItems: 50
 });
 
-jQuery('#select-unidade').selectize({
+$('#select-unidade').selectize({
     create: false,
     sortField: 'text'
 });
 
-jQuery('#select-nivel').selectize({
+$('#select-nivel').selectize({
     create: false,
     sortField: 'text'
 });
