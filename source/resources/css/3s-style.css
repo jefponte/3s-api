@@ -1,14 +1,15 @@
 /*Digite aqui seu arquivo css*/
-body{
-	background-color:#F3F3F3;
-}
-header{
-	background-color:#3fa2db;
+body {
+  background-color: #F3F3F3;
 }
 
-.menu a{
+header {
+  background-color: #3fa2db;
+}
 
-	color:#ffffff;
+.menu a {
+
+  color: #ffffff;
 }
 
 /* stylelint-disable selector-list-comma-newline-after */
@@ -27,13 +28,19 @@ header{
   text-decoration: none;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Playfair Display", Georgia, "Times New Roman", serif;
 }
 
 .display-4 {
   font-size: 2.5rem;
 }
+
 @media (min-width: 768px) {
   .display-4 {
     font-size: 3rem;
@@ -76,16 +83,22 @@ h1, h2, h3, h4, h5, h6 {
   flex: 0 0 auto;
 }
 
-.h-250 { height: 250px; }
+.h-250 {
+  height: 250px;
+}
+
 @media (min-width: 768px) {
-  .h-md-250 { height: 250px; }
+  .h-md-250 {
+    height: 250px;
+  }
 }
 
 /* Pagination */
 .blog-pagination {
   margin-bottom: 4rem;
 }
-.blog-pagination > .btn {
+
+.blog-pagination>.btn {
   border-radius: 2rem;
 }
 
@@ -95,10 +108,12 @@ h1, h2, h3, h4, h5, h6 {
 .blog-post {
   margin-bottom: 4rem;
 }
+
 .blog-post-title {
   margin-bottom: .25rem;
   font-size: 2.5rem;
 }
+
 .blog-post-meta {
   margin-bottom: 1.25rem;
   color: #999;
@@ -114,9 +129,11 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #f9f9f9;
   border-top: .05rem solid #e5e5e5;
 }
+
 .blog-footer p:last-child {
   margin-bottom: 0;
 }
+
 .btn-circle {
   width: 30px;
   height: 30px;
@@ -126,6 +143,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.428571429;
   border-radius: 15px;
 }
+
 .btn-circle.btn-lg {
   width: 50px;
   height: 50px;
@@ -134,6 +152,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.33;
   border-radius: 25px;
 }
+
 .btn-circle.btn-xl {
   width: 70px;
   height: 70px;
@@ -142,14 +161,17 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.33;
   border-radius: 35px;
 }
-.escondido{
-	display: none;
+
+.escondido {
+  display: none;
 }
-.star{
-	cursor:pointer;
+
+.star {
+  cursor: pointer;
 }
-.botao-sair{
-    border:none;
+
+.botao-sair {
+  border: none;
 }
 
 
@@ -164,8 +186,8 @@ h1, h2, h3, h4, h5, h6 {
 .contrast main,
 .contrast aside,
 .contrast article {
-    background: black !important;
-    color: white !important;
+  background: black !important;
+  color: white !important;
 }
 
 .contrast h1,
@@ -184,10 +206,10 @@ h1, h2, h3, h4, h5, h6 {
 .contrast b,
 .contrast u,
 .contrast span {
-    color: white !important;
+  color: white !important;
 }
 
-.contrast a{
+.contrast a {
   color: yellow !important;
 }
 
@@ -221,15 +243,36 @@ h1, h2, h3, h4, h5, h6 {
 .contrast input[type=datetime-local],
 .contrast textarea,
 .contrast input[type=number] {
-    background: black !important;
-    border: 1px solid white !important;
-    color: white !important;
+  background: black !important;
+  border: 1px solid white !important;
+  color: white !important;
 }
 
-.btn-contraste{
+.btn-contraste {
 
- 	background-color:#3fa2db;
-    border-bottom:1px solid #070978;
-    border-right:1px solid #070978;
+  background-color: #3fa2db;
+  border-bottom: 1px solid #070978;
+  border-right: 1px solid #070978;
 
+}
+
+
+.forget-pwd>a {
+  color: #dc3545;
+  font-weight: 500;
+}
+
+.forget-password .panel-body {
+  background: #fff;
+  border-radius: 5px;
+  -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+#botao-login {
+  background: #0080ff none repeat scroll 0 0;
+  border-color: #0080c0;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 50px;
+  padding: 0;
 }
