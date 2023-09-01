@@ -33,13 +33,12 @@
 
 </body>
 
-
-<script src="js/barra_2.0.js"></script>
+@vite(['resources/js/app.js'])
 <script src="js/jquery-3.5.1.min.js"></script>
-<script src="vendor/popper.min.js"></script>
-<script src="vendor/bootstrap-4.6.0/js/bootstrap.min.js"></script>
-<script src="vendor/datatables/jquery.dataTables.min.js"></script>
-<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
+<script src="js/popper.min.js"></script>
+<script src="js/bootstrap-4.6.0/js/bootstrap.min.js"></script>
+<script src="js/datatables/jquery.dataTables.min.js"></script>
+<script src="js/datatables/dataTables.bootstrap4.min.js"></script>
 <script src="js/demo/datatables-demo.js"></script>
 <script src="js/selectize.js"></script>
 <script src="js/login_load.js?a=12"></script>
@@ -50,12 +49,6 @@
 <script src="js/ocorrencia.js?a=1451"></script>
 @if (isset($_GET['page']) && $_GET['page'] == 'ocorrencia' && isset($_GET['selecionar']))
     <script src="js/mensagem_forum.js?a=174"></script>
-@endif
-@if (isset($_GET['page']) && $_GET['page'] == 'painel_kamban')
-    <script src="js/painel_kamban.js?123=1243"></script>
-@endif
-@if (isset($_GET['page']) && $_GET['page'] == 'painel_tabela')
-    <script src="js/painel_tabela.js?a=142"></script>
 @endif
 <script src="js/status_ocorrencia.js"></script>
 </html>

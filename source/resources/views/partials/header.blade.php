@@ -27,7 +27,7 @@
     <title>3s | Sistema de Solicitação de Ocorrências</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="vendor/bootstrap-4.6.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="js/bootstrap-4.6.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="css/style.css?a=123" />
     <link rel="stylesheet" type="text/css" href="css/style_kamban.css" />
     <link rel="stylesheet" type="text/css" href="css/list.css" />
@@ -35,7 +35,7 @@
     <link rel="stylesheet" type="text/css" href="css/selectize.default.css" />
 
 
-    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="js/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
     <link href="css/style_form_login.css" rel="stylesheet">
     <!-- Desenvolvido por Jefferson Uchôa Ponte-->
     <meta http-equiv="Cache-control" content="no-cache">
