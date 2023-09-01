@@ -30,7 +30,7 @@
 
     function updateViewContrast() {
         var body = document.body;
-
+        
         if (!body) return;
 
         if (this.currentState === null)

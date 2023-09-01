@@ -54,6 +54,7 @@ return [
     | your application so that it is used when running Artisan tasks.
     |
     */
+    'Debugbar' => Barryvdh\Debugbar\Facades\Debugbar::class,
 
     'url' => env('APP_URL', 'http://localhost'),
 

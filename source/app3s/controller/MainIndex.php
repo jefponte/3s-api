@@ -7,9 +7,13 @@ use app3s\util\Sessao;
 class MainIndex
 {
 
-  public function main()
+  public function main($user)
   {
-    $sessao = new Sessao();
+    if ($user === null) {
+      return redirect('/login');
+    }
+
+
     if (isset($_GET['ajax'])) {
       $mainAjax = new MainAjax();
       $mainAjax->main();
