@@ -16,6 +16,7 @@ use app3s\model\StatusOcorrencia;
 use app3s\model\Usuario;
 use app3s\util\Mail;
 use app3s\util\Sessao;
+use App\Models\User;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -485,10 +486,11 @@ class OcorrenciaController
 		<aside class="col-md-4 blog-sidebar">';
 		if ($sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			$sessao = new Sessao();
-			$currentUser = DB::table('usuario')->where('id', $sessao->getIdUsuario())->first();
-			$userDivision = DB::table('area_responsavel')->where('id', $currentUser->id_setor)->first();
-			$attendents = DB::table('usuario')->where('nivel', 'a')->orWhere('nivel', 't')->get();
-			$allUsers = DB::table('usuario')->get();
+
+			$userDivision = DB::table('area_responsavel')->where('id', request()->user()->division_id)->first();
+			$attendents = User::where('role', Sessao::NIVEL_ADM)
+				->orWhere('role', Sessao::NIVEL_TECNICO)->get();
+			$allUsers = User::get();
 			$applicants = DB::table('ocorrencia')->select('local as division_sig', 'id_local as division_sig_id')->distinct()->limit(400)->get();
 			$divisions = DB::table('area_responsavel')->select('id', 'nome as name')->get();
 
