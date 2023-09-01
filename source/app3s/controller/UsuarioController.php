@@ -50,13 +50,13 @@ class UsuarioController
 	public function getStrNivel($nivel) {
 		$strNivel = 'Desconhecido';
 		switch($nivel) {
-			case 'a':
+			case Sessao::NIVEL_ADM:
 				$strNivel = 'Administrador';
 				break;
-			case 't':
+			case Sessao::NIVEL_TECNICO:
 				$strNivel = 'Técnico';
 				break;
-			case 'c':
+			case Sessao::NIVEL_COMUM:
 				$strNivel = 'Comum';
 				break;
 			default:
@@ -68,9 +68,9 @@ class UsuarioController
 
 	public function fetch()
 	{
-		$users = DB::table('usuario')->get();
+		$users = DB::table('users')->get();
 		foreach($users as $user) {
-			$user->strNivel = $this->getStrNivel($user->nivel);
+			$user->strNivel = $this->getStrNivel($user->role);
 		}
 		echo view('partials.index-users', ['users' => $users]);
 	}
