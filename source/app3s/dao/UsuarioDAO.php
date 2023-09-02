@@ -22,7 +22,8 @@ class UsuarioDAO extends DAO
     {
 
         $id = $usuario->getId();
-        $sql = "SELECT usuario.id, usuario.nome, usuario.email, usuario.login, usuario.senha, usuario.nivel, usuario.id_setor FROM usuario
+        $sql = "SELECT usuario.id, usuario.name as nome, usuario.email, usuario.login,
+        usuario.role as nivel, usuario.division_id as id_setor FROM users as usuario
                 WHERE usuario.id = :id
                  LIMIT 1000";
 
@@ -40,7 +41,6 @@ class UsuarioDAO extends DAO
                 $usuario->setNome($row['nome']);
                 $usuario->setEmail($row['email']);
                 $usuario->setLogin($row['login']);
-                $usuario->setSenha($row['senha']);
                 $usuario->setNivel($row['nivel']);
                 $usuario->setIdSetor($row['id_setor']);
             }
