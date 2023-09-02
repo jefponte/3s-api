@@ -1,26 +1,20 @@
 var url = new URL(window.location.href);
 if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selecionar")) {
 
-    (function ($) {
-        $(document).ready(function () {
-            var $chatbox = $('.chatbox');
-            var $chatboxTitle = $('.chatbox__title');
-            var $chatboxTitleClose = $('.chatbox__title__close');
+    var $chatbox = $('.chatbox');
+    var $chatboxTitle = $('.chatbox__title');
+    var $chatboxTitleClose = $('.chatbox__title__close');
 
-            $chatboxTitle.on('click', function () {
-                $chatbox.toggleClass('chatbox--tray');
-            });
-            $chatboxTitleClose.on('click', function (e) {
-                e.stopPropagation();
-                $chatbox.addClass('chatbox--closed');
-            });
-            $chatbox.on('transitionend', function () {
-                if ($chatbox.hasClass('chatbox--closed')) $chatbox.remove();
-            });
-
-        });
-    })(jQuery);
-
+    $chatboxTitle.on('click', function () {
+        $chatbox.toggleClass('chatbox--tray');
+    });
+    $chatboxTitleClose.on('click', function (e) {
+        e.stopPropagation();
+        $chatbox.addClass('chatbox--closed');
+    });
+    $chatbox.on('transitionend', function () {
+        if ($chatbox.hasClass('chatbox--closed')) $chatbox.remove();
+    });
 
     $("#muda-tipo").on('change', function (e) {
 
@@ -43,8 +37,7 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
 
 
     function alocaMensagem(item, index) {
-        console.log("Vamos alocar");
-
+        console.log("Chamou");
         let data = new Date(item.data_envio);
 
 
@@ -100,78 +93,82 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
     var urlApiMensagem = "?api=api/mensagem_forum/";
     var url1 = urlApiMensagem + idOcorrencia + "/" + idUltima;
 
-    function carregarDados(url2) {
+    var intervalId;
+
+    function verifyMessages(url, alocaMensagem, interval) {
         $.ajax({
-            url: url2,
+            url: url,
             success: function (data) {
                 if (data.length > 0) {
-                    url1 = urlApiMensagem + idOcorrencia + "/" + data[data.length - 1].id;
-                    data.forEach(alocaMensagem);
+                    data.forEach(
+                        (element) => {
+                            clearInterval(interval);
+                            alocaMensagem(element);
+                            let newUrl = urlApiMensagem + idOcorrencia + "/" + data[data.length - 1].id;
+                            intervalId = setInterval(function() {
+                                verifyMessages(newUrl, alocaMensagem, intervalId);
+                            }, 10000);
+                        });
                 }
-
             }
         });
     }
-
-    setInterval(function () {
-        carregarDados(url1);
-    }, 5000);
-
+    intervalId = setInterval(function() {
+        verifyMessages(url1, alocaMensagem, intervalId);
+    }, 10000);
 
 
-
-    $(document).ready(function (e) {
-        $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
-        $("#insert_form_mensagem_forum").on('submit', function (e) {
-            e.preventDefault();
-            console.log("Estou aqui")
-
-            var dados = new FormData(this);
-            $('#botao-enviar-mensagem').attr('disabled', true);
-            $('#botao-enviar-mensagem').text("Aguarde...");
+    $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
+    $("#insert_form_mensagem_forum").on('submit', function (e) {
+        e.preventDefault();
 
 
-            jQuery.ajax({
-                type: "POST",
-                url: "?ajax=mensagem_forum",
-                data: dados,
-                success: function (data) {
+        var dados = new FormData(this);
+        $('#botao-enviar-mensagem').attr('disabled', true);
+        $('#botao-enviar-mensagem').text("Aguarde...");
 
-                    console.log(data);
-                    if (data.split(":")[1] == 'sucesso') {
 
-                        //window.location.href='?page=ocorrencia&selecionar='+data.split(":")[2];
-                        $('#botao-enviar-mensagem').attr('disabled', false);
-                        $('#botao-enviar-mensagem').text("Enviar");
-                        $("#campo-texto").val("");
-                        $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
+        jQuery.ajax({
+            type: "POST",
+            url: "?ajax=mensagem_forum",
+            data: dados,
+            success: function (data) {
 
-                    }
-                    else {
-                        alert("Falha ao enviar mensagem");
-                    }
+                console.log(data);
+                if (data.split(":")[1] == 'sucesso') {
 
-                },
-                cache: false,
-                contentType: false,
-                processData: false,
-                xhr: function () { // Custom XMLHttpRequest
-                    var myXhr = $.ajaxSettings.xhr();
-                    if (myXhr.upload) { // Avalia se tem suporte a propriedade upload
-                        myXhr.upload.addEventListener('progress', function () {
-                            /* faz alguma coisa durante o progresso do upload */
-                        }, false);
-                    }
-                    return myXhr;
-
+                    //window.location.href='?page=ocorrencia&selecionar='+data.split(":")[2];
+                    $('#botao-enviar-mensagem').attr('disabled', false);
+                    $('#botao-enviar-mensagem').text("Enviar");
+                    $("#campo-texto").val("");
+                    $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
 
                 }
-            });
+                else {
+                    alert("Falha ao enviar mensagem");
+                }
+
+            },
+            cache: false,
+            contentType: false,
+            processData: false,
+            xhr: function () { // Custom XMLHttpRequest
+                var myXhr = $.ajaxSettings.xhr();
+                if (myXhr.upload) { // Avalia se tem suporte a propriedade upload
+                    myXhr.upload.addEventListener('progress', function () {
+                        /* faz alguma coisa durante o progresso do upload */
+                    }, false);
+                }
+                return myXhr;
 
 
+            }
         });
 
 
     });
+
+
+
 
 }

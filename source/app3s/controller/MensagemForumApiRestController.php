@@ -98,7 +98,7 @@ class MensagemForumApiRestController
         $list = $ocorrencia->getMensagens();
 
         if (count($list) == 0) {
-            echo "{}";
+            echo "[]";
             return;
         }
 
