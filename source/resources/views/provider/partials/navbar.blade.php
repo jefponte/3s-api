@@ -51,13 +51,13 @@
                 <button type="button" disabled class="dropdown-item change-level">
                     Perfil Técnico
                 </button>
-                @if($originalLevel === 'a')
+                @if($originalLevel === 'administrator')
                 <button type="button" nivel="a" class="dropdown-item change-level">
                     Perfil Admin
                 </button>
                 @endif
-                @if($originalLevel === 'a' || $originalLevel === 't')
-                <button type="button" nivel="c" id="change-to-tec" ' . $disabled . '
+                @if($originalLevel === 'administrator' || $originalLevel === 'provider')
+                <button type="button" nivel="customer" id="change-to-tec" ' . $disabled . '
                     class="dropdown-item change-level">
                     Perfil Cliente
                 </button>

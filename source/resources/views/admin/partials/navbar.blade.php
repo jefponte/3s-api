@@ -70,12 +70,12 @@
                 <button type="button" disabled class="dropdown-item change-level">
                     Perfil Admin
                 </button>
-                <button type="button" nivel="t" id="change-to-tec" ' . $disabled . '
+                <button type="button" nivel="provider" id="change-to-tec" ' . $disabled . '
                     class="dropdown-item change-level">
                     Perfil Técnico
                 </button>
 
-                <button type="button" nivel="c" id="change-to-default"
+                <button type="button" nivel="customer" id="change-to-default"
                     class="dropdown-item change-level">
                     Perfil Cliente
                 </button>

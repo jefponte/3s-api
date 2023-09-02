@@ -17,3 +17,4 @@ import '../js/barra_2.0';
 import '../js/change-contraste';
 import '../js/ocorrencia_selectize';
 import '../js/mensagem_forum';
+import '../js/mudar_nivel';

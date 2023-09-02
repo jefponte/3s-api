@@ -109,5 +109,5 @@ class Sessao
     const NIVEL_COMUM = 'customer';
     const NIVEL_TECNICO = 'provider';
     const NIVEL_ADM = 'administrator';
-    const NIVEL_DISABLED = 'd';
+    const NIVEL_DISABLED = 'disabled';
 }

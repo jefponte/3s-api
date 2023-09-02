@@ -12,6 +12,7 @@ class MainIndex
     $sessao = new Sessao();
     $user = request()->user();
 
+
     if ($user === null) {
       return redirect('/login');
     }
@@ -21,6 +22,7 @@ class MainIndex
 			$sessao->setUnidade($user->division_sig);
       return redirect('/?demanda=1');
     }
+
     if (isset($_GET["sair"])) {
       $sessao->mataSessao();
       auth()->logout();
@@ -42,7 +44,6 @@ class MainIndex
 
   public function pagina()
   {
-
     echo view('partials.header');
     $sessao = new Sessao();
     $primeiroNome = $sessao->getNome();
@@ -51,6 +52,7 @@ class MainIndex
       $primeiroNome = $arr[0];
     }
     $primeiroNome = ucfirst(strtolower($primeiroNome));
+
 
     if ($sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
       echo view('client.partials.navbar', ['originalLevel' => $sessao->getNivelOriginal(), 'userFirstName' => $primeiroNome, 'divisionSig' => $sessao->getUnidade()]);

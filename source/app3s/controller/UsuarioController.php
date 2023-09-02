@@ -29,15 +29,17 @@ class UsuarioController
 
 	public function mudarNivel()
 	{
-
 		$sessao = new Sessao();
-		if ($sessao->getNIvelOriginal() == Sessao::NIVEL_ADM) {
+		if ($sessao->getNivelOriginal() === Sessao::NIVEL_ADM) {
 			$sessao->setNivelDeAcesso($_POST['nivel']);
 			echo ':sucess:' . $sessao->getNivelAcesso();
 			return;
 		}
-		if ($sessao->getNIvelOriginal() == Sessao::NIVEL_TECNICO) {
+		if ($sessao->getNIvelOriginal() === Sessao::NIVEL_TECNICO) {
 			if ($_POST['nivel'] != Sessao::NIVEL_ADM) {
+				if($_POST['nivel'] === Sessao::NIVEL_ADM) {
+					return ':falha:';
+				}
 				$sessao->setNivelDeAcesso($_POST['nivel']);
 				echo ':sucess:' . $sessao->getNivelAcesso();
 				return;
