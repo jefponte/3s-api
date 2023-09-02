@@ -11,6 +11,7 @@ use app3s\dao\AreaResponsavelDAO;
 use app3s\dao\UsuarioDAO;
 use app3s\model\Usuario;
 use app3s\util\Sessao;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -26,114 +27,36 @@ class UsuarioController
 	}
 
 
-	public function autenticar(Usuario $usuario)
-	{
-
-		$login = $usuario->getLogin();
-		$senha = $usuario->getSenha();
-		$data = ['login' =>  $login, 'senha' => $senha];
-		$response = Http::post(env('UNILAB_API_ORIGIN') . '/authenticate', $data);
-		$responseJ = json_decode($response->body());
-
-		$idUsuario  = 0;
-
-		if (isset($responseJ->id)) {
-			$idUsuario = intval($responseJ->id);
-		}
-		if ($idUsuario === 0) {
-			return false;
-		}
-		$headers = [
-			'Authorization' => 'Bearer ' . $responseJ->access_token,
-		];
-		$response = Http::withHeaders($headers)->get(env('UNILAB_API_ORIGIN') . '/user', $headers);
-		$responseJ2 = json_decode($response->body());
-
-		$response = Http::withHeaders($headers)->get(env('UNILAB_API_ORIGIN') . '/bond', $headers);
-		$responseJ3 = json_decode($response->body());
-		$nivel = 'c';
-		if ($responseJ2->id_status_servidor != 1) {
-			$nivel = 'd';
-		}
-
-		$data = DB::table('usuario')->where("id", $idUsuario)->first();
-		if ($data === null) {
-			DB::table('usuario')->insert(
-				[
-					'id' => $idUsuario,
-					'nome' => $responseJ2->nome,
-					'email' => $responseJ2->email,
-					'login' => $responseJ2->login,
-					'nivel' => $nivel
-				]
-			);
-		} else {
-			$nivel = $data->nivel;
-		}
-		$usuario->setId($idUsuario);
-		$usuario->setNome($responseJ2->nome);
-		$usuario->setEmail($responseJ2->email);
-		$usuario->setNivel($nivel);
-
-		$usuario->idUnidade = $responseJ3[0]->id_unidade;
-		$usuario->siglaUnidade = $responseJ3[0]->sigla_unidade;
-		return true;
-	}
 	public function mudarNivel()
 	{
-
 		$sessao = new Sessao();
-		if ($sessao->getNIvelOriginal() == Sessao::NIVEL_ADM) {
-			$sessao->setNivelDeAcesso($_POST['nivel']);
-			echo ':sucess:' . $sessao->getNivelAcesso();
-			return;
-		}
-		if ($sessao->getNIvelOriginal() == Sessao::NIVEL_TECNICO) {
-			if ($_POST['nivel'] != Sessao::NIVEL_ADM) {
-				$sessao->setNivelDeAcesso($_POST['nivel']);
-				echo ':sucess:' . $sessao->getNivelAcesso();
+		if (
+			$sessao->getNIvelOriginal() != Sessao::NIVEL_TECNICO
+			&& $sessao->getNIvelOriginal() != Sessao::NIVEL_ADM)
+			{
+				echo ':falha:';
 				return;
-			}
-			echo ':falha:';
-			return;
 		}
-		echo ':falha:';
-	}
-
-	public function ajaxLogin()
-	{
-		if (!isset($_POST['logar'])) {
-			return ":falha";
+		if ($sessao->getNIvelOriginal() === Sessao::NIVEL_TECNICO
+			&& $_POST['nivel'] === Sessao::NIVEL_ADM) {
+				echo ':falha:';
+				return;
 		}
-		$usuario = new Usuario();
-		$usuario->setLogin($_POST['usuario']);
-		$usuario->setSenha($_POST['senha']);
-
-		if ($this->autenticar($usuario)) {
-
-			$sessao = new Sessao();
-			$sessao->criaSessao($usuario->getId(), $usuario->getNivel(), $usuario->getLogin(), $usuario->getNome(), $usuario->getEmail());
-
-
-
-			$sessao->setIDUnidade($usuario->idUnidade);
-			$sessao->setUnidade($usuario->siglaUnidade);
-			echo ":sucesso:" . $sessao->getNivelAcesso();
-		} else {
-			echo ":falha";
-		}
+		$sessao->setNivelDeAcesso($_POST['nivel']);
+		echo ':sucess:' . $sessao->getNivelAcesso();
+		return;
 	}
 
 	public function getStrNivel($nivel) {
 		$strNivel = 'Desconhecido';
 		switch($nivel) {
-			case 'a':
+			case Sessao::NIVEL_ADM:
 				$strNivel = 'Administrador';
 				break;
-			case 't':
+			case Sessao::NIVEL_TECNICO:
 				$strNivel = 'Técnico';
 				break;
-			case 'c':
+			case Sessao::NIVEL_COMUM:
 				$strNivel = 'Comum';
 				break;
 			default:
@@ -145,9 +68,9 @@ class UsuarioController
 
 	public function fetch()
 	{
-		$users = DB::table('usuario')->get();
+		$users = User::get();
 		foreach($users as $user) {
-			$user->strNivel = $this->getStrNivel($user->nivel);
+			$user->strNivel = $this->getStrNivel($user->role);
 		}
 		echo view('partials.index-users', ['users' => $users]);
 	}
@@ -162,10 +85,10 @@ class UsuarioController
 		}
 		$selected = new Usuario();
 		$selected->setId(intval($_GET['edit']));
-		$this->dao->fillById($selected);
+
 
 		$setores = DB::table('area_responsavel')->get();
-		$user = DB::table('usuario')->where('id', $_GET['edit'])->first();
+		$user = User::findOrFail(intval($_GET['edit']));
 		if (!isset($_POST['edit_usuario'])) {
 			echo view('partials.form-edit-user', ['user' => $user, 'divisions' => $setores]);
 			return;
@@ -182,10 +105,11 @@ class UsuarioController
 			return;
 		}
 
-		$selected->setNivel($_POST['nivel']);
-		$selected->setIdSetor($_POST['id_setor']);
+		$user->role = $_POST['nivel'];
+		$user->division_id = $_POST['id_setor'];
 
-		if ($this->dao->update($selected)) {
+
+		if ($user->save()) {
 			echo '
 
 <div class="alert alert-success" role="alert">

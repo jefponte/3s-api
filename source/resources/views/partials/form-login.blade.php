@@ -16,29 +16,46 @@
                         <h3>Entrar no sistema 3s</h3>
 
                     </div>
-                    <form id="login-form" class="form" method="post" action=".">
 
+
+
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
                         <div class="form-group">
-                            <input type="text" size="350" name="usuario" class="form-control" id="usuario"
-                                placeholder="Usuario do SIG" autofocus="autofocus">
+                            <input autofocus type="text" size="350" name="login" class="form-control"
+                                value="{{ old('login') }}" placeholder="Usuario do SIG" autofocus="autofocus">
                         </div>
 
                         <div class="form-group">
-                            <input type="password" class="form-control" name="senha" size="100" id="senha"
-                                placeholder="Senha do SIG">
+                            <input type="password" class="form-control" type="password" name="password" required
+                                autocomplete="current-password" placeholder="Senha do SIG">
                         </div>
+                        <!-- Email Address -->
+
+                        <!-- Remember Me -->
+                        {{-- <div class="block mt-4">
+                            <label for="remember_me" class="inline-flex items-center">
+                                <input id="remember_me" type="checkbox"
+                                    class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800"
+                                    name="remember">
+                                <span
+                                    class="ml-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
+                            </label>
+                        </div> --}}
                         <div class="forgot">
-                            <a href="https://sigadmin.unilab.edu.br/admin/public/recuperar_senha.jsf">Esqueceu a
-                                senha?</a>
-                        </div>
+                            <a href="https://sigadmin.unilab.edu.br/admin/public/recuperar_senha.jsf">Esqueceu
+                                a senha?</a>
+                        </div><br>
                         <button type="submit" id="botao-login" class="btn-primary btn-lg btn-block">
-                            <span id="spinner-submit" class="escondido spinner-border spinner-border-sm" role="status"
-                                aria-hidden="true"></span>
                             Entrar
                         </button>
 
                         <input type="hidden" class="btn btn-info btn-md" name="logar" value="Entrar">
                     </form>
+
+
+
+
 
 
                 </div>

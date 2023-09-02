@@ -28,7 +28,7 @@
                     @foreach ($users as $element)
                         <tr>
                             <td>{{ $element->id }}</td>
-                            <td>{{ $element->nome }}</td>
+                            <td>{{ $element->name }}</td>
                             <td>{{ $element->strNivel }}</td>
                             <td>
                                 <a href="?page=usuario&edit={{ $element->id }}"

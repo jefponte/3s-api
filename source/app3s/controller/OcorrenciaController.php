@@ -16,6 +16,7 @@ use app3s\model\StatusOcorrencia;
 use app3s\model\Usuario;
 use app3s\util\Mail;
 use app3s\util\Sessao;
+use App\Models\User;
 use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -143,10 +144,12 @@ class OcorrenciaController
 		if (!isset($_GET['selecionar'])) {
 			return;
 		}
+
 		$sessao = new Sessao();
 		$this->sessao = new Sessao();
 		$this->selecionado = new Ocorrencia();
 		$this->selecionado->setId($_GET['selecionar']);
+
 		$this->dao->fillById($this->selecionado);
 		$selected = DB::table('ocorrencia')->where('id', $_GET['selecionar'])->first();
 
@@ -162,9 +165,9 @@ class OcorrenciaController
 		}
 
 		$orderStatusLog = DB::table('status_ocorrencia')
-			->join('usuario', 'status_ocorrencia.id_usuario', '=', 'usuario.id')
+			->join('users', 'status_ocorrencia.id_usuario', '=', 'users.id')
 			->join('status', 'status_ocorrencia.id_status', '=', 'status.id')
-			->select('status.sigla', 'status.nome', 'status_ocorrencia.mensagem', 'usuario.nome as nome_usuario', 'status_ocorrencia.data_mudanca')
+			->select('status.sigla', 'status.nome', 'status_ocorrencia.mensagem', 'users.name as nome_usuario', 'status_ocorrencia.data_mudanca')
 			->where('status_ocorrencia.id_ocorrencia', $selected->id)
 			->get();
 
@@ -173,7 +176,8 @@ class OcorrenciaController
 		$currentStatus = DB::table('status')->where('sigla', $this->selecionado->getStatus())->first();
 
 
-		$listaUsuarios = DB::table('usuario')->whereIn('nivel', ['t', 'a'])->get();
+		$listaUsuarios = DB::table('users')->whereIn('role', [Sessao::NIVEL_TECNICO,
+		Sessao::NIVEL_ADM])->get();
 		$listaServicos = DB::table('servico')->whereIn('visao', [1, 2])->get();
 		$listaAreas = DB::table('area_responsavel')->get();
 
@@ -264,6 +268,7 @@ class OcorrenciaController
 
 		$mensagemController = new MensagemForumController();
 		$this->dao->fetchMensagens($this->selecionado);
+
 		$mensagemController->mainOcorrencia($this->selecionado);
 	}
 
@@ -485,10 +490,11 @@ class OcorrenciaController
 		<aside class="col-md-4 blog-sidebar">';
 		if ($sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			$sessao = new Sessao();
-			$currentUser = DB::table('usuario')->where('id', $sessao->getIdUsuario())->first();
-			$userDivision = DB::table('area_responsavel')->where('id', $currentUser->id_setor)->first();
-			$attendents = DB::table('usuario')->where('nivel', 'a')->orWhere('nivel', 't')->get();
-			$allUsers = DB::table('usuario')->get();
+
+			$userDivision = DB::table('area_responsavel')->where('id', request()->user()->division_id)->first();
+			$attendents = User::where('role', Sessao::NIVEL_ADM)
+				->orWhere('role', Sessao::NIVEL_TECNICO)->get();
+			$allUsers = User::get();
 			$applicants = DB::table('ocorrencia')->select('local as division_sig', 'id_local as division_sig_id')->distinct()->limit(400)->get();
 			$divisions = DB::table('area_responsavel')->select('id', 'nome as name')->get();
 
@@ -571,15 +577,15 @@ class OcorrenciaController
 		}
 
 		$ocorrencia = new Ocorrencia();
-		$usuario = new Usuario();
+
 		$sessao = new Sessao();
-		$usuario->setId($sessao->getIdUsuario());
+
 
 
 		$usuarioDao = new UsuarioDAO($this->dao->getConnection());
 
-		$usuarioDao->fillById($usuario);
-		$sessao = new Sessao();
+
+
 		$ocorrencia->setIdLocal($sessao->getIdUnidade());
 		$ocorrencia->setLocal($sessao->getUnidade());
 
@@ -649,7 +655,7 @@ class OcorrenciaController
 		$statusOcorrencia = new StatusOcorrencia();
 		$statusOcorrencia->setDataMudanca(date("Y-m-d H:i:s"));
 		$statusOcorrencia->getStatus()->setId(2);
-		$statusOcorrencia->setUsuario($usuario);
+		$statusOcorrencia->getUsuario()->setId($sessao->getIdUsuario());
 		$statusOcorrencia->setMensagem("Ocorrência liberada para que qualquer técnico possa atender.");
 
 		$this->dao->getConnection()->beginTransaction();
@@ -720,7 +726,7 @@ class OcorrenciaController
 			return;
 		}
 
-		$usersList = DB::table('usuario')->where('id_setor', $ocorrencia->getAreaResponsavel()->getId())->get();
+		$usersList = DB::table('users')->where('division_id', $ocorrencia->getAreaResponsavel()->getId())->get();
 
 		$mail = new Mail();
 

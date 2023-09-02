@@ -10,6 +10,25 @@ class MainIndex
   public function main()
   {
     $sessao = new Sessao();
+    $user = request()->user();
+
+
+    if ($user === null) {
+      return redirect('/login');
+    }
+    if ($sessao->getNivelAcesso() === Sessao::NIVEL_DESLOGADO) {
+      $sessao->criaSessao($user->id, $user->role, $user->login, $user->name, $user->email);
+      $sessao->setIDUnidade($user->division_sig_id);
+      $sessao->setUnidade($user->division_sig);
+      return redirect('/?demanda=1');
+    }
+
+    if (isset($_GET["sair"])) {
+      $sessao->mataSessao();
+      auth()->logout();
+      return redirect('/');
+    }
+
     if (isset($_GET['ajax'])) {
       $mainAjax = new MainAjax();
       $mainAjax->main();
@@ -20,17 +39,11 @@ class MainIndex
       $mainApi->main();
       exit(0);
     }
-    if (isset($_GET["sair"])) {
-      $sessao->mataSessao();
-      echo '<META HTTP-EQUIV="REFRESH" CONTENT="0; URL=.">';
-    }
-
     $this->pagina();
   }
 
   public function pagina()
   {
-
     echo view('partials.header');
     $sessao = new Sessao();
     $primeiroNome = $sessao->getNome();
@@ -39,6 +52,7 @@ class MainIndex
       $primeiroNome = $arr[0];
     }
     $primeiroNome = ucfirst(strtolower($primeiroNome));
+
 
     if ($sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
       echo view('client.partials.navbar', ['originalLevel' => $sessao->getNivelOriginal(), 'userFirstName' => $primeiroNome, 'divisionSig' => $sessao->getUnidade()]);
@@ -55,7 +69,6 @@ class MainIndex
   }
   public function mainContent()
   {
-
     $sessao = new Sessao();
     if ($sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
       echo view('partials.form-login');
@@ -120,14 +133,6 @@ class MainIndex
           $controller = new UsuarioController();
           $controller->main();
           break;
-        case 'painel_kamban':
-          $controller = new PainelKambanController();
-          $controller->main();
-          break;
-        case 'painel_tabela':
-          $controller = new PainelTabelaController();
-          $controller->main();
-          break;
         default:
           echo '<p>Página solicitada não encontrada.</p>';
           break;
@@ -145,14 +150,6 @@ class MainIndex
       switch ($_GET['page']) {
         case 'ocorrencia':
           $controller = new OcorrenciaController();
-          $controller->main();
-          break;
-        case 'painel_kamban':
-          $controller = new PainelKambanController();
-          $controller->main();
-          break;
-        case 'painel_tabela':
-          $controller = new PainelTabelaController();
           $controller->main();
           break;
         default:

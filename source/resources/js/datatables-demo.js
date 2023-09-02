@@ -1,0 +1,4 @@
+
+$('#dataTable').DataTable({
+  "order": []
+});

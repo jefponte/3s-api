@@ -39,7 +39,7 @@
                         }
                     }
                 @endphp
-                <option value="{{ $tecnico->id }}" {{ $selectedAtt }}>{{ $tecnico->nome }}</option>
+                <option value="{{ $tecnico->id }}" {{ $selectedAtt }}>{{ $tecnico->name }}</option>
             @endforeach
         </select>
     </div>
