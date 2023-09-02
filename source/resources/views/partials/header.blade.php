@@ -27,9 +27,9 @@
     <title>3s | Sistema de Solicitação de Ocorrências</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="js/bootstrap-4.6.0/css/bootstrap.min.css">
+
     <link rel="stylesheet" type="text/css" href="css/style.css?a=123" />
-    <link rel="stylesheet" type="text/css" href="css/style_kamban.css" />
+
     <link rel="stylesheet" type="text/css" href="css/list.css" />
     <link rel="stylesheet" type="text/css" href="css/chat.css" />
     <link rel="stylesheet" type="text/css" href="css/selectize.default.css" />

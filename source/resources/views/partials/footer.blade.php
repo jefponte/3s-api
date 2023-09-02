@@ -36,7 +36,6 @@
 @vite(['resources/js/app.js'])
 <script src="js/jquery-3.5.1.min.js"></script>
 <script src="js/popper.min.js"></script>
-<script src="js/bootstrap-4.6.0/js/bootstrap.min.js"></script>
 <script src="js/datatables/jquery.dataTables.min.js"></script>
 <script src="js/datatables/dataTables.bootstrap4.min.js"></script>
 <script src="js/demo/datatables-demo.js"></script>
