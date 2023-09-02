@@ -268,6 +268,7 @@ class OcorrenciaController
 
 		$mensagemController = new MensagemForumController();
 		$this->dao->fetchMensagens($this->selecionado);
+
 		$mensagemController->mainOcorrencia($this->selecionado);
 	}
 
@@ -576,15 +577,15 @@ class OcorrenciaController
 		}
 
 		$ocorrencia = new Ocorrencia();
-		$usuario = new Usuario();
+
 		$sessao = new Sessao();
-		$usuario->setId($sessao->getIdUsuario());
+
 
 
 		$usuarioDao = new UsuarioDAO($this->dao->getConnection());
 
-		$usuarioDao->fillById($usuario);
-		$sessao = new Sessao();
+
+
 		$ocorrencia->setIdLocal($sessao->getIdUnidade());
 		$ocorrencia->setLocal($sessao->getUnidade());
 
@@ -654,7 +655,7 @@ class OcorrenciaController
 		$statusOcorrencia = new StatusOcorrencia();
 		$statusOcorrencia->setDataMudanca(date("Y-m-d H:i:s"));
 		$statusOcorrencia->getStatus()->setId(2);
-		$statusOcorrencia->setUsuario($usuario);
+		$statusOcorrencia->getUsuario()->setId($sessao->getIdUsuario());
 		$statusOcorrencia->setMensagem("Ocorrência liberada para que qualquer técnico possa atender.");
 
 		$this->dao->getConnection()->beginTransaction();
