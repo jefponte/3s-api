@@ -30,24 +30,21 @@ class UsuarioController
 	public function mudarNivel()
 	{
 		$sessao = new Sessao();
-		if ($sessao->getNivelOriginal() === Sessao::NIVEL_ADM) {
-			$sessao->setNivelDeAcesso($_POST['nivel']);
-			echo ':sucess:' . $sessao->getNivelAcesso();
-			return;
-		}
-		if ($sessao->getNIvelOriginal() === Sessao::NIVEL_TECNICO) {
-			if ($_POST['nivel'] != Sessao::NIVEL_ADM) {
-				if($_POST['nivel'] === Sessao::NIVEL_ADM) {
-					return ':falha:';
-				}
-				$sessao->setNivelDeAcesso($_POST['nivel']);
-				echo ':sucess:' . $sessao->getNivelAcesso();
+		if (
+			$sessao->getNIvelOriginal() != Sessao::NIVEL_TECNICO
+			&& $sessao->getNIvelOriginal() != Sessao::NIVEL_ADM)
+			{
+				echo ':falha:';
 				return;
-			}
-			echo ':falha:';
-			return;
 		}
-		echo ':falha:';
+		if ($sessao->getNIvelOriginal() === Sessao::NIVEL_TECNICO
+			&& $_POST['nivel'] === Sessao::NIVEL_ADM) {
+				echo ':falha:';
+				return;
+		}
+		$sessao->setNivelDeAcesso($_POST['nivel']);
+		echo ':sucess:' . $sessao->getNivelAcesso();
+		return;
 	}
 
 	public function getStrNivel($nivel) {
@@ -71,7 +68,7 @@ class UsuarioController
 
 	public function fetch()
 	{
-		$users = DB::table('users')->get();
+		$users = User::get();
 		foreach($users as $user) {
 			$user->strNivel = $this->getStrNivel($user->role);
 		}

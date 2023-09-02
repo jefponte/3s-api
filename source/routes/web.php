@@ -25,5 +25,8 @@ Route::post('/', function () {
     return $main->main();
 })->name('root-post');
 
+Route::get('/kamban', function () {
+    return view('welcome');
+})->name('kamban');
 
 require __DIR__.'/auth.php';

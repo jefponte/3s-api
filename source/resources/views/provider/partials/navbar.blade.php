@@ -52,7 +52,7 @@
                     Perfil Técnico
                 </button>
                 @if($originalLevel === 'administrator')
-                <button type="button" nivel="a" class="dropdown-item change-level">
+                <button type="button" nivel="administrator" class="dropdown-item change-level">
                     Perfil Admin
                 </button>
                 @endif

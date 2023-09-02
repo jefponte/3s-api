@@ -49,7 +49,7 @@
                     </button>
                 @endif
                 @if ($originalLevel === 'administrator' || $originalLevel === 'provider')
-                    <button type="button" nivel="provider" id="change-to-tec" {{ $disabled }}
+                    <button type="button" nivel="provider" id="change-to-tec"
                         class="dropdown-item change-level">
                         Perfil Técnico
                     </button>

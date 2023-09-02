@@ -16,10 +16,10 @@ class MainIndex
     if ($user === null) {
       return redirect('/login');
     }
-    if($sessao->getNivelAcesso() === Sessao::NIVEL_DESLOGADO) {
-			$sessao->criaSessao($user->id, $user->role, $user->login, $user->name, $user->email);
-			$sessao->setIDUnidade($user->division_sig_id);
-			$sessao->setUnidade($user->division_sig);
+    if ($sessao->getNivelAcesso() === Sessao::NIVEL_DESLOGADO) {
+      $sessao->criaSessao($user->id, $user->role, $user->login, $user->name, $user->email);
+      $sessao->setIDUnidade($user->division_sig_id);
+      $sessao->setUnidade($user->division_sig);
       return redirect('/?demanda=1');
     }
 
@@ -69,7 +69,6 @@ class MainIndex
   }
   public function mainContent()
   {
-
     $sessao = new Sessao();
     if ($sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
       echo view('partials.form-login');
