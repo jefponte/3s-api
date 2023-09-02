@@ -144,10 +144,12 @@ class OcorrenciaController
 		if (!isset($_GET['selecionar'])) {
 			return;
 		}
+
 		$sessao = new Sessao();
 		$this->sessao = new Sessao();
 		$this->selecionado = new Ocorrencia();
 		$this->selecionado->setId($_GET['selecionar']);
+
 		$this->dao->fillById($this->selecionado);
 		$selected = DB::table('ocorrencia')->where('id', $_GET['selecionar'])->first();
 
