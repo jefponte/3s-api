@@ -4,8 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-//php artisan make:migration create_divisions_table
-//php artisan make:migration create_services_table
+
+
 return new class extends Migration
 {
     /**
@@ -84,6 +84,8 @@ return new class extends Migration
         }
         Schema::dropIfExists('grupo_servico');
         Schema::dropIfExists('tipo_atividade');
+        Schema::dropIfExists('tarefa_ocorrencia');
+        Schema::dropIfExists('recesso');
     }
 
     /**
