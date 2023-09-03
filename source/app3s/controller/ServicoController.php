@@ -130,10 +130,10 @@ class ServicoController
 
 
 
-	const VISAO_INATIVO = 0;
-	const VISAO_COMUM = 1;
-	const VISAO_TECNICO = 2;
-	const VISAO_ADMIN = 3;
+	const VISAO_INATIVO = "disabled";
+	const VISAO_COMUM = "customer";
+	const VISAO_TECNICO = "provider";
+	const VISAO_ADMIN = "administrator";
 
 	/**
 	 *
