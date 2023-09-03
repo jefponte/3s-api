@@ -43,7 +43,7 @@
       }
     },
     {
-      "name": "division_id",
+      "name": "division_sig_id",
       "type": "integer#unsigned"
     }
   ],
