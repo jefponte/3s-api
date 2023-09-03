@@ -79,8 +79,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('division_id');
                 $table->json('details')->nullable();
                 $table->timestamps();
-                $table->foreign('division_id')->references('id')->on('area_responsavel');
-                $table->primary('id');
+                $table->foreign('division_id')->references('id')->on('divisions');
             });
         }
         Schema::dropIfExists('grupo_servico');
