@@ -15,7 +15,9 @@ class AuthController extends Controller
     public function auth(AuthRequest $request)
     {
 
-        $apiOrigin = env('UNILAB_API_ORIGIN');
+
+        $apiOrigin = env('UNILAB_API_ORIGIN') === null ? "https://api.unilab.edu.br/api" :  env('UNILAB_API_ORIGIN');
+
         $dataAPi = ['login' => $request->login, 'senha' => $request->password];
         $response = Http::post($apiOrigin . '/authenticate', $dataAPi);
         $responseJ = json_decode($response->body());
