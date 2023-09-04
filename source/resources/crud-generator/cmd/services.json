@@ -9,14 +9,14 @@
             "type": "text"
         },
         {
-            "name": "sla_duration",
+            "name": "sla",
             "type": "number"
         },
         {
             "name": "role",
             "type": "select",
             "options": {
-                "adm": "Administrador",
+                "administrator": "Administrador",
                 "customer": "Cliente",
                 "provider": "Técnico",
                 "disabled": "Desativado"
@@ -25,6 +25,10 @@
         {
             "name": "division_id",
             "type": "integer#unsigned"
+        },
+        {
+            "name": "details",
+            "type": "integer#json"
         }
     ],
     "foreign_keys": [
