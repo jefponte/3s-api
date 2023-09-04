@@ -12,7 +12,7 @@ use App\Http\Controllers\Api\DivisionsController;
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('users', [UsersController::class, 'index']);
+    Route::apiResource('users', UsersController::class);
     Route::apiResource('users', UsersController::class);
     Route::apiResource('services', ServicesController::class);
     Route::apiResource('orders', OrdersController::class);
