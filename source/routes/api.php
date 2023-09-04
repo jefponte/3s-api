@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\OrderMessagesController;
 use App\Http\Controllers\Api\OrdersController;
+use App\Http\Controllers\Api\OrderStatusLogsController;
 use App\Http\Controllers\Api\ServicesController;
 use App\Http\Controllers\Api\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +15,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('users', UsersController::class);
     Route::apiResource('services', ServicesController::class);
     Route::apiResource('orders', OrdersController::class);
+    Route::apiResource('order_messages', OrderMessagesController::class);
+    Route::apiResource('order_status_logs', OrderStatusLogsController::class);
 });
 
 Route::post('/login', [AuthController::class, 'auth']);

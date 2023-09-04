@@ -2,13 +2,6 @@
     "model": "OrderStatusLog",
     "fields": [
       {
-        "name": "id",
-        "type": "integer",
-        "validations": {
-          "required": true
-        }
-      },
-      {
         "name": "order_id",
         "type": "integer",
         "validations": {
@@ -32,14 +25,6 @@
         "validations": {
           "required": true
         }
-      },
-      {
-        "name": "created_at",
-        "type": "timestamp"
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamp"
       }
     ],
     "primaryKey": "id"

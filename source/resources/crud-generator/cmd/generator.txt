@@ -81,6 +81,9 @@ php artisan crud:api Divisions --fields_from_file=".\resources\crud-generator\cm
 php artisan crud:api Users --fields_from_file=".\resources\crud-generator\cmd\users.json"  --controller-namespace=Api
 php artisan crud:api Services --fields_from_file=".\resources\crud-generator\cmd\services.json"  --controller-namespace=Api
 php artisan crud:api Orders --fields_from_file=".\resources\crud-generator\cmd\orders.json"  --controller-namespace=Api
+php artisan crud:api OrderMessages --fields_from_file=".\resources\crud-generator\cmd\order_messages.json"  --controller-namespace=Api
+php artisan crud:api OrderStatusLogs --fields_from_file=".\resources\crud-generator\cmd\order_status_logs.json"  --controller-namespace=Api
+
 
 Passo a passo pra criar police
 
