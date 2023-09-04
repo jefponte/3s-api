@@ -28,7 +28,7 @@
         },
         {
             "name": "details",
-            "type": "integer#json"
+            "type": "json"
         }
     ],
     "foreign_keys": [
