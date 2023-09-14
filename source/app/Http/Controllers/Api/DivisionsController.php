@@ -2,91 +2,41 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 
+use App\Http\Resources\DivisionResource;
 use App\Models\Division;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
-class DivisionsController extends Controller
+class DivisionsController extends BasicCrudController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        $divisions = Division::latest()->paginate(25);
 
-        return $divisions;
+    private $rules = [
+        'name' => 'required|max:255'
+    ];
+
+    protected function model()
+    {
+        return Division::class;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    protected function rulesStore()
     {
-        $this->validate($request, [
-			'name' => 'required|max:255',
-			'description' => 'required|max:255',
-			'email' => 'required|max:255'
-		]);
-        $division = Division::create($request->all());
-
-        return response()->json($division, 201);
+        return $this->rules;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    protected function rulesUpdate()
     {
-        $division = Division::findOrFail($id);
-
-        return $division;
+        return $this->rules;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    protected function resourceCollection()
     {
-        $this->validate($request, [
-			'name' => 'required|max:255',
-			'description' => 'required|max:255',
-			'email' => 'required|max:255'
-		]);
-        $division = Division::findOrFail($id);
-        $division->update($request->all());
-
-        return response()->json($division, 200);
+        return $this->resource();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    protected function resource()
     {
-        Division::destroy($id);
-
-        return response()->json(null, 204);
+        return DivisionResource::class;
     }
 }

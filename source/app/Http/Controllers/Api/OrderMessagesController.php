@@ -2,83 +2,41 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 
+use App\Http\Resources\OrderMessageResource;
 use App\Models\OrderMessage;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
-class OrderMessagesController extends Controller
+class OrderMessagesController extends BasicCrudController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        $ordermessages = OrderMessage::latest()->paginate(25);
 
-        return $ordermessages;
+    private $rules = [
+        'name' => 'required|max:255'
+    ];
+
+    protected function model()
+    {
+        return OrderMessage::class;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    protected function rulesStore()
     {
-        
-        $ordermessage = OrderMessage::create($request->all());
-
-        return response()->json($ordermessage, 201);
+        return $this->rules;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    protected function rulesUpdate()
     {
-        $ordermessage = OrderMessage::findOrFail($id);
-
-        return $ordermessage;
+        return $this->rules;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    protected function resourceCollection()
     {
-        
-        $ordermessage = OrderMessage::findOrFail($id);
-        $ordermessage->update($request->all());
-
-        return response()->json($ordermessage, 200);
+        return $this->resource();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    protected function resource()
     {
-        OrderMessage::destroy($id);
-
-        return response()->json(null, 204);
+        return OrderMessageResource::class;
     }
 }

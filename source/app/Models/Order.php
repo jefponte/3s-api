@@ -52,6 +52,9 @@ class Order extends Model
     protected $enums = [
         'status' => OrderStatus::class,
     ];
+    public function division() {
+        return $this->belongsTo(Division::class);
+    }
     public function service()
     {
         return $this->belongsTo(Service::class);

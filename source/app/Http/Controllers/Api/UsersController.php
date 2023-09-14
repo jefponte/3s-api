@@ -2,87 +2,41 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
-class UsersController extends Controller
+class UsersController extends BasicCrudController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        $users = User::latest()->paginate(25);
 
-        return $users;
+    private $rules = [
+        'name' => 'required|max:255'
+    ];
+
+    protected function model()
+    {
+        return User::class;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    protected function rulesStore()
     {
-        $this->validate($request, [
-			'name' => 'required|max:255'
-		]);
-        $user = User::create($request->all());
-
-        return response()->json($user, 201);
+        return $this->rules;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    protected function rulesUpdate()
     {
-        $user = User::findOrFail($id);
-
-        return $user;
+        return $this->rules;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    protected function resourceCollection()
     {
-        $this->validate($request, [
-			'name' => 'required|max:255'
-		]);
-        $user = User::findOrFail($id);
-        $user->update($request->all());
-
-        return response()->json($user, 200);
+        return $this->resource();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    protected function resource()
     {
-        User::destroy($id);
-
-        return response()->json(null, 204);
+        return UserResource::class;
     }
 }

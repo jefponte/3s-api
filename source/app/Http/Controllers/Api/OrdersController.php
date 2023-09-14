@@ -2,83 +2,41 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
 
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
-class OrdersController extends Controller
+class OrdersController extends BasicCrudController
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
-    {
-        $orders = Order::latest()->paginate(25);
 
-        return $orders;
+    private $rules = [
+        'description' => 'required|max:255'
+    ];
+
+    protected function model()
+    {
+        return Order::class;
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    protected function rulesStore()
     {
-        
-        $order = Order::create($request->all());
-
-        return response()->json($order, 201);
+        return $this->rules;
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
+    protected function rulesUpdate()
     {
-        $order = Order::findOrFail($id);
-
-        return $order;
+        return $this->rules;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    protected function resourceCollection()
     {
-        
-        $order = Order::findOrFail($id);
-        $order->update($request->all());
-
-        return response()->json($order, 200);
+        return $this->resource();
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    protected function resource()
     {
-        Order::destroy($id);
-
-        return response()->json(null, 204);
+        return OrderResource::class;
     }
 }
