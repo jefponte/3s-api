@@ -33,12 +33,10 @@
                     Gerenciamento
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="?page=servico">Serviços</a>
-
-
+                    <a class="dropdown-item" href="{{route('kamban')}}">Serviços</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="?page=area_responsavel">Unidades</a>
-                    <a class="dropdown-item" href="?page=usuario">Usuários</a>
+                    <a class="dropdown-item" href="{{route('kamban')}}">Unidades</a>
+                    <a class="dropdown-item" href="{{route('kamban')}}">Usuários</a>
                 </div>
             </li>
         </ul>

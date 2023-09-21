@@ -16,6 +16,8 @@ use app3s\model\StatusOcorrencia;
 use app3s\model\Usuario;
 use app3s\util\Mail;
 use app3s\util\Sessao;
+use App\Models\Division;
+use App\Models\Order;
 use App\Models\User;
 use DateTime;
 use Illuminate\Support\Facades\DB;
@@ -132,7 +134,7 @@ class OcorrenciaController
 	}
 	public function canCancel($order)
 	{
-		return $this->sessao->getIdUsuario() == $order->id_usuario_cliente && $order->status == self::STATUS_ABERTO;
+		return $this->sessao->getIdUsuario() == $order->customer_user_id && $order->status == self::STATUS_ABERTO;
 	}
 	public function canWait($currentStatus)
 	{
@@ -151,7 +153,7 @@ class OcorrenciaController
 		$this->selecionado->setId($_GET['selecionar']);
 
 		$this->dao->fillById($this->selecionado);
-		$selected = DB::table('ocorrencia')->where('id', $_GET['selecionar'])->first();
+		$selected = Order::where('id', $_GET['selecionar'])->first();
 
 
 
@@ -176,8 +178,10 @@ class OcorrenciaController
 		$currentStatus = DB::table('status')->where('sigla', $this->selecionado->getStatus())->first();
 
 
-		$listaUsuarios = DB::table('users')->whereIn('role', [Sessao::NIVEL_TECNICO,
-		Sessao::NIVEL_ADM])->get();
+		$listaUsuarios = DB::table('users')->whereIn('role', [
+			Sessao::NIVEL_TECNICO,
+			Sessao::NIVEL_ADM
+		])->get();
 		$listaServicos = DB::table('servico')->whereIn('visao', [1, 2])->get();
 		$listaAreas = DB::table('area_responsavel')->get();
 
@@ -273,16 +277,15 @@ class OcorrenciaController
 	}
 
 
-	const STATUS_ABERTO = 'a';
-	const STATUS_RESERVADO = 'b';
-	const STATUS_EM_ESPERA = 'c';
-	const STATUS_AGUARDANDO_USUARIO = 'd';
-	const STATUS_ATENDIMENTO = 'e';
-	const STATUS_FECHADO = 'f';
-	const STATUS_FECHADO_CONFIRMADO = 'g';
-	const STATUS_CANCELADO = 'h';
-	const STATUS_AGUARDANDO_ATIVO = 'i';
-	const STATUS_REABERTO = 'r';
+	const STATUS_ABERTO = 'opened';
+	const STATUS_RESERVADO = 'reserved';
+	const STATUS_AGUARDANDO_USUARIO = 'pending customer response';
+	const STATUS_ATENDIMENTO = 'in progress';
+	const STATUS_FECHADO = 'closed';
+	const STATUS_FECHADO_CONFIRMADO = 'committed';
+	const STATUS_CANCELADO = 'canceled';
+	const STATUS_AGUARDANDO_ATIVO = 'pending it resource';
+	const STATUS_REABERTO = 'reopened';
 	public function main()
 	{
 
@@ -369,7 +372,7 @@ class OcorrenciaController
 			});
 		}
 		if (isset($_GET['solicitacao'])) {
-			$query = $query->where('id_usuario_cliente', $this->sessao->getIdUsuario());
+			$query = $query->where('customer_user_id', $this->sessao->getIdUsuario());
 		}
 		if (isset($_GET['tecnico'])) {
 			$query = $query->where(function ($query) {
@@ -377,7 +380,7 @@ class OcorrenciaController
 			});
 		}
 		if (isset($_GET['requisitante'])) {
-			$query = $query->where('id_usuario_cliente', intval($_GET['requisitante']));
+			$query = $query->where('customer_user_id', intval($_GET['requisitante']));
 		}
 		if (isset($_GET['data_abertura1'])) {
 			$data1 = date("Y-m-d", strtotime($_GET['data_abertura1']));
@@ -412,33 +415,45 @@ class OcorrenciaController
 
 		$lista = array();
 
-		$queryPendding = DB::table('ocorrencia')
+		$queryPendding = Order::select(
+			'orders.id as id',
+			'orders.description as descricao',
+			'services.sla as tempo_sla',
+			'orders.created_at as data_abertura',
+			'orders.status as status'
+		)
+			->join('services', 'orders.service_id', '=', 'services.id')
+			->whereIn(
+				'status',
+				[
+					self::STATUS_ABERTO,
+					self::STATUS_AGUARDANDO_ATIVO,
+					self::STATUS_AGUARDANDO_USUARIO,
+					self::STATUS_ATENDIMENTO,
+					self::STATUS_REABERTO,
+					self::STATUS_RESERVADO
+				]
+			)->orderByDesc('orders.id');
+		$queryFinished = DB::table('orders')
 			->select(
-				'ocorrencia.id as id',
-				'ocorrencia.descricao as descricao',
-				'servico.tempo_sla as tempo_sla',
-				'ocorrencia.data_abertura as data_abertura',
-				'ocorrencia.status as status'
+				'orders.id as id',
+				'orders.description as descricao',
+				'services.sla as tempo_sla',
+				'orders.created_at as data_abertura',
+				'orders.status as status'
 			)
-			->join('servico', 'ocorrencia.id_servico', '=', 'servico.id')
-			->whereIn('status', ['a', 'i', 'd', 'e', 'r', 'b'])->orderByDesc('ocorrencia.id');
-		$queryFinished = DB::table('ocorrencia')
-			->select(
-				'ocorrencia.id as id',
-				'ocorrencia.descricao as descricao',
-				'servico.tempo_sla as tempo_sla',
-				'ocorrencia.data_abertura as data_abertura',
-				'ocorrencia.status as status'
-			)
-			->join('servico', 'ocorrencia.id_servico', '=', 'servico.id')
-			->whereIn('status', ['f', 'g', 'h'])->orderByDesc('ocorrencia.id');
+			->join('services', 'orders.service_id', '=', 'services.id')
+			->whereIn('status', [
+				self::STATUS_FECHADO,
+				self::STATUS_FECHADO_CONFIRMADO,
+				self::STATUS_CANCELADO])->orderByDesc('orders.id');
 
 		$queryPendding = $this->applyFilters($queryPendding);
 		$queryFinished = $this->applyFilters($queryFinished);
 
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
-			$queryPendding = $queryPendding->where('id_usuario_cliente', $this->sessao->getIdUsuario());
-			$queryFinished = $queryFinished->where('id_usuario_cliente', $this->sessao->getIdUsuario());
+			$queryPendding = $queryPendding->where('customer_user_id', $this->sessao->getIdUsuario());
+			$queryFinished = $queryFinished->where('customer_user_id', $this->sessao->getIdUsuario());
 		}
 		$lista = $queryPendding->limit(300)->get();
 		$lista2 = $queryFinished->limit(300)->get();
@@ -491,12 +506,12 @@ class OcorrenciaController
 		if ($sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			$sessao = new Sessao();
 
-			$userDivision = DB::table('area_responsavel')->where('id', request()->user()->division_id)->first();
+			$userDivision = Division::where('id', request()->user()->division_id)->first();
 			$attendents = User::where('role', Sessao::NIVEL_ADM)
 				->orWhere('role', Sessao::NIVEL_TECNICO)->get();
 			$allUsers = User::get();
-			$applicants = DB::table('ocorrencia')->select('local as division_sig', 'id_local as division_sig_id')->distinct()->limit(400)->get();
-			$divisions = DB::table('area_responsavel')->select('id', 'nome as name')->get();
+			$applicants = Order::select('place as division_sig', 'division_sig_id as division_sig_id')->distinct()->limit(400)->get();
+			$divisions = Division::select('id', 'name')->get();
 
 			echo '
                 <div class="p-4 mb-3 bg-light rounded">
@@ -520,19 +535,19 @@ class OcorrenciaController
 		$ocorrencia->getUsuarioCliente()->setId($this->sessao->getIdUsuario());
 
 
-		$listaNaoAvaliados = DB::table('ocorrencia')->where('id_usuario_cliente', $this->sessao->getIdUsuario())->where('status', StatusOcorrenciaController::STATUS_FECHADO)->get();
+		$listaNaoAvaliados = Order::where('customer_user_id', $this->sessao->getIdUsuario())->where('status', StatusOcorrenciaController::STATUS_FECHADO)->get();
 
 		echo '
             <div class="row">
                 <div class="col-md-12 blog-main">';
 
 
-		$queryService = DB::table('servico');
+		$queryService = DB::table('services');
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
-			$queryService->where('visao', 1);
+			$queryService->where('role', Sessao::NIVEL_COMUM);
 		}
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
-			$queryService->whereIn('visao', [1, 2]);
+			$queryService->whereIn('role', [Sessao::NIVEL_COMUM, Sessao::NIVEL_TECNICO]);
 		}
 		$services = $queryService->get();
 

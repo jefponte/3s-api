@@ -11,7 +11,7 @@
                         <select id="select-servicos" name="servico" required>
                             <option value="" selected="selected">Selecione um serviço</option>
                             @foreach ($services as $servico)
-                                <option value="{{ $servico->id }}">{{ $servico->nome }} - {{ $servico->descricao }}
+                                <option value="{{ $servico->id }}">{{ $servico->name }} - {{ $servico->description }}
                                 </option>
                             @endforeach
                         </select>
