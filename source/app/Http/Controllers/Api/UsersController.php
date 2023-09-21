@@ -19,7 +19,12 @@ class UsersController extends BasicCrudController
     {
         return User::class;
     }
+    public function show($id)
+    {
+        $user = User::with('division')->findOrFail($id);
 
+        return new UserResource($user);
+    }
     protected function rulesStore()
     {
         return $this->rules;

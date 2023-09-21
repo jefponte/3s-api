@@ -88,7 +88,7 @@ class OrdersController extends BasicCrudController
     private function combineNotifications($orderMessagesQuery, $orderStatusLogsQuery)
     {
 
-        $orderMessagesQuery->selectRaw('*, \'message\' as type');
+        $orderMessagesQuery->selectRaw('*, type as type');
         $orderStatusLogsQuery->selectRaw('*, \'status_log\' as type');
 
 
