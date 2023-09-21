@@ -77,13 +77,13 @@ class MainIndex
 
     switch ($sessao->getNivelAcesso()) {
       case Sessao::NIVEL_TECNICO:
-        $this->contentTec();
+        $this->content();
         break;
       case Sessao::NIVEL_ADM:
-        $this->contentAdmin();
+        $this->content();
         break;
       case Sessao::NIVEL_COMUM:
-        $this->contentComum();
+        $this->content();
         break;
       case Sessao::NIVEL_DISABLED:
         echo view('partials.diabled');
@@ -94,57 +94,7 @@ class MainIndex
     }
   }
 
-  public function contentComum()
-  {
-    if (isset($_GET['page'])) {
-      switch ($_GET['page']) {
-        case 'ocorrencia':
-          $controller = new OcorrenciaController();
-          $controller->main();
-          break;
-        default:
-          echo '<p>Página solicitada não encontrada.</p>';
-          break;
-      }
-    } else {
-      $controller = new OcorrenciaController();
-      $controller->main();
-    }
-  }
-
-
-  public function contentAdmin()
-  {
-    if (isset($_GET['page'])) {
-      switch ($_GET['page']) {
-        case 'ocorrencia':
-          $controller = new OcorrenciaController();
-          $controller->main();
-          break;
-        case 'servico':
-          $controller = new ServicoController();
-          $controller->main();
-          break;
-        case 'area_responsavel':
-          $controller = new AreaResponsavelController();
-          $controller->main();
-          break;
-        case 'usuario':
-          $controller = new UsuarioController();
-          $controller->main();
-          break;
-        default:
-          echo '<p>Página solicitada não encontrada.</p>';
-          break;
-      }
-    } else {
-      $controller = new OcorrenciaController();
-      $controller->main();
-    }
-  }
-
-
-  public function contentTec()
+  public function content()
   {
     if (isset($_GET['page'])) {
       switch ($_GET['page']) {

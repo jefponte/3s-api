@@ -166,13 +166,11 @@ class OcorrenciaController
 			return;
 		}
 
-		$orderStatusLog = DB::table('status_ocorrencia')
-			->join('users', 'status_ocorrencia.id_usuario', '=', 'users.id')
-			->join('status', 'status_ocorrencia.id_status', '=', 'status.id')
-			->select('status.sigla', 'status.nome', 'status_ocorrencia.mensagem', 'users.name as nome_usuario', 'status_ocorrencia.data_mudanca')
-			->where('status_ocorrencia.id_ocorrencia', $selected->id)
+		$orderStatusLog = DB::table('order_status_logs')
+			->join('users', 'order_status_logs.id_usuario', '=', 'users.id')
+			->select('order_status_logs.status', 'order_status_logs.message', 'users.name as nome_usuario', 'order_status_logs.created_at')
+			->where('order_status_logs.order_id', $selected->id)
 			->get();
-
 
 		$statusController = new StatusOcorrenciaController();
 		$currentStatus = DB::table('status')->where('sigla', $this->selecionado->getStatus())->first();
