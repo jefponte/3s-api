@@ -47,7 +47,7 @@ class AuthController extends Controller
         $user->login = $responseJ2->login;
         $user->division_sig = $responseJ3[0]->sigla_unidade;
         $user->division_sig_id = $responseJ3[0]->id_unidade;
-        if($user->role == null) {
+        if ($user->role == null) {
             $user->role = $responseJ2->id_status_servidor != 1 ? 'disabled' : 'customer';
         }
         $user->password = $request->password;
@@ -57,17 +57,19 @@ class AuthController extends Controller
         $user->tokens()->delete();
         $token = $user->createToken($request->device_name)->plainTextToken;
         return response()->json(
-            ['token' => $token]
+            ['token' => $token, 'user' => $user]
         );
-
     }
     public function logout(Request $request)
     {
-        $request->user()->tokens()->delete();
 
+        auth()->user()->tokens->each(function ($token, $key) {
+            $token->delete();
+        });
         return response()->json([
-            'message' => 'sucess'
-        ]);
+            'message' => 'Logged out successfully!',
+            'status_code' => 200
+        ], 200);
     }
     public function me(Request $request)
     {
