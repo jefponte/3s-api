@@ -325,9 +325,8 @@ class OcorrenciaController
 		$timeNow = time();
 		$timeSolucaoEstimada = strtotime($dataSolucao);
 		$isLate = $timeNow > $timeSolucaoEstimada;
-		$canRequestHelp = ($selected->customer->id == $sessao->getIdUsuario() &&
-			!isset($_SESSION['pediu_ajuda']));
-		$canCancel = $this->canCancel($selected);
+
+
 		$providerName = '';
 		if ($selected->provider != null) {
 			$providerName = $selected->provider->name;
@@ -338,6 +337,30 @@ class OcorrenciaController
 
 		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
 
+		$this->painelStatus($selected);
+
+
+		echo view('partials.show-order', [
+			'order' => $selected,
+			'canEditTag' => $canEditTag,
+			'canEditSolution' => $canEditSolution,
+			'canEditService' => $canEditService,
+			'isLevelClient' => $isClient,
+			'isLate' => $isLate,
+			'dataSolucao' => $dataSolucao,
+			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
+			'providerName' => $providerName
+		]);
+		$mensagemController = new MensagemForumController();
+		$mensagemController->mainOcorrencia($selected);
+	}
+
+
+	public function painelStatus($selected)
+	{
+
+		$this->sessao = new Sessao();
+		$canCancel = $this->canCancel($selected);
 		echo '
             <div class="row">
                 <div class="col-md-12 blog-main">
@@ -357,31 +380,6 @@ class OcorrenciaController
 						</button>
 
 						';
-		$this->painelStatus($selected);
-
-
-		echo view('partials.show-order', [
-			'order' => $selected,
-			'canEditTag' => $canEditTag,
-			'canEditSolution' => $canEditSolution,
-			'canEditService' => $canEditService,
-			'isLevelClient' => $isClient,
-			'isLate' => $isLate,
-			'dataSolucao' => $dataSolucao,
-			'canRequestHelp' => $canRequestHelp,
-			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
-			'providerName' => $providerName
-		]);
-		$mensagemController = new MensagemForumController();
-		$mensagemController->mainOcorrencia($selected);
-	}
-
-
-	public function painelStatus($selected)
-	{
-
-		$this->sessao = new Sessao();
-
 
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			echo '
@@ -447,25 +445,21 @@ class OcorrenciaController
 	}
 	public function possoLiberar($order)
 	{
-		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
-			return false;
+		if ($this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
+			&&
+			(
+				$order->status == self::STATUS_ATENDIMENTO
+				||
+				$order->status == self::STATUS_RESERVADO
+				||
+				$order->status == self::STATUS_AGUARDANDO_ATIVO
+				||
+				$order->status == self::STATUS_AGUARDANDO_USUARIO
+			)
+		) {
+			return true;
 		}
-		if ($order->status == self::STATUS_REABERTO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_FECHADO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_CANCELADO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_ABERTO) {
-			return false;
-		}
-		return true;
+		return false;
 	}
 
 	public function possoAtender($order)
@@ -575,20 +569,22 @@ class OcorrenciaController
 
 	public function possoReservar($order)
 	{
-		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
-			return false;
+		if ($this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
+		 && (
+				$order->statos === self::STATUS_ABERTO
+				||
+				$order->statos === self::STATUS_REABERTO
+				||
+				$order->statos === self::STATUS_ATENDIMENTO
+				||
+				$order->statos === self::STATUS_AGUARDANDO_ATIVO
+				||
+				$order->statos === self::STATUS_AGUARDANDO_USUARIO
+		 	)
+		) {
+			return true;
 		}
-		if ($order->status == Self::STATUS_FECHADO) {
-			return false;
-		}
-		if ($order->status == Self::STATUS_FECHADO_CONFIRMADO) {
-			return false;
-		}
-		if ($order->status == Self::STATUS_CANCELADO) {
-			return false;
-		}
-
-		return true;
+		return false;
 	}
 
 	public function possoEditarPatrimonio($order)
@@ -613,27 +609,22 @@ class OcorrenciaController
 	}
 	public function possoAvaliar($order)
 	{
-		//Só permitir isso se o usuário for cliente do chamado
-		//O chamado deve estar fechado.
-		if ($this->sessao->getIdUsuario() != $order->customer->id) {
-			return false;
+		if ($order->status === self::STATUS_FECHADO
+		&& $this->sessao->getIdUsuario() === $order->customer->id
+		&& $order->customer != null) {
+			return true;
 		}
-		if ($order->status != self::STATUS_FECHADO) {
-			return false;
-		}
-		return true;
+
+		return false;
 	}
 	public function possoReabrir($order)
 	{
 		//Só permitir isso se o usuário for cliente do chamado
 		//O chamado deve estar fechado.
-		if ($this->sessao->getIdUsuario() != $order->customer->id) {
-			return false;
+		if ($order->customer != null && $order->status != self::STATUS_FECHADO && $this->sessao->getIdUsuario() != $order->customer->id) {
+			return true;
 		}
-		if ($order->status != self::STATUS_FECHADO) {
-			return false;
-		}
-		return true;
+		return false;
 	}
 	const STATUS_ABERTO = 'opened';
 	const STATUS_RESERVADO = 'reserved';
@@ -803,21 +794,5 @@ class OcorrenciaController
 	}
 
 
-	public function emailAbertura(StatusOcorrencia $statusOcorrencia)
-	{
-		$mail = new Mail();
-		$destinatario = $statusOcorrencia->getOcorrencia()->getEmail();
-		$nome = $statusOcorrencia->getUsuario()->getNome();
-		$assunto = "[3S] - Chamado Nº " . $statusOcorrencia->getOcorrencia()->getId();
-		$corpo =  '<p>Prezado(a) ' . $statusOcorrencia->getUsuario()->getNome() . ' ,</p>';
-		$corpo .= '<p>Sua solicitação foi realizada com sucesso, solicitação <a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' . $statusOcorrencia->getOcorrencia()->getId() . '">Nº' . $statusOcorrencia->getOcorrencia()->getId() . '</a></p>';
-		$corpo .= '<ul>
-                        <li>Serviço Solicitado: ' . $statusOcorrencia->getOcorrencia()->getServico()->getNome() . '</li>
-                        <li>Descrição do Problema: ' . $statusOcorrencia->getOcorrencia()->getDescricao() . '</li>
-                        <li>Setor Responsável: ' . $statusOcorrencia->getOcorrencia()->getServico()->getAreaResponsavel()->getNome() . ' -
-                        ' . $statusOcorrencia->getOcorrencia()->getServico()->getAreaResponsavel()->getDescricao() . '</li>
-                </ul><br><p>Mensagem enviada pelo sistema 3S. Favor não responder.</p>';
 
-		$mail->enviarEmail($destinatario, $nome, $assunto, $corpo);
-	}
 }

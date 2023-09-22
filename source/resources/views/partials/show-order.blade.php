@@ -75,7 +75,7 @@
             </div>
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Requisitante: </b>{{ $order->customer->name }}<br />
+                    <b>Requisitante: </b>{{ $order->customer != null ? $order->customer->name : "Não Informado" }}<br />
                     <b>Setor do Requisitante:</b>{{ $order->division_sig }}<br>
                     <b>Campus: </b>{{ $order->campus }} <br>
                     <b>Email: </b>{{ $order->email }}<br>

@@ -94,12 +94,11 @@ class OrdersController extends Controller
                 'user_id' => auth()->user()->id
             ]);
             DB::commit();
-            // Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, "Sua solicitação foi realizada com sucesso."));
+            Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, "Sua solicitação foi realizada com sucesso."));
             return redirect('/?page=ocorrencia&selecionar='.$order->id);
         } catch (\Exception $e) {
-            dd($e);
-            // DB::rollback();
-            // return redirect()->back()->withErrors(['flash_message' => 'Falha ao inserir dados.']);
+            DB::rollback();
+            return redirect()->back()->withErrors(['flash_message' => 'Falha ao inserir dados.']);
         }
     }
 

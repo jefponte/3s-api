@@ -22,6 +22,7 @@ use app3s\model\Usuario;
 use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Order;
+use App\Models\OrderStatusLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -112,6 +113,7 @@ class StatusOcorrenciaController
 	}
 	public function ajaxAtender($order)
 	{
+		$this->sessao = new Sessao();
 		if (!isset($_POST['status_acao'])) {
 			return false;
 		}
@@ -124,77 +126,30 @@ class StatusOcorrenciaController
 		if (!isset($_POST['senha'])) {
 			return false;
 		}
-		$order = Order::findOrFail($_POST['id_ocorrencia']);
+
 		if (!$this->possoAtender($order)) {
 			echo ':falha:Não é possível atender este chamado.';
 			return false;
 		}
 
-		$this->sessao = new Sessao();
-		$this->ocorrencia = new Ocorrencia();
-		$this->ocorrencia->setId($_POST['id_ocorrencia']);
-
-
-
-		$ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-		$ocorrenciaDao->fillById($this->ocorrencia);
-
-
-		$usuario = new Usuario();
-		$usuario->setId($this->sessao->getIdUsuario());
-
-		$usuarioDao = new UsuarioDAO($this->dao->getConnection());
-		$usuarioDao->fillById($usuario);
-		$this->ocorrencia->getAreaResponsavel()->setId($usuario->getIdSetor());
-
-		$this->ocorrencia->setIdUsuarioAtendente($this->sessao->getIdUsuario());
-
-
-		$this->ocorrencia->setStatus(self::STATUS_ATENDIMENTO);
-
-		$status = new Status();
-		$status->setSigla(self::STATUS_ATENDIMENTO);
-
-		$statusDao = new StatusDAO($this->dao->getConnection());
-		$statusDao->fillBySigla($status);
-
-		$this->statusOcorrencia = new StatusOcorrencia();
-		$this->statusOcorrencia->setOcorrencia($this->ocorrencia);
-		$this->statusOcorrencia->setStatus($status);
-		$this->statusOcorrencia->setDataMudanca(date("Y-m-d G:i:s"));
-		$this->statusOcorrencia->getUsuario()->setId($this->sessao->getIdUsuario());
-		$this->statusOcorrencia->setMensagem("Ocorrência em atendimento");
-
-
-		$usuarioDao = new UsuarioDAO($this->dao->getConnection());
-		$usuario = new Usuario();
-		$usuario->setId($this->sessao->getIdUsuario());
-		$usuarioDao->fillById($usuario);
-
-		$this->ocorrencia->getAreaResponsavel()->setId($usuario->getIdSetor());
-
-		if ($this->ocorrencia->getDataAtendimento() == null) {
-			$this->ocorrencia->setDataAtendimento(date("Y-m-d H:i:s"));
-		}
-
-
-
-		$ocorrenciaDao->getConnection()->beginTransaction();
-
-		if (!$ocorrenciaDao->update($this->ocorrencia)) {
-			echo ':falha:Falha na alteração do status da ocorrência.';
-			$ocorrenciaDao->getConnection()->rollBack();
-			return false;
-		}
-
-		if (!$this->dao->insert($this->statusOcorrencia)) {
-			echo ':falha:Falha ao tentar inserir histórico.';
-			return false;
-		}
-
-		$ocorrenciaDao->getConnection()->commit();
-		echo ':sucesso:' . $this->ocorrencia->getId() . ':Chamado am atendimento!';
-		return true;
+		DB::beginTransaction();
+        try {
+            OrderStatusLog::create([
+                'order_id' => $order->id,
+                'status' => self::STATUS_ATENDIMENTO,
+                'message' => 'Chamado em atendimento',
+                'user_id' => auth()->user()->id
+            ]);
+            $order->status = self::STATUS_ATENDIMENTO;
+			$order->division_id = auth()->user()->division_id;
+			$order->provider_user_id = auth()->user()->id;
+            $order->save();
+            DB::commit();
+            echo ':sucesso:' . $this->ocorrencia->getId() . ':Chamado am atendimento!';
+        } catch (\Exception $e) {
+            DB::rollback();
+            echo ':falha:Falha ao tentar inserir histórico.';
+        }
 	}
 
 	public function ajaxCancelar($order)
@@ -601,8 +556,6 @@ class StatusOcorrenciaController
 		$this->sessao = new Sessao();
 		$this->ocorrencia = new Ocorrencia();
 		$this->ocorrencia->setId($_POST['id_ocorrencia']);
-		$ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-		$ocorrenciaDao->fillById($this->ocorrencia);
 		$order = Order::findOrFail($_POST['id_ocorrencia']);
 		$order->load([
             'messages.user' => function ($query) {
@@ -673,7 +626,7 @@ class StatusOcorrenciaController
 				break;
 		}
 		if ($status) {
-			$this->enviarEmail($mensagem);
+			$this->enviarEmail($order, $mensagem);
 		}
 	}
 	public function ajaxEditarPatrimonio()
@@ -727,60 +680,46 @@ class StatusOcorrenciaController
 		return true;
 	}
 
-	public function enviarEmail($mensagem = "")
+	public function enviarEmail($order, $mensagem = "")
 	{
 		$mail = new Mail();
-		$assunto = "[3S] - Chamado Nº " . $this->statusOcorrencia->getOcorrencia()->getId();
+		$assunto = "[3S] - Chamado Nº " . $order->id;
 
 
 
-		$saldacao =  '<p>Prezado(a) ' . $this->statusOcorrencia->getUsuario()->getNome() . ' ,</p>';
+		$saldacao =  '<p>Prezado(a),</p>';
 
-		$corpo = '<p>Avisamos que houve uma mudança no status da solicitação <a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' . $this->statusOcorrencia->getOcorrencia()->getId() . '">Nº' . $this->statusOcorrencia->getOcorrencia()->getId() . '</a></p>';
+		$corpo = '<p>Avisamos que houve uma mudança no status da solicitação
+		<a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' .
+		 $order->id . '">Nº' . $order->id . '</a></p>';
 		$corpo .= $mensagem;
 		$corpo .= '<ul>
-                        <li>Serviço Solicitado: ' . $this->statusOcorrencia->getOcorrencia()->getServico()->getNome() . '</li>
-                        <li>Descrição do Problema: ' . $this->statusOcorrencia->getOcorrencia()->getDescricao() . '</li>
-                        <li>Setor Responsável: ' . $this->statusOcorrencia->getOcorrencia()->getAreaResponsavel()->getNome() . ' -
-                        ' . $this->statusOcorrencia->getOcorrencia()->getAreaResponsavel()->getDescricao() . '</li>
-                        <li>Cliente: ' . $this->ocorrencia->getUsuarioCliente()->getNome() . '</li>
+                        <li>Serviço Solicitado: ' . $order->service->name . '</li>
+                        <li>Descrição do Problema: ' . $order->description . '</li>
+                        <li>Setor Responsável: ' . $order->division->name . ' -
+                        ' . $order->division->description . '</li>
+                        <li>Cliente: ' . $order->customer->name . '</li>
                 </ul><br><p>Mensagem enviada pelo sistema 3S. Favor não responder.</p>';
 
 
-		$destinatario = $this->statusOcorrencia->getOcorrencia()->getEmail();
-		$nome = $this->statusOcorrencia->getOcorrencia()->getUsuarioCliente()->getNome();
+		$destinatario = $order->email;
+		$nome = $order->customer->name;
 		//Cliente do chamado
-		$mail->enviarEmail($destinatario, $nome, $assunto, $saldacao . $corpo);
-
-		$usuarioDao = new UsuarioDAO($this->dao->getConnection());
+		$mail->enviarEmail(auth()->user()->email, auth()->user()->name, $assunto, $saldacao . $corpo);
 
 
-		$destinatario = $this->statusOcorrencia->getOcorrencia()->getAreaResponsavel()->getEmail();
-		$nome = $this->statusOcorrencia->getOcorrencia()->getAreaResponsavel()->getNome();
+
+		//Area responsável
+		$destinatario = $order->division->email;
+		$nome = $order->division->name;
 		$mail->enviarEmail($destinatario, $nome, $assunto, $saldacao . $corpo); //Email para area responsavel
-
-
-		if ($this->statusOcorrencia->getOcorrencia()->getIdUsuarioAtendente() != null) {
-
-			$atendente = new Usuario();
-			$atendente->setId($this->statusOcorrencia->getOcorrencia()->getIdUsuarioAtendente());
-			$usuarioDao->fillById($atendente);
-			$destinatario = $atendente->getEmail();
-			$nome = $atendente->getNome();
-
-			$saldacao =  '<p>Prezado(a) ' . $nome . ' ,</p>';
-			$mail->enviarEmail($destinatario, $nome, $assunto, $saldacao . $corpo);
-		} else if ($this->statusOcorrencia->getOcorrencia()->getIdUsuarioIndicado() != null) {
-
-			$indicado = new Usuario();
-			$indicado->setId($this->statusOcorrencia->getOcorrencia()->getIdUsuarioIndicado());
-			$usuarioDao->fillById($indicado);
-			$destinatario = $indicado->getEmail();
-			$nome = $indicado->getNome();
-
-			$saldacao =  '<p>Prezado(a) ' . $nome . ' ,</p>';
+		if ($order->provider != null) {
+			//O atendente;
+			$destinatario = $order->provider->email;
+			$nome = $order->provider->name;
 			$mail->enviarEmail($destinatario, $nome, $assunto, $saldacao . $corpo);
 		}
+
 	}
 	private $statusOcorrencia;
 	public function ajaxAguardandoAtivo($order)
