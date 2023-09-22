@@ -241,6 +241,7 @@ class OcorrenciaController
 		}
 	}
 
+
 	public function getColorStatus($siglaStatus)
 	{
 		$strCartao = ' alert-warning ';
@@ -258,8 +259,6 @@ class OcorrenciaController
 			$strCartao = '  notice-warning ';
 		} else if ($siglaStatus == self::STATUS_RESERVADO) {
 			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == self::STATUS_ABERTO) {
-			$strCartao = '   notice-warning ';
 		} else if ($siglaStatus == self::STATUS_AGUARDANDO_USUARIO) {
 			$strCartao = '  notice-warning ';
 		} else if ($siglaStatus == self::STATUS_AGUARDANDO_ATIVO) {
@@ -304,6 +303,7 @@ class OcorrenciaController
             'statusLogs' => function ($query) {
                 $query->orderBy('id', 'asc');
             },
+			'division',
             'customer',
             'provider.division',
             'service.division'
@@ -386,7 +386,6 @@ class OcorrenciaController
 
 
 		$mensagemController = new MensagemForumController();
-
 
 		$mensagemController->mainOcorrencia($selected);
 	}

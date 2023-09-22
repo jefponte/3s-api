@@ -110,7 +110,7 @@ class StatusOcorrenciaController
 		}
 		return true;
 	}
-	public function ajaxAtender()
+	public function ajaxAtender($order)
 	{
 		if (!isset($_POST['status_acao'])) {
 			return false;
@@ -646,8 +646,6 @@ class StatusOcorrenciaController
 	}
 	public function mainAjax()
 	{
-		//Verifica-se qual o form que foi submetido.
-
 		if (!isset($_POST['status_acao'])) {
 			echo ':falha:Ação não especificada';
 			return;
@@ -663,6 +661,18 @@ class StatusOcorrenciaController
 		$ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
 		$ocorrenciaDao->fillById($this->ocorrencia);
 		$order = Order::findOrFail($_POST['id_ocorrencia']);
+		$order->load([
+            'messages.user' => function ($query) {
+                $query->orderBy('id', 'asc');
+            },
+            'statusLogs' => function ($query) {
+                $query->orderBy('id', 'asc');
+            },
+			'division',
+            'customer',
+            'provider.division',
+            'service.division'
+        ]);
 		$status = false;
 		$mensagem = "";
 		switch ($_POST['status_acao']) {
@@ -915,7 +925,7 @@ class StatusOcorrenciaController
 		return true;
 	}
 
-	public function ajaxEditarSolucao()
+	public function ajaxEditarSolucao($order)
 	{
 		if (!$this->possoEditarSolucao($this->ocorrencia)) {
 			echo ':falha:Esta solução não pode ser editada.';
@@ -1015,7 +1025,7 @@ class StatusOcorrenciaController
 		echo ':sucesso:' . $this->ocorrencia->getId() . ':Área Responsável Editada Com Sucesso!';
 		return true;
 	}
-	public function ajaxEditarServico()
+	public function ajaxEditarServico($order)
 	{
 		if (!$this->possoEditarServico($this->ocorrencia)) {
 			echo ':falha:Este serviço não pode ser editado.';
@@ -1098,10 +1108,10 @@ class StatusOcorrenciaController
 		}
 		return true;
 	}
-	public function ajaxLiberar()
+	public function ajaxLiberar($order)
 	{
 
-		if (!$this->possoLiberar()) {
+		if (!$this->possoLiberar($order)) {
 			echo ':falha:Não é possível liberar esse atendimento.';
 			return false;
 		}
