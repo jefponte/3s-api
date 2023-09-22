@@ -19,7 +19,6 @@ use app3s\util\Sessao;
 use App\Models\Division;
 use App\Models\Order;
 use App\Models\User;
-use DateTime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,7 +27,6 @@ class OcorrenciaController
 
 	protected $selecionado;
 	protected $sessao;
-	protected  $view;
 	protected $dao;
 
 	public function __construct()
@@ -36,7 +34,124 @@ class OcorrenciaController
 		$this->dao = new OcorrenciaDAO();
 	}
 
+	public function index()
+	{
 
+
+		$this->sessao = new Sessao();
+		$listaAtrasados = array();
+		$lista = array();
+
+		$queryPendding = Order::select(
+			'orders.id as id',
+			'orders.description as descricao',
+			'services.sla as tempo_sla',
+			'orders.created_at as data_abertura',
+			'orders.status as status'
+		)
+			->join('services', 'orders.service_id', '=', 'services.id')
+			->whereIn(
+				'status',
+				[
+					self::STATUS_ABERTO,
+					self::STATUS_AGUARDANDO_ATIVO,
+					self::STATUS_AGUARDANDO_USUARIO,
+					self::STATUS_ATENDIMENTO,
+					self::STATUS_REABERTO,
+					self::STATUS_RESERVADO
+				]
+			)->orderByDesc('orders.id');
+		$queryFinished = Order::select(
+				'orders.id as id',
+				'orders.description as descricao',
+				'services.sla as tempo_sla',
+				'orders.created_at as data_abertura',
+				'orders.status as status'
+			)
+			->join('services', 'orders.service_id', '=', 'services.id')
+			->whereIn('status', [
+				self::STATUS_FECHADO,
+				self::STATUS_FECHADO_CONFIRMADO,
+				self::STATUS_CANCELADO
+			])->orderByDesc('orders.id');
+
+		$queryPendding = $this->applyFilters($queryPendding);
+		$queryFinished = $this->applyFilters($queryFinished);
+
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
+			$queryPendding = $queryPendding->where('customer_user_id', $this->sessao->getIdUsuario());
+			$queryFinished = $queryFinished->where('customer_user_id', $this->sessao->getIdUsuario());
+		}
+		$lista = $queryPendding->limit(300)->get();
+		$lista2 = $queryFinished->limit(300)->get();
+
+
+		$listaAtrasados = array();
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
+			$listNoLate = $lista;
+		} else {
+			$listNoLate = array();
+			foreach ($lista as $ocorrencia) {
+				if ($this->atrasado($ocorrencia)) {
+					$listaAtrasados[] = $ocorrencia;
+				} else {
+					$listNoLate[] = $ocorrencia;
+				}
+			}
+		}
+
+
+		//Painel principal
+		echo '
+
+		<div class="row">
+			<div class="col-md-8 blog-main">
+				<div class="panel-group" id="accordion">';
+
+
+		if (count($listaAtrasados) > 0) {
+
+			echo view(
+				'partials.index-orders',
+				[
+					'orders' => $listaAtrasados,
+					'id' => 'collapseAtraso',
+					'title' => 'Ocorrências Em Atraso (' . count($listaAtrasados) . ')',
+					'strShow' => "show"
+				]
+			);
+		}
+		$this->painel($listNoLate, 'Ocorrências Em Aberto(' . count($listNoLate) . ')', 'collapseAberto', 'show');
+		$this->painel($lista2, "Ocorrências Encerradas", 'collapseEncerrada');
+		echo '
+			</div>
+		</div>';
+
+		//Painel Lateral
+		echo '
+		<aside class="col-md-4 blog-sidebar">';
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
+			$userDivision = Division::where('id', request()->user()->division_id)->first();
+			$attendents = User::where('role', Sessao::NIVEL_ADM)
+				->orWhere('role', Sessao::NIVEL_TECNICO)->get();
+			$allUsers = User::get();
+			$applicants = Order::select('place as division_sig', 'division_sig_id as division_sig_id')->distinct()->limit(400)->get();
+			$divisions = Division::select('id', 'name')->get();
+
+			echo '
+                <div class="p-4 mb-3 bg-light rounded">
+                    <h4 class="font-italic">Filtros</h4>';
+
+			echo view('partials.form-basic-filter', ['userDivision' => $userDivision, 'attendents' => $attendents, 'allUsers' => $allUsers]);
+			echo view('partials.form-advanced-filter', ['divisions' => $divisions, 'applicants' => $applicants]);
+			echo view('partials.form-campus-filter');
+			echo '</div>';
+		}
+		echo view('partials.card-info');
+		echo '</aside>
+		</div>
+		';
+	}
 
 
 	public function fimDeSemana($data)
@@ -284,6 +399,28 @@ class OcorrenciaController
 	const STATUS_CANCELADO = 'canceled';
 	const STATUS_AGUARDANDO_ATIVO = 'pending it resource';
 	const STATUS_REABERTO = 'reopened';
+
+	public function mudarNivel()
+	{
+		$sessao = new Sessao();
+		if (
+			$sessao->getNIvelOriginal() != Sessao::NIVEL_TECNICO
+			&& $sessao->getNIvelOriginal() != Sessao::NIVEL_ADM
+		) {
+			echo ':falha:';
+			return;
+		}
+		if (
+			$sessao->getNIvelOriginal() === Sessao::NIVEL_TECNICO
+			&& $_POST['nivel'] === Sessao::NIVEL_ADM
+		) {
+			echo ':falha:';
+			return;
+		}
+		$sessao->setNivelDeAcesso($_POST['nivel']);
+		echo ':sucess:' . $sessao->getNivelAcesso();
+		return;
+	}
 	public function main()
 	{
 
@@ -297,7 +434,7 @@ class OcorrenciaController
 		} else if (isset($_GET['cadastrar'])) {
 			$this->telaCadastro();
 		} else {
-			$this->listar();
+			$this->index();
 		}
 
 
@@ -403,127 +540,6 @@ class OcorrenciaController
 
 		return $query;
 	}
-	public function listar()
-	{
-
-		$sessao = new Sessao();
-
-		$this->sessao = new Sessao();
-		$listaAtrasados = array();
-
-		$lista = array();
-
-		$queryPendding = Order::select(
-			'orders.id as id',
-			'orders.description as descricao',
-			'services.sla as tempo_sla',
-			'orders.created_at as data_abertura',
-			'orders.status as status'
-		)
-			->join('services', 'orders.service_id', '=', 'services.id')
-			->whereIn(
-				'status',
-				[
-					self::STATUS_ABERTO,
-					self::STATUS_AGUARDANDO_ATIVO,
-					self::STATUS_AGUARDANDO_USUARIO,
-					self::STATUS_ATENDIMENTO,
-					self::STATUS_REABERTO,
-					self::STATUS_RESERVADO
-				]
-			)->orderByDesc('orders.id');
-		$queryFinished = DB::table('orders')
-			->select(
-				'orders.id as id',
-				'orders.description as descricao',
-				'services.sla as tempo_sla',
-				'orders.created_at as data_abertura',
-				'orders.status as status'
-			)
-			->join('services', 'orders.service_id', '=', 'services.id')
-			->whereIn('status', [
-				self::STATUS_FECHADO,
-				self::STATUS_FECHADO_CONFIRMADO,
-				self::STATUS_CANCELADO])->orderByDesc('orders.id');
-
-		$queryPendding = $this->applyFilters($queryPendding);
-		$queryFinished = $this->applyFilters($queryFinished);
-
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
-			$queryPendding = $queryPendding->where('customer_user_id', $this->sessao->getIdUsuario());
-			$queryFinished = $queryFinished->where('customer_user_id', $this->sessao->getIdUsuario());
-		}
-		$lista = $queryPendding->limit(300)->get();
-		$lista2 = $queryFinished->limit(300)->get();
-
-
-		$listaAtrasados = array();
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
-			$listNoLate = $lista;
-		} else {
-			$listNoLate = array();
-			foreach ($lista as $ocorrencia) {
-				if ($this->atrasado($ocorrencia)) {
-					$listaAtrasados[] = $ocorrencia;
-				} else {
-					$listNoLate[] = $ocorrencia;
-				}
-			}
-		}
-
-
-		//Painel principal
-		echo '
-
-		<div class="row">
-			<div class="col-md-8 blog-main">
-				<div class="panel-group" id="accordion">';
-
-
-		if (count($listaAtrasados) > 0) {
-
-			echo view(
-				'partials.index-orders',
-				[
-					'orders' => $listaAtrasados,
-					'id' => 'collapseAtraso',
-					'title' => 'Ocorrências Em Atraso (' . count($listaAtrasados) . ')',
-					'strShow' => "show"
-				]
-			);
-		}
-		$this->painel($listNoLate, 'Ocorrências Em Aberto(' . count($listNoLate) . ')', 'collapseAberto', 'show');
-		$this->painel($lista2, "Ocorrências Encerradas", 'collapseEncerrada');
-		echo '
-			</div>
-		</div>';
-
-		//Painel Lateral
-		echo '
-		<aside class="col-md-4 blog-sidebar">';
-		if ($sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
-			$sessao = new Sessao();
-
-			$userDivision = Division::where('id', request()->user()->division_id)->first();
-			$attendents = User::where('role', Sessao::NIVEL_ADM)
-				->orWhere('role', Sessao::NIVEL_TECNICO)->get();
-			$allUsers = User::get();
-			$applicants = Order::select('place as division_sig', 'division_sig_id as division_sig_id')->distinct()->limit(400)->get();
-			$divisions = Division::select('id', 'name')->get();
-
-			echo '
-                <div class="p-4 mb-3 bg-light rounded">
-                    <h4 class="font-italic">Filtros</h4>';
-			echo view('partials.form-basic-filter', ['userDivision' => $userDivision, 'attendents' => $attendents, 'allUsers' => $allUsers]);
-			echo view('partials.form-advanced-filter', ['divisions' => $divisions, 'applicants' => $applicants]);
-			echo view('partials.form-campus-filter');
-			echo '</div>';
-		}
-		echo view('partials.card-info');
-		echo '</aside>
-		</div>
-		';
-	}
 
 	public function telaCadastro()
 	{
@@ -590,13 +606,7 @@ class OcorrenciaController
 		}
 
 		$ocorrencia = new Ocorrencia();
-
 		$sessao = new Sessao();
-
-
-
-		$usuarioDao = new UsuarioDAO($this->dao->getConnection());
-
 
 
 		$ocorrencia->setIdLocal($sessao->getIdUnidade());
