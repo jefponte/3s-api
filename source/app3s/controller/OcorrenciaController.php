@@ -33,7 +33,26 @@ class OcorrenciaController
 	{
 		$this->dao = new OcorrenciaDAO();
 	}
+	public function main()
+	{
 
+		echo '
+
+<div class="card mb-4">
+        <div class="card-body">';
+		if (isset($_GET['selecionar'])) {
+			$this->show();
+		} else if (isset($_GET['cadastrar'])) {
+			$this->create();
+		} else {
+			$this->index();
+		}
+
+		echo '
+	</div>
+</div>
+';
+	}
 	public function index()
 	{
 
@@ -62,12 +81,12 @@ class OcorrenciaController
 				]
 			)->orderByDesc('orders.id');
 		$queryFinished = Order::select(
-				'orders.id as id',
-				'orders.description as descricao',
-				'services.sla as tempo_sla',
-				'orders.created_at as data_abertura',
-				'orders.status as status'
-			)
+			'orders.id as id',
+			'orders.description as descricao',
+			'services.sla as tempo_sla',
+			'orders.created_at as data_abertura',
+			'orders.status as status'
+		)
 			->join('services', 'orders.service_id', '=', 'services.id')
 			->whereIn('status', [
 				self::STATUS_FECHADO,
@@ -255,7 +274,7 @@ class OcorrenciaController
 	{
 		return $this->sessao->getNivelAcesso() != Sessao::NIVEL_COMUM && $currentStatus == 'e' && $this->sessao->getIdUsuario() != $this->selecionado->getIdUsuarioAtendente();
 	}
-	public function selecionar()
+	public function show()
 	{
 
 		if (!isset($_GET['selecionar'])) {
@@ -264,13 +283,6 @@ class OcorrenciaController
 
 		$sessao = new Sessao();
 		$this->sessao = new Sessao();
-		$this->selecionado = new Ocorrencia();
-		$this->selecionado->setId($_GET['selecionar']);
-
-		$this->dao->fillById($this->selecionado);
-		$selected = Order::where('id', $_GET['selecionar'])->first();
-
-
 
 		if (!$this->parteInteressada()) {
 			echo '
@@ -281,14 +293,26 @@ class OcorrenciaController
 			return;
 		}
 
+
+		$this->selecionado = new Ocorrencia();
+		$this->selecionado->setId($_GET['selecionar']);
+
+		$this->dao->fillById($this->selecionado);
+		$selected = Order::where('id', $_GET['selecionar'])->first();
+
 		$orderStatusLog = DB::table('order_status_logs')
-			->join('users', 'order_status_logs.id_usuario', '=', 'users.id')
-			->select('order_status_logs.status', 'order_status_logs.message', 'users.name as nome_usuario', 'order_status_logs.created_at')
-			->where('order_status_logs.order_id', $selected->id)
-			->get();
+		->join('users', 'order_status_logs.id_usuario', '=', 'users.id')
+		->select('order_status_logs.status', 'order_status_logs.message', 'users.name as nome_usuario', 'order_status_logs.created_at')
+		->where('order_status_logs.order_id', $selected->id)
+		->get();
 
 		$statusController = new StatusOcorrenciaController();
-		$currentStatus = DB::table('status')->where('sigla', $this->selecionado->getStatus())->first();
+
+
+
+
+
+
 
 
 		$listaUsuarios = DB::table('users')->whereIn('role', [
@@ -378,8 +402,7 @@ class OcorrenciaController
 			'providerDivision' => $this->selecionado->getAreaResponsavel()->getNome() . ' - ' . $this->selecionado->getAreaResponsavel()->getDescricao(),
 			'providerName' => $providerName,
 			'canEditDivision' => $canEditDivision,
-			'orderStatusLog' => $orderStatusLog,
-			'currentStatus' => $currentStatus
+			'orderStatusLog' => $orderStatusLog
 		]);
 
 
@@ -421,35 +444,7 @@ class OcorrenciaController
 		echo ':sucess:' . $sessao->getNivelAcesso();
 		return;
 	}
-	public function main()
-	{
 
-		echo '
-
-<div class="card mb-4">
-        <div class="card-body">';
-
-		if (isset($_GET['selecionar'])) {
-			$this->selecionar();
-		} else if (isset($_GET['cadastrar'])) {
-			$this->telaCadastro();
-		} else {
-			$this->index();
-		}
-
-
-
-		echo '
-
-
-	</div>
-</div>
-
-
-
-
-';
-	}
 	public function painel($lista, $strTitulo, $id, $strShow = "")
 	{
 		echo view(
@@ -499,11 +494,11 @@ class OcorrenciaController
 	{
 		if (isset($_GET['setor'])) {
 			$divisionId = intval($_GET['setor']);
-			$query = $query->where('ocorrencia.id_area_responsavel', $divisionId);
+			$query = $query->where('orders.division_id', $divisionId);
 		}
 		if (isset($_GET['demanda'])) {
 			$query = $query->where(function ($query) {
-				$query->where('id_usuario_indicado', $this->sessao->getIdUsuario())->orWhere('id_usuario_atendente', $this->sessao->getIdUsuario());
+				$query->where('provider_user_id', $this->sessao->getIdUsuario());
 			});
 		}
 		if (isset($_GET['solicitacao'])) {
@@ -511,7 +506,7 @@ class OcorrenciaController
 		}
 		if (isset($_GET['tecnico'])) {
 			$query = $query->where(function ($query) {
-				$query->where('id_usuario_indicado', intval($_GET['tecnico']))->orWhere('id_usuario_atendente', intval($_GET['tecnico']));
+				$query->where('provider_user_id', intval($_GET['tecnico']));
 			});
 		}
 		if (isset($_GET['requisitante'])) {
@@ -519,11 +514,11 @@ class OcorrenciaController
 		}
 		if (isset($_GET['data_abertura1'])) {
 			$data1 = date("Y-m-d", strtotime($_GET['data_abertura1']));
-			$query = $query->where('data_abertura', '>=', $data1);
+			$query = $query->where('orders.created_at', '>=', $data1);
 		}
 		if (isset($_GET['data_abertura2'])) {
 			$data2 = date("Y-m-d", strtotime($_GET['data_abertura2']));
-			$query = $query->where('data_abertura', '<=', $data2);
+			$query = $query->where('orders.created_at', '<=', $data2);
 		}
 		if (isset($_GET['campus'])) {
 			$campusArr = explode(",", $_GET['campus']);
@@ -531,17 +526,17 @@ class OcorrenciaController
 		}
 		if (isset($_GET['setores_responsaveis'])) {
 			$divisions = explode(",", $_GET['setores_responsaveis']);
-			$query = $query->whereIn('ocorrencia.id_area_responsavel', $divisions);
+			$query = $query->whereIn('orders.division_id', $divisions);
 		}
 		if (isset($_GET['setores_requisitantes'])) {
 			$divisionsSig = explode(",", $_GET['setores_requisitantes']);
-			$query = $query->whereIn('id_local', $divisionsSig);
+			$query = $query->whereIn('division_sig_id', $divisionsSig);
 		}
 
 		return $query;
 	}
 
-	public function telaCadastro()
+	public function create()
 	{
 		$this->sessao = new Sessao();
 
