@@ -13,7 +13,7 @@
             </div>
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Patrimônio: </b>{{ $order->patrimonio }}<br>
+                    <b>Patrimônio: </b>{{ $order->tag }}<br>
                     @if ($canEditTag)
                         <button id="botao-editar-patrimonio" type="button" acao="editar_patrimonio"
                             class="dropdown-item text-right" data-toggle="modal" data-target="#modalStatus">
@@ -25,7 +25,7 @@
             </div>
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Solucao: </b>{!! nl2br(htmlspecialchars($order->solucao)) !!}<br>
+                    <b>Solucao: </b>{!! nl2br(htmlspecialchars($order->solution)) !!}<br>
                     @if ($canEditSolution)
                         <button id="botao-editar-solucao" type="button" acao="editar_solucao"
                             class="dropdown-item text-right" data-toggle="modal" data-target="#modalStatus">
@@ -41,7 +41,7 @@
         <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Classificação do Chamado: </b>{{ $order->service_name }}<br>
+                    <b>Serviço Solicitado: </b>{{ $order->service->name }} - {{ $order->service->description }}<br>
                     @if ($canEditService)
                         <button type="button" id="botao-editar-servico" acao="editar_servico"
                             class="dropdown-item text-right" data-toggle="modal" data-target="#modalStatus">
@@ -50,19 +50,19 @@
                     @endif
                     <hr>
                     @if (!$isLevelClient)
-                        @if ($order->tempo_sla > 1)
-                            <b>SLA: </b>{{ $order->tempo_sla }} Horas úteis<br>
+                        @if ($order->service->sla > 1)
+                            <b>SLA: </b>{{ $order->service->sla }} Horas úteis<br>
                         @endif
-                        @if ($order->tempo_sla === 1)
+                        @if ($order->service->sla === 1)
                             <b>SLA: </b> 1 Hora útil<br>
                         @endif
-                        @if ($order->tempo_sla === 0)
+                        @if ($order->service->sla === 0)
                             SLA não definido. <br>
                         @endif
 
                     @endif
-                    <b>Data de Abertura: </b>{{ date('d/m/Y', strtotime($order->data_abertura)) }}
-                    {{ date('H', strtotime($order->data_abertura)) }}h{{ date('i', strtotime($order->data_abertura)) }}min<br>
+                    <b>Data de Abertura: </b>{{ date('d/m/Y', strtotime($order->created_at)) }}
+                    {{ date('H', strtotime($order->created_at)) }}h{{ date('i', strtotime($order->created_at)) }}min<br>
 
                     <span class="{{ $isLate ? 'text-danger' : '' }}">
                         <b>Solução Estimada: </b>
@@ -111,19 +111,19 @@
             </div>
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Requisitante: </b>{{ $order->client_name }}<br />
-                    <b>Setor do Requisitante:</b>{{ $order->local }}<br>
+                    <b>Requisitante: </b>{{ $order->customer->name }}<br />
+                    <b>Setor do Requisitante:</b>{{ $order->division_sig }}<br>
                     <b>Campus: </b>{{ $order->campus }} <br>
                     <b>Email: </b>{{ $order->email }}<br>
-                    <b>Local/Sala: </b>{{ $order->local_sala }}<br>
-                    <b>Ramal: </b>{{ $order->ramal }}<br>
+                    <b>Local/Sala: </b>{{ $order->place }}<br>
+                    <b>Ramal: </b>{{ $order->phone_number }}<br>
                 </div>
             </div>
 
             <div class="card mb-4">
                 <div class="card-body">
-                    <b>Setor Responsável: </b>{{ $providerDivision }}<br>
-                    <b>Técnico Responsável: </b>{{ $providerName }}<br>
+                    <b>Setor Responsável: </b>{{ $order->division->name }}<br>
+                    <b>Técnico Responsável: </b>{{ ($order->provider != null ? $order->provider->name : "Não informado") }}<br>
                 </div>
             </div>
         </div>
