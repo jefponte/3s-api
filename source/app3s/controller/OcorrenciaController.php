@@ -18,6 +18,7 @@ use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Division;
 use App\Models\Order;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -243,25 +244,25 @@ class OcorrenciaController
 	public function getColorStatus($siglaStatus)
 	{
 		$strCartao = ' alert-warning ';
-		if ($siglaStatus == 'a') {
+		if ($siglaStatus == self::STATUS_ABERTO) {
 			$strCartao = '  notice-warning';
-		} else if ($siglaStatus == 'e') {
+		} else if ($siglaStatus == self::STATUS_ATENDIMENTO) {
 			$strCartao = '  notice-info ';
-		} else if ($siglaStatus == 'f') {
+		} else if ($siglaStatus == self::STATUS_FECHADO) {
 			$strCartao = 'notice-success ';
-		} else if ($siglaStatus == 'g') {
+		} else if ($siglaStatus == self::STATUS_FECHADO_CONFIRMADO) {
 			$strCartao = 'notice-success ';
-		} else if ($siglaStatus == 'h') {
+		} else if ($siglaStatus == self::STATUS_CANCELADO) {
 			$strCartao = ' notice-warning ';
-		} else if ($siglaStatus == 'r') {
+		} else if ($siglaStatus == self::STATUS_REABERTO) {
 			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == 'b') {
+		} else if ($siglaStatus == self::STATUS_RESERVADO) {
 			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == 'c') {
+		} else if ($siglaStatus == self::STATUS_ABERTO) {
 			$strCartao = '   notice-warning ';
-		} else if ($siglaStatus == 'd') {
+		} else if ($siglaStatus == self::STATUS_AGUARDANDO_USUARIO) {
 			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == 'i') {
+		} else if ($siglaStatus == self::STATUS_AGUARDANDO_ATIVO) {
 			$strCartao = ' notice-warning';
 		}
 		return $strCartao;
@@ -294,79 +295,58 @@ class OcorrenciaController
 		}
 
 
-		$this->selecionado = new Ocorrencia();
-		$this->selecionado->setId($_GET['selecionar']);
 
-		$this->dao->fillById($this->selecionado);
-		$selected = Order::where('id', $_GET['selecionar'])->first();
+		$selected = Order::findOrFail($_GET['selecionar']);
+		$selected->load([
+            'messages.user' => function ($query) {
+                $query->orderBy('id', 'asc');
+            },
+            'statusLogs' => function ($query) {
+                $query->orderBy('id', 'asc');
+            },
+            'customer',
+            'provider.division',
+            'service.division'
+        ]);
 
-		$orderStatusLog = DB::table('order_status_logs')
-		->join('users', 'order_status_logs.id_usuario', '=', 'users.id')
-		->select('order_status_logs.status', 'order_status_logs.message', 'users.name as nome_usuario', 'order_status_logs.created_at')
-		->where('order_status_logs.order_id', $selected->id)
-		->get();
 
 		$statusController = new StatusOcorrenciaController();
-
-
-
-
-
-
-
 
 		$listaUsuarios = DB::table('users')->whereIn('role', [
 			Sessao::NIVEL_TECNICO,
 			Sessao::NIVEL_ADM
 		])->get();
-		$listaServicos = DB::table('servico')->whereIn('visao', [1, 2])->get();
-		$listaAreas = DB::table('area_responsavel')->get();
+		$services = Service::whereIn('role', ['customer', 'provider'])->get();
+		$divisions = Division::get();
 
-		echo view('partials.modal-form-status', ['services' => $listaServicos, 'providers' => $listaUsuarios, 'divisions' => $listaAreas, 'order' => $selected]);
+		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
 
 
-		$dataSolucao = $this->calcularHoraSolucao($selected->data_abertura, $this->selecionado->getServico()->getTempoSla());
+		$dataSolucao = $this->calcularHoraSolucao($selected->created_at, $selected->service->sla);
 		$controller = new StatusOcorrenciaController();
-		$canEditTag = $controller->possoEditarPatrimonio($this->selecionado);
-		$canEditSolution = $controller->possoEditarSolucao($this->selecionado);
-		$selected->service_name = $this->selecionado->getServico()->getNome();
-		$canEditService = $controller->possoEditarServico($this->selecionado);
+		$canEditTag = $controller->possoEditarPatrimonio($selected);
+		$canEditSolution = $controller->possoEditarSolucao($selected);
+		$selected->service_name = $selected->service->name;
+		$canEditService = $controller->possoEditarServico($selected);
 		$isClient = ($sessao->getNivelAcesso() == Sessao::NIVEL_COMUM);
 
-		$selected->tempo_sla = $this->selecionado->getServico()->getTempoSla();
+
 		$timeNow = time();
 		$timeSolucaoEstimada = strtotime($dataSolucao);
 		$isLate = $timeNow > $timeSolucaoEstimada;
 
-		$canRequestHelp = ($this->selecionado->getUsuarioCliente()->getId() == $sessao->getIdUsuario() && !isset($_SESSION['pediu_ajuda']));
-		$selected->client_name =  $this->selecionado->getUsuarioCliente()->getNome();
+		$canRequestHelp = ($selected->customer->id == $sessao->getIdUsuario() &&
+							!isset($_SESSION['pediu_ajuda']));
 
-
-		$canEditDivision = $controller->possoEditarAreaResponsavel($this->selecionado);
-
-		$usuarioDao = new UsuarioDAO();
+		$canEditDivision = $controller->possoEditarAreaResponsavel($selected);
 
 		$providerName = '';
-
-		if ($this->selecionado->getStatus() == StatusOcorrenciaController::STATUS_RESERVADO) {
-			if ($this->selecionado->getIdUsuarioIndicado() != null) {
-				$indicado = new Usuario();
-				$indicado->setId($this->selecionado->getIdUsuarioIndicado());
-				$usuarioDao->fillById($indicado);
-				$providerName = $indicado->getNome();
-			}
-		} else {
-			if ($this->selecionado->getIdUsuarioAtendente() != null) {
-
-				$atendente = new Usuario();
-				$atendente->setId($this->selecionado->getIdUsuarioAtendente());
-				$usuarioDao->fillById($atendente);
-				$providerName = $atendente->getNome();
-			}
+		if($selected->provider != null) {
+			$providerName = $selected->provider->name;
 		}
 
-		foreach ($orderStatusLog as $status) {
-			$status->color = $this->getColorStatus($status->sigla);
+		foreach ($selected->statusLogs as $status) {
+			$status->color = $this->getColorStatus($status->status);
 		}
 
 		echo '
@@ -388,7 +368,7 @@ class OcorrenciaController
 						</button>
 
 						';
-		$statusController->painelStatus($this->selecionado, $selected);
+		$statusController->painelStatus($selected);
 
 		echo view('partials.show-order', [
 			'order' => $selected,
@@ -399,17 +379,16 @@ class OcorrenciaController
 			'isLate' => $isLate,
 			'dataSolucao' => $dataSolucao,
 			'canRequestHelp' => $canRequestHelp,
-			'providerDivision' => $this->selecionado->getAreaResponsavel()->getNome() . ' - ' . $this->selecionado->getAreaResponsavel()->getDescricao(),
+			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
 			'providerName' => $providerName,
-			'canEditDivision' => $canEditDivision,
-			'orderStatusLog' => $orderStatusLog
+			'canEditDivision' => $canEditDivision
 		]);
 
 
 		$mensagemController = new MensagemForumController();
-		$this->dao->fetchMensagens($this->selecionado);
 
-		$mensagemController->mainOcorrencia($this->selecionado);
+
+		$mensagemController->mainOcorrencia($selected);
 	}
 
 

@@ -21,6 +21,7 @@ use app3s\model\StatusOcorrencia;
 use app3s\model\Usuario;
 use app3s\util\Mail;
 use app3s\util\Sessao;
+use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -39,7 +40,7 @@ class StatusOcorrenciaController
 		$this->dao = new StatusOcorrenciaDAO();
 	}
 
-	public function possoAtender()
+	public function possoAtender($order)
 	{
 		if (
 			$this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO
@@ -47,40 +48,40 @@ class StatusOcorrenciaController
 		) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_ATENDIMENTO) {
+		if ($order->status == self::STATUS_ATENDIMENTO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_CANCELADO) {
+		if ($order->status == self::STATUS_CANCELADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO || $this->ocorrencia->getStatus() == self::STATUS_FECHADO_CONFIRMADO) {
+		if ($order->status == self::STATUS_FECHADO || $order->status == self::STATUS_FECHADO_CONFIRMADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_RESERVADO) {
-			if ($this->sessao->getIdUsuario() != $this->ocorrencia->getIdUsuarioIndicado()) {
+		if ($order->status == self::STATUS_RESERVADO) {
+			if ($order->provider != null & $this->sessao->getIdUsuario() != $order->provider->id) {
 				return false;
 			}
 		}
 		if (
-			$this->ocorrencia->getStatus() == self::STATUS_AGUARDANDO_ATIVO
-			|| $this->ocorrencia->getStatus() == self::STATUS_AGUARDANDO_USUARIO
-			|| $this->ocorrencia->getStatus() == self::STATUS_EM_ESPERA
+			$order->status == self::STATUS_AGUARDANDO_ATIVO
+			|| $order->status == self::STATUS_AGUARDANDO_USUARIO
+			|| $order->status == self::STATUS_EM_ESPERA
 		) {
-			if ($this->sessao->getIdUsuario() != $this->ocorrencia->getIdUsuarioAtendente()) {
+			if ($order->provider != null && $this->sessao->getIdUsuario() != $order->provider->id) {
 				return false;
 			}
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_ABERTO || $this->ocorrencia->getStatus() == self::STATUS_REABERTO) {
+		if ($order->status == self::STATUS_ABERTO || $order->status == self::STATUS_REABERTO) {
 			return true;
 		}
 
 		return true;
 	}
-	public function possoCancelar()
+	public function possoCancelar($order)
 	{
-		return $this->sessao->getIdUsuario() === $this->ocorrencia->getUsuarioCliente()->getId()
-		&&
-		($this->ocorrencia->getStatus() == self::STATUS_REABERTO || $this->ocorrencia->getStatus() == self::STATUS_ABERTO);
+		return $this->sessao->getIdUsuario() === $order->customer->id
+			&&
+			($order->status == self::STATUS_REABERTO || $order->status == self::STATUS_ABERTO);
 	}
 
 	public function passwordVerify()
@@ -123,8 +124,8 @@ class StatusOcorrenciaController
 		if (!isset($_POST['senha'])) {
 			return false;
 		}
-
-		if (!$this->possoAtender()) {
+		$order = Order::findOrFail($_POST['id_ocorrencia']);
+		if (!$this->possoAtender($order)) {
 			echo ':falha:Não é possível atender este chamado.';
 			return false;
 		}
@@ -196,7 +197,7 @@ class StatusOcorrenciaController
 		return true;
 	}
 
-	public function ajaxCancelar()
+	public function ajaxCancelar($order)
 	{
 		if (!isset($_POST['status_acao'])) {
 			return false;
@@ -211,9 +212,9 @@ class StatusOcorrenciaController
 			return false;
 		}
 
+		$order = Order::findOrFail($_POST['id_ocorrencia']);
 
-
-		if (!$this->possoCancelar()) {
+		if (!$this->possoCancelar($order)) {
 			echo ":falha:Este chamado não pode ser cancelado.";
 			return false;
 		}
@@ -254,17 +255,15 @@ class StatusOcorrenciaController
 	}
 
 
-	public function painelStatus(Ocorrencia $ocorrencia, $selected)
+	public function painelStatus($selected)
 	{
 
-		$this->ocorrencia = $ocorrencia;
 		$this->sessao = new Sessao();
-
 
 
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			echo '
-			<button type="button"  ' . ($this->possoAtender() ? '' : 'disabled') . '  acao="atender" class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+			<button type="button"  ' . ($this->possoAtender($selected) ? '' : 'disabled') . '  acao="atender" class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
 			  Atender
 			</button>
 
@@ -273,53 +272,50 @@ class StatusOcorrenciaController
 
 		echo '
 
-		<button type="button" ' . ($this->possoFechar() ? '' : 'disabled') . '  acao="fechar"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+		<button type="button" ' . ($this->possoFechar($selected) ? '' : 'disabled') . '  acao="fechar"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
   			Fechar
 		</button>
-		<button type="button" ' . ($this->possoAvaliar() ? '' : 'disabled') . '  id="avaliar-btn" acao="avaliar"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
+		<button type="button" ' . ($this->possoAvaliar($selected) ? '' : 'disabled') . '  id="avaliar-btn" acao="avaliar"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
 			Confirmar
 	  	</button>
 
-		  <button id="botao-reabrir" type="button" ' . ($this->possoReabrir() ? '' : 'disabled') . '  acao="reabrir"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
+		  <button id="botao-reabrir" type="button" ' . ($this->possoReabrir($selected) ? '' : 'disabled') . '  acao="reabrir"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
 		  Reabrir
 		</button>
 
 		';
 
-		if ($this->possoReservar()) {
+		if ($this->possoReservar($selected)) {
 			echo '<button type="button" acao="reservar" id="botao-reservar" class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
 			Reservar
 		  </button>';
 		}
 
-		if ($this->possoLiberar()) {
+		if ($this->possoLiberar($selected)) {
 			echo '<button type="button" acao="liberar_atendimento"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
 			Liberar Ocorrência
 		  </button>';
 		}
-
-
 	}
-	public function possoEditarServico(Ocorrencia $ocorrencia)
+	public function possoEditarServico($order)
 	{
-		$this->ocorrencia = $ocorrencia;
 		$this->sessao = new Sessao();
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO) {
+		if ($order->status == self::STATUS_FECHADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO_CONFIRMADO) {
+		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_CANCELADO) {
+		if ($order->status == self::STATUS_CANCELADO) {
 			return false;
 		}
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM) {
 			return true;
 		}
-		if ($this->ocorrencia->getStatus() != self::STATUS_ATENDIMENTO) {
+		if ($order->status != self::STATUS_ATENDIMENTO) {
 			return false;
 		}
 
@@ -328,92 +324,89 @@ class StatusOcorrenciaController
 		}
 		return true;
 	}
-	public function possoEditarAreaResponsavel(Ocorrencia $ocorrencia)
+	public function possoEditarAreaResponsavel($order)
 	{
 
-
-
-		$this->ocorrencia = $ocorrencia;
 		$this->sessao = new Sessao();
 		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
 			return false;
 		}
 
-		if ($this->ocorrencia->getStatus() == self::STATUS_ABERTO) {
+		if ($order->status == self::STATUS_ABERTO) {
 			return true;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_REABERTO) {
+		if ($order->status == self::STATUS_REABERTO) {
 			return true;
 		}
 		return false;
 	}
 
 
-	public function possoEditarSolucao(Ocorrencia $ocorrencia)
+	public function possoEditarSolucao($order)
 	{
-		$this->ocorrencia = $ocorrencia;
 		$this->sessao = new Sessao();
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() != self::STATUS_ATENDIMENTO) {
-			return false;
+		if (
+			$order->status === self::STATUS_ATENDIMENTO
+			&& $order->provider != null &&
+			$this->sessao->getIdUsuario() === $order->provider->id
+		) {
+			return true;
 		}
-		if ($this->sessao->getIdUsuario() != $this->ocorrencia->getIdUsuarioAtendente()) {
-			return false;
-		}
-		return true;
+
+		return false;
 	}
 
-	public function possoEditarPatrimonio(Ocorrencia $ocorrencia)
+	public function possoEditarPatrimonio($order)
 	{
-		$this->ocorrencia = $ocorrencia;
 		$this->sessao = new Sessao();
 
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO) {
+		if ($order->status == self::STATUS_FECHADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_CANCELADO) {
+		if ($order->status == self::STATUS_CANCELADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO_CONFIRMADO) {
+		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
 			return false;
 		}
-		if ($this->sessao->getIdUsuario() == $this->ocorrencia->getUsuarioCliente()->getId()) {
+		if ($this->sessao->getIdUsuario() == $order->customer->id) {
 			return true;
 		}
-		if ($this->sessao->getIdUsuario() == $this->ocorrencia->getIdUsuarioAtendente()) {
+		if ($order->provider != null && $this->sessao->getIdUsuario() == $order->provider->id) {
 			return true;
 		}
 	}
-	public function possoAvaliar()
+	public function possoAvaliar($order)
 	{
 		//Só permitir isso se o usuário for cliente do chamado
 		//O chamado deve estar fechado.
-		if ($this->sessao->getIdUsuario() != $this->ocorrencia->getUsuarioCliente()->getId()) {
+		if ($this->sessao->getIdUsuario() != $order->customer->id) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() != self::STATUS_FECHADO) {
+		if ($order->status != self::STATUS_FECHADO) {
 			return false;
 		}
 		return true;
 	}
-	public function possoReabrir()
+	public function possoReabrir($order)
 	{
 		//Só permitir isso se o usuário for cliente do chamado
 		//O chamado deve estar fechado.
-		if ($this->sessao->getIdUsuario() != $this->ocorrencia->getUsuarioCliente()->getId()) {
+		if ($this->sessao->getIdUsuario() != $order->customer->id) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() != self::STATUS_FECHADO) {
+		if ($order->status != self::STATUS_FECHADO) {
 			return false;
 		}
 		return true;
 	}
 
-	public function possoFechar()
+	public function possoFechar($order)
 	{
-		if (trim($this->ocorrencia->getSolucao()) == "") {
+		if (trim($order->solution) == "") {
 			return false;
 		}
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
@@ -423,34 +416,34 @@ class StatusOcorrenciaController
 			return false;
 		}
 
-		if ($this->ocorrencia->getStatus() == Self::STATUS_ATENDIMENTO) {
-			if ($this->sessao->getIdUsuario() == $this->ocorrencia->getIdUsuarioAtendente()) {
+		if ($order->status == Self::STATUS_ATENDIMENTO) {
+			if ($this->sessao->getIdUsuario() == $order->provider->id) {
 				return true;
 			}
 		}
 
 		return false;
 	}
-	public function possoReservar()
+	public function possoReservar($order)
 	{
 		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == Self::STATUS_FECHADO) {
+		if ($order->status == Self::STATUS_FECHADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == Self::STATUS_FECHADO_CONFIRMADO) {
+		if ($order->status == Self::STATUS_FECHADO_CONFIRMADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == Self::STATUS_CANCELADO) {
+		if ($order->status == Self::STATUS_CANCELADO) {
 			return false;
 		}
 
 		return true;
 	}
-	public function ajaxFechar()
+	public function ajaxFechar($order)
 	{
-		if (!$this->possoFechar()) {
+		if (!$this->possoFechar($order)) {
 			echo ':falha:Não é possível fechar este chamado.';
 			return false;
 		}
@@ -500,13 +493,13 @@ class StatusOcorrenciaController
 
 		return true;
 	}
-	public function ajaxAvaliar()
+	public function ajaxAvaliar($order)
 	{
 		if (!isset($_POST['avaliacao'])) {
 			echo ':falha:Faça uma avaliação';
 			return false;
 		}
-		if (!$this->possoAvaliar()) {
+		if (!$this->possoAvaliar($order)) {
 			return false;
 		}
 
@@ -548,9 +541,9 @@ class StatusOcorrenciaController
 		echo ':sucesso:' . $this->ocorrencia->getId() . ':Atendimento avaliado com sucesso!';
 		return true;
 	}
-	public function ajaxReabrir()
+	public function ajaxReabrir($order)
 	{
-		if (!$this->possoReabrir()) {
+		if (!$this->possoReabrir($order)) {
 			return false;
 		}
 
@@ -594,13 +587,13 @@ class StatusOcorrenciaController
 		return true;
 	}
 
-	public function ajaxReservar()
+	public function ajaxReservar($order)
 	{
 		if (!isset($_POST['tecnico'])) {
 			echo ':falha:Técnico especificado';
 			return false;
 		}
-		if (!$this->possoReservar()) {
+		if (!$this->possoReservar($order)) {
 			echo ':falha:Você não pode reservar esse chamado.';
 			return false;
 		}
@@ -669,59 +662,60 @@ class StatusOcorrenciaController
 		$this->ocorrencia->setId($_POST['id_ocorrencia']);
 		$ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
 		$ocorrenciaDao->fillById($this->ocorrencia);
+		$order = Order::findOrFail($_POST['id_ocorrencia']);
 		$status = false;
 		$mensagem = "";
 		switch ($_POST['status_acao']) {
 			case 'cancelar':
-				$status = $this->ajaxCancelar();
+				$status = $this->ajaxCancelar($order);
 				$mensagem = '<p>Chamado cancelado</p>';
 				break;
 			case 'atender':
-				$status = $this->ajaxAtender();
+				$status = $this->ajaxAtender($order);
 				$mensagem = '<p>Chamado em atendimento</p>';
 				break;
 			case 'fechar':
-				$status = $this->ajaxFechar();
+				$status = $this->ajaxFechar($order);
 				$mensagem = '<p>Chamado fechado</p>';
 				break;
 			case 'reservar':
-				$status = $this->ajaxReservar();
+				$status = $this->ajaxReservar($order);
 				$mensagem = '<p>Chamado reservado</p>';
 				break;
 			case 'liberar_atendimento':
-				$status = $this->ajaxLiberar();
+				$status = $this->ajaxLiberar($order);
 				$mensagem = '<p>Chamado Liberado para atendimento</p>';
 				break;
 			case 'avaliar':
-				$status = $this->ajaxAvaliar();
+				$status = $this->ajaxAvaliar($order);
 				$mensagem = '<p>Chamado avaliado</p>';
 				break;
 			case 'reabrir':
-				$status = $this->ajaxReabrir();
+				$status = $this->ajaxReabrir($order);
 				$mensagem = '<p>Chamado reaberto</p>';
 				break;
 			case 'editar_servico':
-				$status = $this->ajaxEditarServico();
+				$status = $this->ajaxEditarServico($order);
 				$mensagem = '<p>Serviço alterado</p>';
 				break;
 			case 'editar_solucao':
-				$status = $this->ajaxEditarSolucao();
+				$status = $this->ajaxEditarSolucao($order);
 				$mensagem = '<p>Solução editada</p>';
 				break;
 			case 'editar_area':
-				$status = $this->ajaxEditarArea();
+				$status = $this->ajaxEditarArea($order);
 				$mensagem = '<p>Área Editada Com Sucesso</p>';
 				break;
 			case 'aguardar_ativos':
-				$status = $this->ajaxAguardandoAtivo();
+				$status = $this->ajaxAguardandoAtivo($order);
 				$mensagem = '<p>Aguardando ativo de TI</p>';
 				break;
 			case 'aguardar_usuario':
-				$status = $this->ajaxAguardandoUsuario();
+				$status = $this->ajaxAguardandoUsuario($order);
 				$mensagem = '<p>Aguardando resposta do cliente</p>';
 				break;
 			case 'editar_patrimonio':
-				$status = $this->ajaxEditarPatrimonio();
+				$status = $this->ajaxEditarPatrimonio($order);
 				$mensagem = '<p>Patrimônio editado.</p>';
 				break;
 			default:
@@ -1082,30 +1076,31 @@ class StatusOcorrenciaController
 		echo ':sucesso:' . $this->ocorrencia->getId() . ':Serviço editado com sucesso!';
 		return true;
 	}
-	public function possoLiberar()
+	public function possoLiberar($order)
 	{
 		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_REABERTO) {
+		if ($order->status == self::STATUS_REABERTO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO) {
+		if ($order->status == self::STATUS_FECHADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_CANCELADO) {
+		if ($order->status == self::STATUS_CANCELADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_FECHADO_CONFIRMADO) {
+		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
 			return false;
 		}
-		if ($this->ocorrencia->getStatus() == self::STATUS_ABERTO) {
+		if ($order->status == self::STATUS_ABERTO) {
 			return false;
 		}
 		return true;
 	}
 	public function ajaxLiberar()
 	{
+
 		if (!$this->possoLiberar()) {
 			echo ':falha:Não é possível liberar esse atendimento.';
 			return false;
@@ -1160,14 +1155,14 @@ class StatusOcorrenciaController
 
 
 
-	const STATUS_ABERTO = 'a';
-	const STATUS_RESERVADO = 'b';
-	const STATUS_EM_ESPERA = 'c';
-	const STATUS_AGUARDANDO_USUARIO = 'd';
-	const STATUS_ATENDIMENTO = 'e';
-	const STATUS_FECHADO = 'f';
-	const STATUS_FECHADO_CONFIRMADO = 'g';
-	const STATUS_CANCELADO = 'h';
-	const STATUS_AGUARDANDO_ATIVO = 'i';
-	const STATUS_REABERTO = 'r';
+	const STATUS_ABERTO = 'opened';
+	const STATUS_RESERVADO = 'reserved';
+	const STATUS_EM_ESPERA = 'opened';
+	const STATUS_AGUARDANDO_USUARIO = 'pending customer response';
+	const STATUS_ATENDIMENTO = 'in progress';
+	const STATUS_FECHADO = 'closed';
+	const STATUS_FECHADO_CONFIRMADO = 'committed';
+	const STATUS_CANCELADO = 'canceled';
+	const STATUS_AGUARDANDO_ATIVO = 'pending it resource';
+	const STATUS_REABERTO = 'reopened';
 }

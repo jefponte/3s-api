@@ -30,49 +30,31 @@ class MensagemForumController
 
 
 
-    public function possoEnviarMensagem(Ocorrencia $ocorrencia)
+    public function possoEnviarMensagem($order)
     {
-
-        if ($ocorrencia->getStatus() == StatusOcorrenciaController::STATUS_FECHADO) {
-            return false;
-        }
-        if ($ocorrencia->getStatus() == StatusOcorrenciaController::STATUS_FECHADO_CONFIRMADO) {
-            return false;
-        }
-        if ($ocorrencia->getStatus() == StatusOcorrenciaController::STATUS_CANCELADO) {
-            return false;
-        }
         $sessao = new Sessao();
-        if ($sessao->getNivelAcesso() == SESSAO::NIVEL_COMUM) {
-            if ($sessao->getIdUsuario() != $ocorrencia->getUsuarioCliente()->getId()) {
-                return false;
-            }
+        if(
+            $order->status === StatusOcorrenciaController::STATUS_ATENDIMENTO
+            || $order->status === StatusOcorrenciaController::STATUS_AGUARDANDO_ATIVO
+            || $order->status === StatusOcorrenciaController::STATUS_AGUARDANDO_USUARIO
+            &&
+                (
+                    $order->provider != null && $order->provider->id === $sessao->getIdUsuario()
+                    ||
+                    $order->customer != null && $order->customer->id === $sessao->getIdUsuario()
+                )
+            )
+        {
+            return true;
+        } else {
+            return false;
         }
-        if ($sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
-            if ($ocorrencia->getIdUsuarioAtendente() != $sessao->getIdUsuario()) {
-                if ($sessao->getIdUsuario() != $ocorrencia->getUsuarioCliente()->getId()) {
-                    return false;
-                }
-            }
-        }
-        return true;
+
     }
 
-    public function mainOcorrencia(Ocorrencia $ocorrencia)
+    public function mainOcorrencia($order)
     {
         $sessao = new Sessao();
-
-        if (isset($_POST['chatDelete'])) {
-            $idChat = intval($_POST['chatDelete']);
-            $mensagemForum = new MensagemForum();
-            $mensagemForum->setId($idChat);
-            $mensagemForumDao = new MensagemForumDAO();
-            $mensagemForumDao->fillById($mensagemForum);
-            if ($sessao->getIdUsuario() === $mensagemForum->getUsuario()->getId() && $ocorrencia->getStatus() === StatusOcorrenciaController::STATUS_ATENDIMENTO) {
-                $mensagemForumDao->delete($mensagemForum);
-                echo '<meta http-equiv = "refresh" content = "0 ; url =?page=ocorrencia&selecionar=' . $_GET['selecionar'] . '"/>';
-            }
-        }
         echo '
 
 
@@ -106,7 +88,7 @@ class MensagemForumController
 		<div class="row">
 			<div class="chatbox chatbox22">
 				<div class="chatbox__title">
-					<h5 class="text-white">#<span id="id-ocorrencia">' . $ocorrencia->getId() . '</span></h5>
+					<h5 class="text-white">#<span id="id-ocorrencia">' . $order->id . '</span></h5>
 					<!--<button class="chatbox__title__tray">
             <span></span>
         </button>-->
@@ -114,12 +96,14 @@ class MensagemForumController
 				</div>
 				<div id="corpo-chat" class="chatbox__body">';
 
-        $listaForum = $ocorrencia->getMensagens();
+
         $ultimoId = 0;
-        foreach ($listaForum as $mensagemForum) {
-            $ultimoId = $mensagemForum->getId();
-            $nome = $mensagemForum->getUsuario()->getNome();
-            $listaNome = explode(' ', $mensagemForum->getUsuario()->getNome());
+
+        foreach ($order->messages as $mensagemForum) {
+            $ultimoId = $mensagemForum->id;
+            $nome = $mensagemForum->user->name;
+
+            $listaNome = explode(' ', $mensagemForum->user->name);
             if (isset($listaNome[0])) {
                 $nome = ucfirst(strtolower($listaNome[0]));
             }
@@ -143,26 +127,19 @@ class MensagemForumController
 
             				<div class="chatbox_timing">
             					<ul>
-            						<li><a href="#"><i class="fa fa-calendar"></i> ' . date("d/m/Y", strtotime($mensagemForum->getDataEnvio())) . '</a></li>
-            						<li><a href="#"><i class="fa fa-clock-o"></i> ' . date("H:i", strtotime($mensagemForum->getDataEnvio())) . '</a></a></li>';
-            if ($mensagemForum->getUsuario()->getId() == $sessao->getIdUsuario() && $ocorrencia->getStatus() === StatusOcorrenciaController::STATUS_ATENDIMENTO) {
-                echo '
-                                        <li><button data-toggle="modal" onclick="changeField(' . $mensagemForum->getId() . ')" data-target="#modalDeleteChat"><i class="fa fa-trash-o"></i> Apagar </a></button></li>';
-            }
-
-            echo '
-
+            						<li><a href="#"><i class="fa fa-calendar"></i> ' . date("d/m/Y", strtotime($mensagemForum->created_at)) . '</a></li>
+            						<li><a href="#"><i class="fa fa-clock-o"></i> ' . date("H:i", strtotime($mensagemForum->created_at)) . '</a></a></li>
             					</ul>
             				</div>
             				<div class="clearfix"></div>
             				<div class="ul_section_full">
             					<ul class="ul_msg">
                                     <li><strong>' . $nome . '</strong></li>';
-            if ($mensagemForum->getTipo() == self::TIPO_ARQUIVO) {
-                echo '<li>Anexo: <a href="./storage/uploads/'.$mensagemForum->getMensagem().'">Clique aqui</a></li>';
+            if ($mensagemForum->type == self::TIPO_ARQUIVO) {
+                echo '<li>Anexo: <a href="./storage/uploads/'.$mensagemForum->message.'">Clique aqui</a></li>';
             } else {
                 echo '
-                        <li>' . nl2br(htmlspecialchars($mensagemForum->getMensagem())) . '</li>';
+                        <li>' . nl2br(htmlspecialchars($mensagemForum->message)) . '</li>';
             }
             echo '
 
@@ -179,10 +156,10 @@ class MensagemForumController
 
 				</div>
 				<div class="panel-footer">';
-        if ($this->possoEnviarMensagem($ocorrencia)) {
+        if ($this->possoEnviarMensagem($order)) {
             echo '<form id="insert_form_mensagem_forum" class="user" method="post">
             <input type="hidden" name="enviar_mensagem_forum" value="1">
-            <input type="hidden" name="ocorrencia" value="' . $ocorrencia->getId() . '">
+            <input type="hidden" name="ocorrencia" value="' . $order->id . '">
             <input type="hidden" id="campo_tipo" name="tipo" value="' . self::TIPO_TEXTO . '">
 
             <div class="custom-control custom-switch">
@@ -355,6 +332,6 @@ class MensagemForumController
     }
 
 
-    const TIPO_ARQUIVO = 2;
-    const TIPO_TEXTO = 1;
+    const TIPO_ARQUIVO = 'file';
+    const TIPO_TEXTO = 'text';
 }
