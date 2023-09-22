@@ -27,7 +27,7 @@ class MainAjax
                 $controller->ajaxPedirAjuda();
                 break;
             case 'mudar_nivel':
-                $controller = new UsuarioController();
+                $controller = new OcorrenciaController();
                 $controller->mudarNivel();
                 break;
             default:
