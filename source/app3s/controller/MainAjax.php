@@ -15,9 +15,10 @@ class MainAjax
                 $controller->addAjax();
                 break;
             case 'status_ocorrencia':
-                $controller = new StatusOcorrenciaController();
-                $controller->mainAjax();
+                $controller = new OcorrenciaController();
+                $controller->mainAjaxStatus();
                 break;
+
             case 'mudar_nivel':
                 $controller = new OcorrenciaController();
                 $controller->mudarNivel();
