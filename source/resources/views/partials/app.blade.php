@@ -114,7 +114,6 @@
 <script src="js/selectize.js"></script>
 <script src="js/mudar_nivel.js?a=12"></script>
 <script src="js/change-contraste.js?a=1"></script>
-<script src="js/ocorrencia_selectize.js?a=1"></script>
 <script src="js/jquery.easyPaginate.js?a=1"></script>
 <script src="js/ocorrencia.js?a=1451"></script>
 <script src="js/mensagem_forum.js?a=172"></script>

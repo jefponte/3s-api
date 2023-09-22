@@ -282,22 +282,7 @@ class StatusOcorrenciaController
 		}
 		return true;
 	}
-	public function possoEditarAreaResponsavel($order)
-	{
 
-		$this->sessao = new Sessao();
-		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
-			return false;
-		}
-
-		if ($order->status == self::STATUS_ABERTO) {
-			return true;
-		}
-		if ($order->status == self::STATUS_REABERTO) {
-			return true;
-		}
-		return false;
-	}
 
 
 	public function possoEditarSolucao($order)
@@ -927,56 +912,6 @@ class StatusOcorrenciaController
 		$ocorrenciaDao->getConnection()->commit();
 
 		echo ':sucesso:' . $this->ocorrencia->getId() . ':Solução editada com sucesso!';
-		return true;
-	}
-	public function ajaxEditarArea($order)
-	{
-		if (!$this->possoEditarAreaResponsavel($order)) {
-			echo ':falha:Você não pode editar a área responsável.';
-			return false;
-		}
-
-		if (!isset($_POST['area_responsavel'])) {
-			echo ':falha:Selecione um serviço.';
-			return false;
-		}
-		$areaResponsavel = new AreaResponsavel();
-		$areaResponsavel->setId($_POST['area_responsavel']);
-		$areaResponsavelDao = new AreaResponsavelDAO($this->dao->getConnection());
-		$areaResponsavelDao->fillById($areaResponsavel);
-
-		$this->ocorrencia->setAreaResponsavel($areaResponsavel);
-
-		$ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-
-		$status = new Status();
-		$status->setSigla(self::STATUS_ABERTO);
-
-		$statusDao = new StatusDAO($this->dao->getConnection());
-		$statusDao->fillBySigla($status);
-
-		$this->statusOcorrencia = new StatusOcorrencia();
-		$this->statusOcorrencia->setOcorrencia($this->ocorrencia);
-		$this->statusOcorrencia->setStatus($status);
-		$this->statusOcorrencia->setDataMudanca(date("Y-m-d G:i:s"));
-		$this->statusOcorrencia->getUsuario()->setId($this->sessao->getIdUsuario());
-		$this->statusOcorrencia->setMensagem('Chamado encaminhado para setor: ' . $areaResponsavel->getNome());
-
-		$ocorrenciaDao->getConnection()->beginTransaction();
-
-		if (!$ocorrenciaDao->update($this->ocorrencia)) {
-			echo ':falha:Falha na alteração do status da ocorrência.';
-			$ocorrenciaDao->getConnection()->rollBack();
-			return false;
-		}
-
-		if (!$this->dao->insert($this->statusOcorrencia)) {
-			echo ':falha:Falha ao tentar inserir histórico.';
-			return false;
-		}
-		$ocorrenciaDao->getConnection()->commit();
-
-		echo ':sucesso:' . $this->ocorrencia->getId() . ':Área Responsável Editada Com Sucesso!';
 		return true;
 	}
 	public function ajaxEditarServico($order)
