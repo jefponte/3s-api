@@ -255,48 +255,6 @@ class StatusOcorrenciaController
 	}
 
 
-	public function painelStatus($selected)
-	{
-
-		$this->sessao = new Sessao();
-
-
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
-			echo '
-			<button type="button"  ' . ($this->possoAtender($selected) ? '' : 'disabled') . '  acao="atender" class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-			  Atender
-			</button>
-
-			';
-		}
-
-		echo '
-
-		<button type="button" ' . ($this->possoFechar($selected) ? '' : 'disabled') . '  acao="fechar"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-  			Fechar
-		</button>
-		<button type="button" ' . ($this->possoAvaliar($selected) ? '' : 'disabled') . '  id="avaliar-btn" acao="avaliar"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
-			Confirmar
-	  	</button>
-
-		  <button id="botao-reabrir" type="button" ' . ($this->possoReabrir($selected) ? '' : 'disabled') . '  acao="reabrir"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
-		  Reabrir
-		</button>
-
-		';
-
-		if ($this->possoReservar($selected)) {
-			echo '<button type="button" acao="reservar" id="botao-reservar" class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
-			Reservar
-		  </button>';
-		}
-
-		if ($this->possoLiberar($selected)) {
-			echo '<button type="button" acao="liberar_atendimento"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-			Liberar Ocorrência
-		  </button>';
-		}
-	}
 	public function possoEditarServico($order)
 	{
 		$this->sessao = new Sessao();
@@ -712,10 +670,6 @@ class StatusOcorrenciaController
 				$status = $this->ajaxEditarSolucao($order);
 				$mensagem = '<p>Solução editada</p>';
 				break;
-			case 'editar_area':
-				$status = $this->ajaxEditarArea($order);
-				$mensagem = '<p>Área Editada Com Sucesso</p>';
-				break;
 			case 'aguardar_ativos':
 				$status = $this->ajaxAguardandoAtivo($order);
 				$mensagem = '<p>Aguardando ativo de TI</p>';
@@ -844,10 +798,10 @@ class StatusOcorrenciaController
 		}
 	}
 	private $statusOcorrencia;
-	public function ajaxAguardandoAtivo()
+	public function ajaxAguardandoAtivo($order)
 	{
 
-		if (!$this->possoEditarSolucao($this->ocorrencia)) {
+		if (!$this->possoEditarSolucao($order)) {
 			echo ':falha:Esta solução não pode ser editada.';
 			return false;
 		}
@@ -975,9 +929,9 @@ class StatusOcorrenciaController
 		echo ':sucesso:' . $this->ocorrencia->getId() . ':Solução editada com sucesso!';
 		return true;
 	}
-	public function ajaxEditarArea()
+	public function ajaxEditarArea($order)
 	{
-		if (!$this->possoEditarAreaResponsavel($this->ocorrencia)) {
+		if (!$this->possoEditarAreaResponsavel($order)) {
 			echo ':falha:Você não pode editar a área responsável.';
 			return false;
 		}

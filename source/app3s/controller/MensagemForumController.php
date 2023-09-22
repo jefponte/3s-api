@@ -21,6 +21,10 @@ use Illuminate\Support\Facades\Storage;
 
 class MensagemForumController
 {
+    /**
+     * @deprecated
+     *
+     */
     protected $dao;
 
     public function __construct()

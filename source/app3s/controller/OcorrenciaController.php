@@ -10,10 +10,8 @@ namespace app3s\controller;
 use app3s\dao\OcorrenciaDAO;
 use app3s\dao\ServicoDAO;
 use app3s\dao\StatusOcorrenciaDAO;
-use app3s\dao\UsuarioDAO;
 use app3s\model\Ocorrencia;
 use app3s\model\StatusOcorrencia;
-use app3s\model\Usuario;
 use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Division;
@@ -293,24 +291,22 @@ class OcorrenciaController
 			return;
 		}
 
-
-
 		$selected = Order::findOrFail($_GET['selecionar']);
 		$selected->load([
-            'messages.user' => function ($query) {
-                $query->orderBy('id', 'asc');
-            },
-            'statusLogs' => function ($query) {
-                $query->orderBy('id', 'asc');
-            },
+			'messages.user' => function ($query) {
+				$query->orderBy('id', 'asc');
+			},
+			'statusLogs' => function ($query) {
+				$query->orderBy('id', 'asc');
+			},
 			'division',
-            'customer',
-            'provider.division',
-            'service.division'
-        ]);
+			'customer',
+			'provider.division',
+			'service.division'
+		]);
 
 
-		$statusController = new StatusOcorrenciaController();
+
 
 		$listaUsuarios = DB::table('users')->whereIn('role', [
 			Sessao::NIVEL_TECNICO,
@@ -319,35 +315,28 @@ class OcorrenciaController
 		$services = Service::whereIn('role', ['customer', 'provider'])->get();
 		$divisions = Division::get();
 
-		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
-
-
 		$dataSolucao = $this->calcularHoraSolucao($selected->created_at, $selected->service->sla);
-		$controller = new StatusOcorrenciaController();
-		$canEditTag = $controller->possoEditarPatrimonio($selected);
-		$canEditSolution = $controller->possoEditarSolucao($selected);
+
+		$canEditTag = $this->possoEditarPatrimonio($selected);
+		$canEditSolution = $this->possoEditarSolucao($selected);
 		$selected->service_name = $selected->service->name;
-		$canEditService = $controller->possoEditarServico($selected);
+		$canEditService = $this->possoEditarServico($selected);
 		$isClient = ($sessao->getNivelAcesso() == Sessao::NIVEL_COMUM);
-
-
 		$timeNow = time();
 		$timeSolucaoEstimada = strtotime($dataSolucao);
 		$isLate = $timeNow > $timeSolucaoEstimada;
-
 		$canRequestHelp = ($selected->customer->id == $sessao->getIdUsuario() &&
-							!isset($_SESSION['pediu_ajuda']));
-
-		$canEditDivision = $controller->possoEditarAreaResponsavel($selected);
-
+			!isset($_SESSION['pediu_ajuda']));
+		$canCancel = $this->canCancel($selected);
 		$providerName = '';
-		if($selected->provider != null) {
+		if ($selected->provider != null) {
 			$providerName = $selected->provider->name;
 		}
-
 		foreach ($selected->statusLogs as $status) {
 			$status->color = $this->getColorStatus($status->status);
 		}
+
+		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
 
 		echo '
             <div class="row">
@@ -363,12 +352,13 @@ class OcorrenciaController
 					</button>
 					<div class="dropdown-menu">
 
-					<button type="button" acao="cancelar" ' . ($this->canCancel($selected) ? '' : 'disabled') . ' class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+					<button type="button" acao="cancelar" ' . ($canCancel ? '' : 'disabled') . ' class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
 						Cancelar
 						</button>
 
 						';
-		$statusController->painelStatus($selected);
+		$this->painelStatus($selected);
+
 
 		echo view('partials.show-order', [
 			'order' => $selected,
@@ -380,17 +370,271 @@ class OcorrenciaController
 			'dataSolucao' => $dataSolucao,
 			'canRequestHelp' => $canRequestHelp,
 			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
-			'providerName' => $providerName,
-			'canEditDivision' => $canEditDivision
+			'providerName' => $providerName
 		]);
-
-
 		$mensagemController = new MensagemForumController();
-
 		$mensagemController->mainOcorrencia($selected);
 	}
 
 
+	public function painelStatus($selected)
+	{
+
+		$this->sessao = new Sessao();
+
+
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
+			echo '
+			<button type="button"  ' . ($this->possoAtender($selected) ? '' : 'disabled') . '  acao="atender" class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+			  Atender
+			</button>
+
+			';
+		}
+
+		echo '
+
+		<button type="button" ' . ($this->possoFechar($selected) ? '' : 'disabled') . '  acao="fechar"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+  			Fechar
+		</button>
+		<button type="button" ' . ($this->possoAvaliar($selected) ? '' : 'disabled') . '  id="avaliar-btn" acao="avaliar"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
+			Confirmar
+	  	</button>
+
+		  <button id="botao-reabrir" type="button" ' . ($this->possoReabrir($selected) ? '' : 'disabled') . '  acao="reabrir"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
+		  Reabrir
+		</button>
+
+		';
+
+		if ($this->possoReservar($selected)) {
+			echo '<button type="button" acao="reservar" id="botao-reservar" class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
+			Reservar
+		  </button>';
+		}
+
+		if ($this->possoLiberar($selected)) {
+			echo '<button type="button" acao="liberar_atendimento"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+			Liberar Ocorrência
+		  </button>';
+		}
+		echo '<div class="dropdown-divider"></div>
+
+		<button type="button" acao="aguardar_usuario"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+			Aguardar Usuário
+		  </button>
+		  <button type="button" acao="aguardar_ativos"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
+			  Aguardar Ativos de TI
+		</button>
+		</div>
+		</div>
+		<button class="btn btn-light btn-lg p-2" type="button" disabled>
+		Status:  ' . $selected->status . '
+		</button>
+		</div>
+		</div>
+		</div>
+		</div>
+		<div class="row  border-bottom mb-3"></div>
+		</div>';
+	}
+
+	public function possoCancelar($order)
+	{
+		return $this->sessao->getIdUsuario() === $order->customer->id
+			&&
+			($order->status == self::STATUS_REABERTO || $order->status == self::STATUS_ABERTO);
+	}
+	public function possoLiberar($order)
+	{
+		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
+			return false;
+		}
+		if ($order->status == self::STATUS_REABERTO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_FECHADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_CANCELADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_ABERTO) {
+			return false;
+		}
+		return true;
+	}
+
+	public function possoAtender($order)
+	{
+		if (
+			$this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO
+			|| $this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM
+		) {
+			return false;
+		}
+		if ($order->status == self::STATUS_ATENDIMENTO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_CANCELADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_FECHADO || $order->status == self::STATUS_FECHADO_CONFIRMADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_RESERVADO) {
+			if ($order->provider != null & $this->sessao->getIdUsuario() != $order->provider->id) {
+				return false;
+			}
+		}
+		if (
+			$order->status == self::STATUS_AGUARDANDO_ATIVO
+			|| $order->status == self::STATUS_AGUARDANDO_USUARIO
+		) {
+			if ($order->provider != null && $this->sessao->getIdUsuario() != $order->provider->id) {
+				return false;
+			}
+		}
+		if ($order->status == self::STATUS_ABERTO || $order->status == self::STATUS_REABERTO) {
+			return true;
+		}
+
+		return true;
+	}
+
+	public function possoFechar($order)
+	{
+		if (trim($order->solution) == "") {
+			return false;
+		}
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
+			return false;
+		}
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
+			return false;
+		}
+
+		if ($order->status == Self::STATUS_ATENDIMENTO) {
+			if ($this->sessao->getIdUsuario() == $order->provider->id) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	public function possoEditarServico($order)
+	{
+		$this->sessao = new Sessao();
+		if (
+			$order->provider != null && $this->sessao->getIdUsuario() === $order->provider->id
+			&& $order->status != self::STATUS_ATENDIMENTO
+			) {
+			return true;
+		}
+		return false;
+	}
+	public function possoEditarAreaResponsavel($order)
+	{
+
+		$this->sessao = new Sessao();
+		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
+			return false;
+		}
+
+		if ($order->status == self::STATUS_ABERTO) {
+			return true;
+		}
+		if ($order->status == self::STATUS_REABERTO) {
+			return true;
+		}
+		return false;
+	}
+
+
+	public function possoEditarSolucao($order)
+	{
+		$this->sessao = new Sessao();
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
+			return false;
+		}
+		if (
+			$order->status === self::STATUS_ATENDIMENTO
+			&& $order->provider != null &&
+			$this->sessao->getIdUsuario() === $order->provider->id
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function possoReservar($order)
+	{
+		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
+			return false;
+		}
+		if ($order->status == Self::STATUS_FECHADO) {
+			return false;
+		}
+		if ($order->status == Self::STATUS_FECHADO_CONFIRMADO) {
+			return false;
+		}
+		if ($order->status == Self::STATUS_CANCELADO) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function possoEditarPatrimonio($order)
+	{
+		$this->sessao = new Sessao();
+
+		if ($order->status == self::STATUS_FECHADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_CANCELADO) {
+			return false;
+		}
+		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
+			return false;
+		}
+		if ($this->sessao->getIdUsuario() == $order->customer->id) {
+			return true;
+		}
+		if ($order->provider != null && $this->sessao->getIdUsuario() == $order->provider->id) {
+			return true;
+		}
+	}
+	public function possoAvaliar($order)
+	{
+		//Só permitir isso se o usuário for cliente do chamado
+		//O chamado deve estar fechado.
+		if ($this->sessao->getIdUsuario() != $order->customer->id) {
+			return false;
+		}
+		if ($order->status != self::STATUS_FECHADO) {
+			return false;
+		}
+		return true;
+	}
+	public function possoReabrir($order)
+	{
+		//Só permitir isso se o usuário for cliente do chamado
+		//O chamado deve estar fechado.
+		if ($this->sessao->getIdUsuario() != $order->customer->id) {
+			return false;
+		}
+		if ($order->status != self::STATUS_FECHADO) {
+			return false;
+		}
+		return true;
+	}
 	const STATUS_ABERTO = 'opened';
 	const STATUS_RESERVADO = 'reserved';
 	const STATUS_AGUARDANDO_USUARIO = 'pending customer response';

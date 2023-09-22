@@ -1,37 +1,12 @@
-
-
-            <div class="dropdown-divider"></div>
-
-			<button type="button" acao="aguardar_usuario"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-				Aguardar Usuário
-		  	</button>
-		  	<button type="button" acao="aguardar_ativos"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-		  		Aguardar Ativos de TI
-			</button>
-
-</div>
-</div>
-<button class="btn btn-light btn-lg p-2" type="button" disabled>
-    Status:  {{$order->status}}
-</button>
-</div>
-</div>
-
-</div>
-</div>
-<div class="row  border-bottom mb-3"></div>
-</div>
-
-
 <div class="col-md-8">
     <div class="row">
         <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">
 
             <div class="card mb-4">
                 <div class="card-body">
-                    <b> Descricao: </b>{!! nl2br(htmlspecialchars($order->descricao)) !!}<br>
-                    @if ($order->anexo != '')
-                        <b>Anexo: </b><a href="{{'./storage/uploads/'.$order->anexo}}" download> Clique aqui</a> <br>
+                    <b> Descricao: </b>{!! nl2br(htmlspecialchars($order->description)) !!}<br>
+                    @if (trim($order->attachment) != '')
+                        <b>Anexo: </b><a href="{{'./storage/uploads/'.$order->attachment}}" download> Clique aqui</a> <br>
                     @endif
 
                 </div>
@@ -149,32 +124,9 @@
                 <div class="card-body">
                     <b>Setor Responsável: </b>{{ $providerDivision }}<br>
                     <b>Técnico Responsável: </b>{{ $providerName }}<br>
-                    @if ($canEditDivision)
-                        <button id="botao-editar-area" type="button" acao="editar_area"
-                            class="dropdown-item text-right" data-toggle="modal" data-target="#modalStatus">
-                            Editar Setor Responsável
-                        </button>
-                    @endif
                 </div>
             </div>
         </div>
     </div>
 </div>
-<aside class="col-md-4 blog-sidebar">
-    <h4 class="font-italic">Histórico</h4>
-    <div class="container">
-        @foreach ($order->statusLogs as $status)
-            <div class="notice {{ $status->color }}">
-                <strong>{{ $status->status }}</strong><br>
-                @if ($status->status == 'commited')
-                    <br>
-                    @for ($i = 0; $i < intval($order->avaliacao); $i++)
-                        <img class="m-2 estrela-1" nota="1" src="img/star1.png" alt="1">
-                    @endfor
-                @endif
-                <br>{{ $status->mensagem }}<br>
-                <strong>{{ $status->nome_usuario }}<br>{{ date('d/m/Y - H:i', strtotime($status->data_mudanca)) }}</strong>
-            </div>
-        @endforeach
-    </div>
-</aside>
+@include('orders.panel-status-logs')
