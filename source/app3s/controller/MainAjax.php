@@ -10,10 +10,6 @@ class MainAjax
     public function main()
     {
         switch ($_GET['ajax']) {
-            case 'ocorrencia':
-                $controller = new OcorrenciaController();
-                $controller->mainAjax();
-                break;
             case 'mensagem_forum':
                 $controller = new MensagemForumController();
                 $controller->addAjax();
@@ -21,10 +17,6 @@ class MainAjax
             case 'status_ocorrencia':
                 $controller = new StatusOcorrenciaController();
                 $controller->mainAjax();
-                break;
-            case 'pedir_ajuda':
-                $controller = new OcorrenciaController();
-                $controller->ajaxPedirAjuda();
                 break;
             case 'mudar_nivel':
                 $controller = new OcorrenciaController();
