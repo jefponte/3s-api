@@ -12,14 +12,18 @@ use PDO;
 use PDOException;
 use app3s\model\AreaResponsavel;
 
+/**
+ * @deprecated 1.0.17
+ */
+
 class AreaResponsavelDAO extends DAO
 {
 
 
 
-	/**
-	 * @deprecated 1.0.17
-	 */
+    /**
+     * @deprecated 1.0.17
+     */
     public function fillById(AreaResponsavel $areaResponsavel)
     {
 

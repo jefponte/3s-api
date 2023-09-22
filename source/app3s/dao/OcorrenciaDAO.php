@@ -15,6 +15,10 @@ use app3s\model\Ocorrencia;
 use app3s\model\MensagemForum;
 use app3s\util\Sessao;
 
+/**
+ * @deprecated 1.0.17
+ */
+
 class OcorrenciaDAO extends DAO
 {
 

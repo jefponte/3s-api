@@ -13,6 +13,10 @@ use PDO;
 use PDOException;
 use app3s\model\StatusOcorrencia;
 
+/**
+ * @deprecated 1.0.17
+ */
+
 class StatusOcorrenciaDAO extends DAO
 {
 
@@ -40,5 +44,4 @@ class StatusOcorrenciaDAO extends DAO
             echo '{"error":{"text":' . $e->getMessage() . '}}';
         }
     }
-
 }

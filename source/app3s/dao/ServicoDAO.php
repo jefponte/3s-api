@@ -12,6 +12,10 @@ use PDO;
 use PDOException;
 use app3s\model\Servico;
 
+/**
+ * @deprecated 1.0.17
+ */
+
 class ServicoDAO extends DAO
 {
 

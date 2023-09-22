@@ -14,6 +14,9 @@ use app3s\model\Usuario;
 use app3s\util\Sessao;
 use App\Models\User;
 
+/**
+ * @deprecated 1.0.17
+ */
 class UsuarioDAO extends DAO
 {
 
