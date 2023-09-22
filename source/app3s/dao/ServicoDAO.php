@@ -15,11 +15,9 @@ use app3s\model\Servico;
 class ServicoDAO extends DAO
 {
 
-
-
-
-
-
+    /**
+     * @deprecated 1.0.17
+     */
     public function fillById(Servico $servico)
     {
 

@@ -18,6 +18,10 @@ class UsuarioDAO extends DAO
 {
 
 
+    /**
+     * @deprecated 1.0.17
+     *
+     */
     public function fillById(Usuario $usuario)
     {
 

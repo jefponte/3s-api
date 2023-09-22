@@ -15,6 +15,9 @@ use app3s\model\Status;
 class StatusDAO extends DAO
 {
 
+    /**
+     * @deprecated 1.0.17
+     */
     public function fillBySigla(Status $status)
     {
 
