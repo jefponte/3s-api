@@ -77,12 +77,12 @@ function alocaMensagem(item, index) {
     div += '<div class="clearfix"></div>';
     div += '<div class="ul_section_full"><ul class="ul_msg">';
 
-	div += '<li><strong>' + item.nome_usuario+ '</strong></li>';
-	if (item.tipo == 1) {
-		div += '<li>' + item.mensagem + '</li>';
-	} else {
-		div += '<li>Anexo: <a href="./storage/uploads/' + item.mensagem + '" download>Download</a></li>';
-	}
+    div += '<li><strong>' + item.nome_usuario + '</strong></li>';
+    if (item.tipo == 1) {
+        div += '<li>' + item.mensagem + '</li>';
+    } else {
+        div += '<li>Anexo: <a href="./storage/uploads/' + item.mensagem + '" download>Download</a></li>';
+    }
 
     div += '</ul>';
     div += '<div class="clearfix"></div>';
@@ -113,65 +113,61 @@ function carregarDados(url2) {
 }
 
 setInterval(function () {
-	carregarDados(url1);
+    carregarDados(url1);
 }, 5000);
 
 
 
 
-$(document).ready(function (e) {
-    $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
-    $("#insert_form_mensagem_forum").on('submit', function (e) {
-        e.preventDefault();
-        $('#modalAddMensagemForum').modal('hide');
 
-        var dados = new FormData(this);
-        $('#botao-enviar-mensagem').attr('disabled', true);
-        $('#botao-enviar-mensagem').text("Aguarde...");
+$("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
+$("#insert_form_mensagem_forum").on('submit', function (e) {
+    e.preventDefault();
+    $('#modalAddMensagemForum').modal('hide');
 
-
-        jQuery.ajax({
-            type: "POST",
-            url: "?ajax=mensagem_forum",
-            data: dados,
-            success: function (data) {
-
-                console.log(data);
-                if (data.split(":")[1] == 'sucesso') {
-
-                    //window.location.href='?page=ocorrencia&selecionar='+data.split(":")[2];
-                    $('#botao-enviar-mensagem').attr('disabled', false);
-                    $('#botao-enviar-mensagem').text("Enviar");
-                    $("#campo-texto").val("");
-                    $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
-
-                }
-                else {
-
-                    $("#textoModalResposta").text("Falha ao inserir mensagem. Mensagem de erro: " + data.split(":")[2]);
-                    $("#modalResposta").modal("show");
-                }
-
-            },
-            cache: false,
-            contentType: false,
-            processData: false,
-            xhr: function () { // Custom XMLHttpRequest
-                var myXhr = $.ajaxSettings.xhr();
-                if (myXhr.upload) { // Avalia se tem suporte a propriedade upload
-                    myXhr.upload.addEventListener('progress', function () {
-                        /* faz alguma coisa durante o progresso do upload */
-                    }, false);
-                }
-                return myXhr;
+    var dados = new FormData(this);
+    $('#botao-enviar-mensagem').attr('disabled', true);
+    $('#botao-enviar-mensagem').text("Aguarde...");
 
 
+    jQuery.ajax({
+        type: "POST",
+        url: "?ajax=mensagem_forum",
+        data: dados,
+        success: function (data) {
+
+            console.log(data);
+            if (data.split(":")[1] == 'sucesso') {
+                $('#botao-enviar-mensagem').attr('disabled', false);
+                $('#botao-enviar-mensagem').text("Enviar");
+                $("#campo-texto").val("");
+                $("#corpo-chat").scrollTop($("#corpo-chat")[0].scrollHeight);
             }
-        });
+            else {
+
+                $("#textoModalResposta").text("Falha ao inserir mensagem. Mensagem de erro: " + data.split(":")[2]);
+                $("#modalResposta").modal("show");
+            }
+
+        },
+        cache: false,
+        contentType: false,
+        processData: false,
+        xhr: function () {
+            var myXhr = $.ajaxSettings.xhr();
+            if (myXhr.upload) {
+                myXhr.upload.addEventListener('progress', function () {
+                }, false);
+            }
+            return myXhr;
 
 
+        }
     });
 
 
 });
+
+
+
 
