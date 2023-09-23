@@ -268,7 +268,9 @@ class OcorrenciaController
 	}
 	public function canWait($currentStatus)
 	{
-		return $this->sessao->getNivelAcesso() != Sessao::NIVEL_COMUM && $currentStatus == 'e' && $this->sessao->getIdUsuario() != $this->selecionado->getIdUsuarioAtendente();
+		return $this->sessao->getNivelAcesso()
+		!= Sessao::NIVEL_COMUM && $currentStatus == 'e'
+		&& $this->sessao->getIdUsuario() != $this->selecionado->getIdUsuarioAtendente();
 	}
 	public function show()
 	{
@@ -392,38 +394,23 @@ class OcorrenciaController
 	public function possoAtender($order)
 	{
 		if (
-			$this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO
-			|| $this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM
+			$this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
+			|| $this->sessao->getNivelAcesso() === Sessao::NIVEL_TECNICO
+			&&
+			($order->status == self::STATUS_ABERTO
+				||
+				$order->status == self::STATUS_REABERTO
+				||
+				$order->status == self::STATUS_RESERVADO
+				||
+				$order->status == self::STATUS_AGUARDANDO_USUARIO
+				||
+				$order->status == self::STATUS_AGUARDANDO_ATIVO
+			)
 		) {
-			return false;
-		}
-		if ($order->status == self::STATUS_ATENDIMENTO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_CANCELADO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_FECHADO || $order->status == self::STATUS_FECHADO_CONFIRMADO) {
-			return false;
-		}
-		if ($order->status == self::STATUS_RESERVADO) {
-			if ($order->provider != null & $this->sessao->getIdUsuario() != $order->provider->id) {
-				return false;
-			}
-		}
-		if (
-			$order->status == self::STATUS_AGUARDANDO_ATIVO
-			|| $order->status == self::STATUS_AGUARDANDO_USUARIO
-		) {
-			if ($order->provider != null && $this->sessao->getIdUsuario() != $order->provider->id) {
-				return false;
-			}
-		}
-		if ($order->status == self::STATUS_ABERTO || $order->status == self::STATUS_REABERTO) {
 			return true;
 		}
-
-		return true;
+		return false;
 	}
 
 	public function possoFechar($order)
