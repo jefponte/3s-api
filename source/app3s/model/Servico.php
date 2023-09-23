@@ -1,5 +1,5 @@
 <?php
-            
+
 /**
  * Classe feita para manipulação do objeto Servico
  * feita automaticamente com programa gerador de software inventado por
@@ -7,7 +7,9 @@
  */
 
 namespace app3s\model;
-
+/**
+ * @deprecated 1.0.17
+ */
 class Servico {
 	private $id;
 	private $nome;
@@ -26,63 +28,63 @@ class Servico {
 	public function setId($id) {
 		$this->id = $id;
 	}
-		    
+
 	public function getId() {
 		return $this->id;
 	}
 	public function setNome($nome) {
 		$this->nome = $nome;
 	}
-		    
+
 	public function getNome() {
 		return $this->nome;
 	}
 	public function setDescricao($descricao) {
 		$this->descricao = $descricao;
 	}
-		    
+
 	public function getDescricao() {
 		return $this->descricao;
 	}
 	public function setTipoAtividade(TipoAtividade $tipoAtividade) {
 		$this->tipoAtividade = $tipoAtividade;
 	}
-		    
+
 	public function getTipoAtividade() {
 		return $this->tipoAtividade;
 	}
 	public function setTempoSla($tempoSla) {
 		$this->tempoSla = $tempoSla;
 	}
-		    
+
 	public function getTempoSla() {
 		return $this->tempoSla;
 	}
 	public function setVisao($visao) {
 		$this->visao = $visao;
 	}
-		    
+
 	public function getVisao() {
 		return $this->visao;
 	}
 	public function setAreaResponsavel(AreaResponsavel $areaResponsavel) {
 		$this->areaResponsavel = $areaResponsavel;
 	}
-		    
+
 	public function getAreaResponsavel() {
 		return $this->areaResponsavel;
 	}
 	public function setGrupoServico(GrupoServico $grupoServico) {
 		$this->grupoServico = $grupoServico;
 	}
-		    
+
 	public function getGrupoServico() {
 		return $this->grupoServico;
 	}
 	public function __toString(){
 	    return $this->id.' - '.$this->nome.' - '.$this->descricao.' - '.$this->tipoAtividade.' - '.$this->tempoSla.' - '.$this->visao.' - '.$this->areaResponsavel.' - '.$this->grupoServico;
 	}
-                
+
 
 }
 ?>

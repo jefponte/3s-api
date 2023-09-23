@@ -9,10 +9,7 @@ namespace app3s\controller;
 
 use Illuminate\Support\Facades\Http;
 use app3s\dao\OcorrenciaDAO;
-use app3s\dao\ServicoDAO;
-use app3s\dao\StatusOcorrenciaDAO;
 use app3s\model\Ocorrencia;
-use app3s\model\StatusOcorrencia;
 use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Division;
@@ -21,7 +18,6 @@ use App\Models\OrderStatusLog;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class OcorrenciaController
 {

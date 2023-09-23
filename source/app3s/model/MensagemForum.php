@@ -1,5 +1,5 @@
 <?php
-            
+
 /**
  * Classe feita para manipulação do objeto MensagemForum
  * feita automaticamente com programa gerador de software inventado por
@@ -7,7 +7,9 @@
  */
 
 namespace app3s\model;
-
+/**
+ * @deprecated 1.0.17
+ */
 class MensagemForum {
 	private $id;
 	private $tipo;
@@ -21,42 +23,42 @@ class MensagemForum {
 	public function setId($id) {
 		$this->id = $id;
 	}
-		    
+
 	public function getId() {
 		return $this->id;
 	}
 	public function setTipo($tipo) {
 		$this->tipo = $tipo;
 	}
-		    
+
 	public function getTipo() {
 		return $this->tipo;
 	}
 	public function setMensagem($mensagem) {
 		$this->mensagem = $mensagem;
 	}
-		    
+
 	public function getMensagem() {
 		return $this->mensagem;
 	}
 	public function setUsuario(Usuario $usuario) {
 		$this->usuario = $usuario;
 	}
-		    
+
 	public function getUsuario() {
 		return $this->usuario;
 	}
 	public function setDataEnvio($dataEnvio) {
 		$this->dataEnvio = $dataEnvio;
 	}
-		    
+
 	public function getDataEnvio() {
 		return $this->dataEnvio;
 	}
 	public function __toString(){
 	    return $this->id.' - '.$this->tipo.' - '.$this->mensagem.' - '.$this->usuario.' - '.$this->dataEnvio;
 	}
-                
+
 
 }
 ?>

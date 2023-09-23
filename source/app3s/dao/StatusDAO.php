@@ -15,7 +15,9 @@ use app3s\model\Status;
 /**
  * @deprecated 1.0.17
  */
-
+/**
+ * @deprecated 1.0.17
+ */
 class StatusDAO extends DAO
 {
 

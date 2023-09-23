@@ -1,5 +1,5 @@
 <?php
-            
+
 /**
  * Classe feita para manipulação do objeto Usuario
  * feita automaticamente com programa gerador de software inventado por
@@ -7,6 +7,9 @@
  */
 
 namespace app3s\model;
+/**
+ * @deprecated 1.0.17
+ */
 
 class Usuario {
 	private $id;
@@ -17,56 +20,56 @@ class Usuario {
 	private $nivel;
 	private $idSetor;
 	public $idUnidade;
-	public $siglaUnidade; 
+	public $siglaUnidade;
     public function __construct(){
 
     }
 	public function setId($id) {
 		$this->id = $id;
 	}
-		    
+
 	public function getId() {
 		return $this->id;
 	}
 	public function setNome($nome) {
 		$this->nome = $nome;
 	}
-		    
+
 	public function getNome() {
 		return $this->nome;
 	}
 	public function setEmail($email) {
 		$this->email = $email;
 	}
-		    
+
 	public function getEmail() {
 		return $this->email;
 	}
 	public function setLogin($login) {
 		$this->login = $login;
 	}
-		    
+
 	public function getLogin() {
 		return $this->login;
 	}
 	public function setSenha($senha) {
 		$this->senha = $senha;
 	}
-		    
+
 	public function getSenha() {
 		return $this->senha;
 	}
 	public function setNivel($nivel) {
 		$this->nivel = $nivel;
 	}
-		    
+
 	public function getNivel() {
 		return $this->nivel;
 	}
 	public function setIdSetor($idSetor) {
 		$this->idSetor = $idSetor;
 	}
-		    
+
 	public function getIdSetor() {
 		return $this->idSetor;
 	}
@@ -82,7 +85,7 @@ class Usuario {
 			case 'c':
 				$strNivel = 'Comum';
 				break;
-			default: 
+			default:
 				$strNivel = 'Desconhecido';
 			break;
 		}
@@ -91,7 +94,7 @@ class Usuario {
 	public function __toString(){
 	    return $this->id.' - '.$this->nome.' - '.$this->email.' - '.$this->login.' - '.$this->senha.' - '.$this->nivel.' - '.$this->idSetor;
 	}
-                
+
 
 }
 ?>
