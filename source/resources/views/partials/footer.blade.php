@@ -33,19 +33,18 @@
 
 </body>
 <script src="js/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous">
+</script>
 <script src="js/popper.min.js"></script>
 <script src="js/datatables/jquery.dataTables.min.js"></script>
 <script src="js/datatables/dataTables.bootstrap4.min.js"></script>
+<script src="js/demo/datatables-demo.js"></script>
+<script src="js/selectize.js"></script>
+<script src="js/jquery.easyPaginate.js?a=1"></script>
+<script src="js/ocorrencia.js?a=111"></script>
+<script src="js/status_ocorrencia.js"></script>
 
 @vite(['resources/js/app.js'])
 
-
-<script src="js/demo/datatables-demo.js"></script>
-<script src="js/selectize.js"></script>
-<script src="js/change-contraste.js?a=1"></script>
-<script src="js/ocorrencia_selectize.js?a=1"></script>
-<script src="js/jquery.easyPaginate.js?a=1"></script>
-<script src="js/ocorrencia.js?a=1451"></script>
-
-<script src="js/status_ocorrencia.js"></script>
 </html>

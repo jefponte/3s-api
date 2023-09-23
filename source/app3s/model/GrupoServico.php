@@ -1,5 +1,5 @@
 <?php
-            
+
 /**
  * Classe feita para manipulação do objeto GrupoServico
  * feita automaticamente com programa gerador de software inventado por
@@ -7,6 +7,9 @@
  */
 
 namespace app3s\model;
+/**
+ * @deprecated 1.0.17
+ */
 
 class GrupoServico {
 	private $id;
@@ -17,21 +20,21 @@ class GrupoServico {
 	public function setId($id) {
 		$this->id = $id;
 	}
-		    
+
 	public function getId() {
 		return $this->id;
 	}
 	public function setNome($nome) {
 		$this->nome = $nome;
 	}
-		    
+
 	public function getNome() {
 		return $this->nome;
 	}
 	public function __toString(){
 	    return $this->id.' - '.$this->nome;
 	}
-                
+
 
 }
 ?>

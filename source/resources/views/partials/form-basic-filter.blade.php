@@ -16,7 +16,7 @@
     <input type="hidden" value="{{$userDivision->id}}" id="meu-setor" name="meu-setor">
     <div class="custom-control custom-switch">
         <input type="checkbox" class="custom-control-input" id="filtro-meu-setor" {{ $checkedSetor }}>
-        <label class="custom-control-label" for="filtro-meu-setor">Demandas ({{ $userDivision->nome }}) </label>
+        <label class="custom-control-label" for="filtro-meu-setor">Demandas ({{ $userDivision->name }}) </label>
     </div>
     <div class="custom-control custom-switch">
         <input type="checkbox" class="custom-control-input" id="filtro-minhas-demandas" {{ $checkedDemanda }}>
@@ -56,7 +56,7 @@
                         }
                     }
                 @endphp
-                <option value="{{ $userElement->id }}" {{ $selectedAtt }}>{{ $userElement->nome }}</option>
+                <option value="{{ $userElement->id }}" {{ $selectedAtt }}>{{ $userElement->name }}</option>
             @endforeach
         </select>
     </div>

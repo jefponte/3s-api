@@ -1,11 +1,26 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\OrderMessagesController;
+use App\Http\Controllers\Api\OrdersController;
+use App\Http\Controllers\Api\OrderStatusLogsController;
+use App\Http\Controllers\Api\ServicesController;
+use App\Http\Controllers\Api\UsersController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\DivisionsController;
 
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::apiResource('services', ServicesController::class);
+    Route::apiResource('orders', OrdersController::class);
+    Route::apiResource('divisions', DivisionsController::class);
+    Route::apiResource('users', UsersController::class);
+    Route::apiResource('order_messages', OrderMessagesController::class);
+    Route::apiResource('order_status_logs', OrderStatusLogsController::class);
+
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
+Route::get('/notifications', [OrdersController::class, 'notifications']);
+
 Route::post('/login', [AuthController::class, 'auth']);

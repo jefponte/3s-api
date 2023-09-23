@@ -1,5 +1,5 @@
 <?php
-            
+
 /**
  * Classe feita para manipulação do objeto StatusOcorrencia
  * feita automaticamente com programa gerador de software inventado por
@@ -7,6 +7,10 @@
  */
 
 namespace app3s\model;
+
+/**
+ * @deprecated 1.0.17
+ */
 
 class StatusOcorrencia {
 	private $id;
@@ -24,49 +28,49 @@ class StatusOcorrencia {
 	public function setId($id) {
 		$this->id = $id;
 	}
-		    
+
 	public function getId() {
 		return $this->id;
 	}
 	public function setOcorrencia(Ocorrencia $ocorrencia) {
 		$this->ocorrencia = $ocorrencia;
 	}
-		    
+
 	public function getOcorrencia() {
 		return $this->ocorrencia;
 	}
 	public function setStatus(Status $status) {
 		$this->status = $status;
 	}
-		    
+
 	public function getStatus() {
 		return $this->status;
 	}
 	public function setMensagem($mensagem) {
 		$this->mensagem = $mensagem;
 	}
-		    
+
 	public function getMensagem() {
 		return $this->mensagem;
 	}
 	public function setUsuario(Usuario $usuario) {
 		$this->usuario = $usuario;
 	}
-		    
+
 	public function getUsuario() {
 		return $this->usuario;
 	}
 	public function setDataMudanca($dataMudanca) {
 		$this->dataMudanca = $dataMudanca;
 	}
-		    
+
 	public function getDataMudanca() {
 		return $this->dataMudanca;
 	}
 	public function __toString(){
 	    return $this->id.' - '.$this->ocorrencia.' - '.$this->status.' - '.$this->mensagem.' - '.$this->usuario.' - '.$this->dataMudanca;
 	}
-                
+
 
 }
 ?>

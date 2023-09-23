@@ -8,6 +8,7 @@ namespace app3s\util;
  * @author jefponte
  *
  */
+
 class Sessao
 {
 

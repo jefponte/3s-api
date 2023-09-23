@@ -5,6 +5,9 @@ namespace app3s\dao;
 
 use PDO;
 
+/**
+ * @deprecated 1.0.17
+ */
 class DAO
 {
 

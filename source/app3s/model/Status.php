@@ -1,5 +1,5 @@
 <?php
-            
+
 /**
  * Classe feita para manipulação do objeto Status
  * feita automaticamente com programa gerador de software inventado por
@@ -7,7 +7,9 @@
  */
 
 namespace app3s\model;
-
+/**
+ * @deprecated 1.0.17
+ */
 class Status {
 	private $id;
 	private $sigla;
@@ -18,28 +20,28 @@ class Status {
 	public function setId($id) {
 		$this->id = $id;
 	}
-		    
+
 	public function getId() {
 		return $this->id;
 	}
 	public function setSigla($sigla) {
 		$this->sigla = $sigla;
 	}
-		    
+
 	public function getSigla() {
 		return $this->sigla;
 	}
 	public function setNome($nome) {
 		$this->nome = $nome;
 	}
-		    
+
 	public function getNome() {
 		return $this->nome;
 	}
 	public function __toString(){
 	    return $this->id.' - '.$this->sigla.' - '.$this->nome;
 	}
-                
+
 
 }
 ?>

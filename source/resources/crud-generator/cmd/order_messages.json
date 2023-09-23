@@ -1,46 +1,34 @@
 {
-    "model": "OrderMessage",
-    "fields": [
-      {
-        "name": "id",
-        "type": "integer",
-        "validations": {
-          "required": true
-        }
-      },
-      {
-        "name": "order_id",
-        "type": "integer",
-        "validations": {
-          "required": true
-        }
-      },
-      {
-        "name": "type",
-        "type": "integer",
-        "validations": {
-          "required": true
-        }
-      },
-      {
-        "name": "message",
-        "type": "text"
-      },
-      {
-        "name": "user_id",
-        "type": "integer",
-        "validations": {
-          "required": true
-        }
-      },
-      {
-        "name": "created_at",
-        "type": "timestamp"
-      },
-      {
-        "name": "updated_at",
-        "type": "timestamp"
+  "model": "OrderMessage",
+  "fields": [
+    {
+      "name": "order_id",
+      "type": "integer",
+      "validations": {
+        "required": true
       }
-    ],
-    "primaryKey": "id"
-  }
+    },
+    {
+      "name": "message",
+      "type": "text",
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "name": "user_id",
+      "type": "integer",
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "name": "type",
+      "type": "text",
+      "validations": {
+        "required": true
+      }
+    }
+  ],
+  "primaryKey": "id"
+}

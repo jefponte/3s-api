@@ -30,13 +30,26 @@ class MainIndex
     }
 
     if (isset($_GET['ajax'])) {
-      $mainAjax = new MainAjax();
-      $mainAjax->main();
+      $controller = new OcorrenciaController();
+      switch ($_GET['ajax']) {
+        case 'mensagem_forum':
+          $controller->addMensagemAjax();
+          break;
+        case 'status_ocorrencia':
+          $controller->mainAjaxStatus();
+          break;
+        case 'mudar_nivel':
+          $controller->mudarNivel();
+          break;
+        default:
+          echo ':falha';
+          break;
+      }
       exit(0);
     }
     if (isset($_REQUEST['api'])) {
-      $mainApi = new MainApi();
-      $mainApi->main();
+      $controller = new OcorrenciaController();
+      $controller->mainApiMessage();
       exit(0);
     }
     $this->pagina();
@@ -77,13 +90,13 @@ class MainIndex
 
     switch ($sessao->getNivelAcesso()) {
       case Sessao::NIVEL_TECNICO:
-        $this->contentTec();
+        $this->content();
         break;
       case Sessao::NIVEL_ADM:
-        $this->contentAdmin();
+        $this->content();
         break;
       case Sessao::NIVEL_COMUM:
-        $this->contentComum();
+        $this->content();
         break;
       case Sessao::NIVEL_DISABLED:
         echo view('partials.diabled');
@@ -94,57 +107,7 @@ class MainIndex
     }
   }
 
-  public function contentComum()
-  {
-    if (isset($_GET['page'])) {
-      switch ($_GET['page']) {
-        case 'ocorrencia':
-          $controller = new OcorrenciaController();
-          $controller->main();
-          break;
-        default:
-          echo '<p>Página solicitada não encontrada.</p>';
-          break;
-      }
-    } else {
-      $controller = new OcorrenciaController();
-      $controller->main();
-    }
-  }
-
-
-  public function contentAdmin()
-  {
-    if (isset($_GET['page'])) {
-      switch ($_GET['page']) {
-        case 'ocorrencia':
-          $controller = new OcorrenciaController();
-          $controller->main();
-          break;
-        case 'servico':
-          $controller = new ServicoController();
-          $controller->main();
-          break;
-        case 'area_responsavel':
-          $controller = new AreaResponsavelController();
-          $controller->main();
-          break;
-        case 'usuario':
-          $controller = new UsuarioController();
-          $controller->main();
-          break;
-        default:
-          echo '<p>Página solicitada não encontrada.</p>';
-          break;
-      }
-    } else {
-      $controller = new OcorrenciaController();
-      $controller->main();
-    }
-  }
-
-
-  public function contentTec()
+  public function content()
   {
     if (isset($_GET['page'])) {
       switch ($_GET['page']) {

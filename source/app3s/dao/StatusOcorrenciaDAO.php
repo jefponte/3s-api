@@ -13,9 +13,16 @@ use PDO;
 use PDOException;
 use app3s\model\StatusOcorrencia;
 
+/**
+ * @deprecated 1.0.17
+ */
+
 class StatusOcorrenciaDAO extends DAO
 {
 
+    /**
+     * @deprecated 1.0.17
+     */
     public function insert(StatusOcorrencia $statusOcorrencia)
     {
         $sql = "INSERT INTO status_ocorrencia(id_ocorrencia, id_status, mensagem, id_usuario, data_mudanca) VALUES (:ocorrencia, :status, :mensagem, :usuario, :dataMudanca);";
@@ -37,5 +44,4 @@ class StatusOcorrenciaDAO extends DAO
             echo '{"error":{"text":' . $e->getMessage() . '}}';
         }
     }
-
 }

@@ -12,97 +12,16 @@ use PDO;
 use PDOException;
 use app3s\model\Servico;
 
+/**
+ * @deprecated 1.0.17
+ */
+
 class ServicoDAO extends DAO
 {
 
-
-    public function update(Servico $servico)
-    {
-        $id = $servico->getId();
-
-
-        $sql = "UPDATE servico
-                SET
-                nome = :nome,
-                descricao = :descricao,
-                id_tipo_atividade = :idAtividade,
-                tempo_sla = :tempoSla,
-                visao = :visao,
-                id_area_responsavel = :idArea,
-                id_grupo_servico = :idGrupo
-                WHERE servico.id = :id;";
-        $nome = $servico->getNome();
-        $descricao = $servico->getDescricao();
-        $idTipo = $servico->getTipoAtividade()->getId();
-        $tempoSla = $servico->getTempoSla();
-        $visao = $servico->getVisao();
-        $idArea = $servico->getAreaResponsavel()->getId();
-        $grupo = $servico->getGrupoServico()->getId();
-
-        try {
-
-            $stmt = $this->getConnection()->prepare($sql);
-            $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-            $stmt->bindParam(":nome", $nome, PDO::PARAM_STR);
-            $stmt->bindParam(":descricao", $descricao, PDO::PARAM_STR);
-            $stmt->bindParam(":idAtividade", $idTipo, PDO::PARAM_INT);
-            $stmt->bindParam(":tempoSla", $tempoSla, PDO::PARAM_INT);
-            $stmt->bindParam(":visao", $visao, PDO::PARAM_INT);
-            $stmt->bindParam(":idArea", $idArea, PDO::PARAM_INT);
-            $stmt->bindParam(":idGrupo", $grupo, PDO::PARAM_INT);
-
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            echo $e->getMessage();
-        }
-    }
-
-
-
-    public function insert(Servico $servico)
-    {
-        $sql = "INSERT INTO servico(nome, descricao, id_tipo_atividade, tempo_sla, visao, id_area_responsavel, id_grupo_servico) VALUES (:nome, :descricao, :tipoAtividade, :tempoSla, :visao, :areaResponsavel, :grupoServico);";
-        $nome = $servico->getNome();
-        $descricao = $servico->getDescricao();
-        $tipoAtividade = $servico->getTipoAtividade()->getId();
-        $tempoSla = $servico->getTempoSla();
-        $visao = $servico->getVisao();
-        $areaResponsavel = $servico->getAreaResponsavel()->getId();
-        $grupoServico = $servico->getGrupoServico()->getId();
-        try {
-            $db = $this->getConnection();
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(":nome", $nome, PDO::PARAM_STR);
-            $stmt->bindParam(":descricao", $descricao, PDO::PARAM_STR);
-            $stmt->bindParam(":tipoAtividade", $tipoAtividade, PDO::PARAM_INT);
-            $stmt->bindParam(":tempoSla", $tempoSla, PDO::PARAM_INT);
-            $stmt->bindParam(":visao", $visao, PDO::PARAM_INT);
-            $stmt->bindParam(":areaResponsavel", $areaResponsavel, PDO::PARAM_INT);
-            $stmt->bindParam(":grupoServico", $grupoServico, PDO::PARAM_INT);
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            echo '{"error":{"text":' . $e->getMessage() . '}}';
-        }
-    }
-    public function delete(Servico $servico)
-    {
-        $id = $servico->getId();
-        $sql = "DELETE FROM servico WHERE id = :id";
-
-        try {
-            $db = $this->getConnection();
-            $stmt = $db->prepare($sql);
-            $stmt->bindParam(":id", $id, PDO::PARAM_INT);
-            return $stmt->execute();
-        } catch (PDOException $e) {
-            echo '{"error":{"text":' . $e->getMessage() . '}}';
-        }
-    }
-
-
-
-
-
+    /**
+     * @deprecated 1.0.17
+     */
     public function fillById(Servico $servico)
     {
 

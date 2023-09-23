@@ -8,12 +8,14 @@
 
 namespace app3s\dao;
 
-use app3s\controller\StatusOcorrenciaController;
 use PDO;
 use PDOException;
 use app3s\model\Ocorrencia;
 use app3s\model\MensagemForum;
-use app3s\util\Sessao;
+
+/**
+ * @deprecated 1.0.17
+ */
 
 class OcorrenciaDAO extends DAO
 {
@@ -98,7 +100,9 @@ class OcorrenciaDAO extends DAO
         }
     }
 
-
+    /**
+     * @deprecated 1.0.17
+     */
     public function fillById(Ocorrencia $ocorrencia)
     {
 

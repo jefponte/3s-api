@@ -12,9 +12,18 @@ use PDO;
 use PDOException;
 use app3s\model\Status;
 
+/**
+ * @deprecated 1.0.17
+ */
+/**
+ * @deprecated 1.0.17
+ */
 class StatusDAO extends DAO
 {
 
+    /**
+     * @deprecated 1.0.17
+     */
     public function fillBySigla(Status $status)
     {
 

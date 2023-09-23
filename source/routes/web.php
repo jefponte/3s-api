@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use app3s\controller\MainIndex;
+use app3s\util\Sessao;
+use App\Http\Controllers\OrdersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,7 +28,24 @@ Route::post('/', function () {
 })->name('root-post');
 
 Route::get('/kamban', function () {
-    return view('welcome');
+    $sessao = new Sessao();
+    $firstName = $sessao->getNome();
+    $arr = explode(" ", $sessao->getNome());
+    if (isset($arr[0])) {
+      $firstName = $arr[0];
+    }
+    $firstName = ucfirst(strtolower($firstName));
+    return view('welcome', ['userFirstName' => $firstName, 'divisionSig' =>  $sessao->getUnidade()]);
 })->name('kamban');
+
+
+
+Route::middleware('auth')->group(function () {
+    Route::resources(
+        [
+            'orders' => OrdersController::class
+        ]
+    );
+});
 
 require __DIR__.'/auth.php';

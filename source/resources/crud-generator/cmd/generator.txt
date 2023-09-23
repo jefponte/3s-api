@@ -3,20 +3,32 @@ php artisan route:clear
 php artisan config:clear
 php artisan cache:clear
 
-
-1. Comment all routes;
-2. Delete all files
-
-
 del ./app/Http/Controllers/UsersController.php
-del ./app/Models/User.php
+del ./app/Http/Controllers/Api/UsersController.php
 del ./resources/views/users/create.blade.php
 del ./resources/views/users/edit.blade.php
 del ./resources/views/users/form.blade.php
 del ./resources/views/users/index.blade.php
 del ./resources/views/users/show.blade.php
 
-php artisan crud:generate Users --fields_from_file="D:\web\dti-unilab\3s_cicd\source\crud-generator\users.json" --controller-namespace=App\Http\Controllers --form-helper=laravelcollective
+
+php artisan crud:api Divisions --fields_from_file=".\resources\crud-generator\cmd\divisions.json"  --controller-namespace=Api
+php artisan crud:api Users --fields_from_file=".\resources\crud-generator\cmd\users.json"  --controller-namespace=Api
+php artisan crud:api Services --fields_from_file=".\resources\crud-generator\cmd\services.json"  --controller-namespace=Api
+php artisan crud:api Orders --fields_from_file=".\resources\crud-generator\cmd\orders.json"  --controller-namespace=Api
+php artisan crud:api OrderMessages --fields_from_file=".\resources\crud-generator\cmd\order_messages.json"  --controller-namespace=Api
+php artisan crud:api OrderStatusLogs --fields_from_file=".\resources\crud-generator\cmd\order_status_logs.json"  --controller-namespace=Api
+
+
+
+
+
+1. Comment all routes;
+2. Delete all files
+
+
+
+php artisan crud:generate Users --fields_from_file=".\resources\crud-generator\cmd\users.json" --controller-namespace=App\Http\Controllers --form-helper=laravelcollective
 
 
 del ./app/Http/Controllers/DivisionsController.php
@@ -76,9 +88,7 @@ php artisan crud:generate OrderStatusLogs --fields_from_file="D:\web\dti-unilab\
 
 
 
-php artisan crud:api Divisions --fields_from_file="D:\web\dti-unilab\3s_cicd\source\crud-generator\divisions.json"  --controller-namespace=Api
-php artisan crud:api Users --fields_from_file="D:\web\dti-unilab\3s_cicd\source\crud-generator\users.json"  --controller-namespace=Api
-php artisan crud:api Services --fields_from_file="D:\web\dti-unilab\3s_cicd\source\crud-generator\services.json"  --controller-namespace=Api
+
 
 
 Passo a passo pra criar police
