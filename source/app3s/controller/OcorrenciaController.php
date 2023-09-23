@@ -312,12 +312,12 @@ class OcorrenciaController
 		$canEditTag = $this->possoEditarPatrimonio($selected);
 		$canEditSolution = $this->possoEditarSolucao($selected);
 		$selected->service_name = $selected->service->name;
-		$canEditService = $this->possoEditarServico($selected);
 		$isClient = ($sessao->getNivelAcesso() == Sessao::NIVEL_COMUM);
 		$timeNow = time();
 		$timeSolucaoEstimada = strtotime($dataSolucao);
 		$isLate = $timeNow > $timeSolucaoEstimada;
 
+		$selected->canEditService = $this->possoEditarServico($selected);
 		$selected->canCancel = $this->canCancel($selected);
 		$selected->canRespond = $this->possoAtender($selected);
 		$selected->canClose = $this->possoFechar($selected);
@@ -341,6 +341,7 @@ class OcorrenciaController
 		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
 
 
+
 		echo view('partials.panel-status', ['selected' => $selected]);
 
 
@@ -348,7 +349,6 @@ class OcorrenciaController
 			'order' => $selected,
 			'canEditTag' => $canEditTag,
 			'canEditSolution' => $canEditSolution,
-			'canEditService' => $canEditService,
 			'isLevelClient' => $isClient,
 			'isLate' => $isLate,
 			'dataSolucao' => $dataSolucao,
@@ -543,7 +543,7 @@ class OcorrenciaController
 	{
 		if (
 			($this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
-			|| $this->sessao->getNivelAcesso() === Sessao::NIVEL_TECNICO)
+				|| $this->sessao->getNivelAcesso() === Sessao::NIVEL_TECNICO)
 			&&
 			($order->status == self::STATUS_ABERTO
 				||
@@ -588,7 +588,7 @@ class OcorrenciaController
 		$this->sessao = new Sessao();
 		if (
 			$order->provider != null && $this->sessao->getIdUsuario() === $order->provider->id
-			&& $order->status != self::STATUS_ATENDIMENTO
+			&& $order->status === self::STATUS_ATENDIMENTO
 		) {
 			return true;
 		}
@@ -815,19 +815,19 @@ class OcorrenciaController
 
 
 
-    public function emailNotificationMessage($orderMessage, $order)
-    {
-        $mail = new Mail();
+	public function emailNotificationMessage($orderMessage, $order)
+	{
+		$mail = new Mail();
 
 
-        $assunto = "[3S] - Chamado Nº " .  $order->id;
+		$assunto = "[3S] - Chamado Nº " .  $order->id;
 
 
 
 
-        $corpo = '<p>Avisamos que houve uma mensagem nova na solicitação <a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' . $order->id. '">Nº' . $order->id . '</a></p>';
+		$corpo = '<p>Avisamos que houve uma mensagem nova na solicitação <a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' . $order->id . '">Nº' . $order->id . '</a></p>';
 
-        $corpo .= '<ul>
+		$corpo .= '<ul>
 
                         <li>Corpo: ' . $orderMessage->message . '</li>
                         <li>Serviço Solicitado: ' . $order->service->name . '</li>
@@ -838,99 +838,99 @@ class OcorrenciaController
                 </ul><br><p>Mensagem enviada pelo sistema 3S. Favor não responder.</p>';
 
 
-        //cutomer
-        $saldacao =  '<p>Prezado(a) ' .$order->customer->name . ' ,</p>';
-        $mail->enviarEmail($order->email, $order->customer->name, $assunto, $saldacao . $corpo);
-        if ($order->provider != null) {
-            //Provider
-            $saldacao =  '<p>Prezado(a) ' . $order->provider->name . ' ,</p>';
-            $mail->enviarEmail($order->provider->email, $order->provider->name, $assunto, $saldacao . $corpo);
-        }
-    }
+		//cutomer
+		$saldacao =  '<p>Prezado(a) ' . $order->customer->name . ' ,</p>';
+		$mail->enviarEmail($order->email, $order->customer->name, $assunto, $saldacao . $corpo);
+		if ($order->provider != null) {
+			//Provider
+			$saldacao =  '<p>Prezado(a) ' . $order->provider->name . ' ,</p>';
+			$mail->enviarEmail($order->provider->email, $order->provider->name, $assunto, $saldacao . $corpo);
+		}
+	}
 
-    public function addMensagemAjax()
-    {
+	public function addMensagemAjax()
+	{
 
-        $sessao = new Sessao();
-        if (!isset($_POST['enviar_mensagem_forum'])) {
-            return;
-        }
-        if (!(isset($_POST['tipo'])
-            && isset($_POST['mensagem'])
-            && isset($_POST['ocorrencia']))) {
-            echo ':incompleto';
-            return;
-        }
-        $order = Order::findOrFail(intval($_POST['ocorrencia']));
-        $order->load([
-            'division',
-            'customer',
-            'provider.division',
-            'service.division'
-        ]);
-        if ($order->status == 'closed' || $order->status == 'commited') {
-            echo ':falha:O chamado já foi fechado.';
-            return;
-        }
-        $messageData = [];
-        $messageData['message'] = $_POST['mensagem'];
-        $novoNome = "";
+		$sessao = new Sessao();
+		if (!isset($_POST['enviar_mensagem_forum'])) {
+			return;
+		}
+		if (!(isset($_POST['tipo'])
+			&& isset($_POST['mensagem'])
+			&& isset($_POST['ocorrencia']))) {
+			echo ':incompleto';
+			return;
+		}
+		$order = Order::findOrFail(intval($_POST['ocorrencia']));
+		$order->load([
+			'division',
+			'customer',
+			'provider.division',
+			'service.division'
+		]);
+		if ($order->status == 'closed' || $order->status == 'commited') {
+			echo ':falha:O chamado já foi fechado.';
+			return;
+		}
+		$messageData = [];
+		$messageData['message'] = $_POST['mensagem'];
+		$novoNome = "";
 
-        if ($_POST['tipo'] == self::TIPO_TEXTO) {
-            $messageData['type'] = self::TIPO_TEXTO;
-        } else {
+		if ($_POST['tipo'] == self::TIPO_TEXTO) {
+			$messageData['type'] = self::TIPO_TEXTO;
+		} else {
 
-            $messageData['type'] = self::TIPO_ARQUIVO;
-            if (request()->hasFile('anexo')) {
-                $anexo = request()->file('anexo');
-                if (!Storage::exists('public/uploads')) {
-                    Storage::makeDirectory('public/uploads');
-                }
-                $novoNome = $anexo->getClientOriginalName();
+			$messageData['type'] = self::TIPO_ARQUIVO;
+			if (request()->hasFile('anexo')) {
+				$anexo = request()->file('anexo');
+				if (!Storage::exists('public/uploads')) {
+					Storage::makeDirectory('public/uploads');
+				}
+				$novoNome = $anexo->getClientOriginalName();
 
-                if (Storage::exists('public/uploads/' . $anexo->getClientOriginalName())) {
-                    $novoNome = uniqid() . '_' . $novoNome;
-                }
+				if (Storage::exists('public/uploads/' . $anexo->getClientOriginalName())) {
+					$novoNome = uniqid() . '_' . $novoNome;
+				}
 
-                $extensaoArr = explode('.', $novoNome);
-                $extensao = strtolower(end($extensaoArr));
+				$extensaoArr = explode('.', $novoNome);
+				$extensao = strtolower(end($extensaoArr));
 
-                $extensoes_permitidas = [
-                    'xlsx', 'xlsm', 'xlsb', 'xltx', 'xltm', 'xls', 'xlt', 'xls', 'xml', 'xml', 'xlam', 'xla', 'xlw', 'xlr',
-                    'doc', 'docm', 'docx', 'docx', 'dot', 'dotm', 'dotx', 'odt', 'pdf', 'rtf', 'txt', 'wps', 'xml', 'zip', 'rar', 'ovpn',
-                    'xml', 'xps', 'jpg', 'gif', 'png', 'pdf', 'jpeg'
-                ];
+				$extensoes_permitidas = [
+					'xlsx', 'xlsm', 'xlsb', 'xltx', 'xltm', 'xls', 'xlt', 'xls', 'xml', 'xml', 'xlam', 'xla', 'xlw', 'xlr',
+					'doc', 'docm', 'docx', 'docx', 'dot', 'dotm', 'dotx', 'odt', 'pdf', 'rtf', 'txt', 'wps', 'xml', 'zip', 'rar', 'ovpn',
+					'xml', 'xps', 'jpg', 'gif', 'png', 'pdf', 'jpeg'
+				];
 
-                if (!in_array($extensao, $extensoes_permitidas)) {
-                    echo ':falha:Extensão não permitida. Lista de extensões permitidas a seguir. ';
-                    echo '(' . implode(", ", $extensoes_permitidas) . ')';
-                    return;
-                }
+				if (!in_array($extensao, $extensoes_permitidas)) {
+					echo ':falha:Extensão não permitida. Lista de extensões permitidas a seguir. ';
+					echo '(' . implode(", ", $extensoes_permitidas) . ')';
+					return;
+				}
 
 
-                if (!$anexo->storeAs('public/uploads/', $novoNome)) {
-                    echo ':falha:arquivo não pode ser enviado';
-                    return;
-                }
-            }
+				if (!$anexo->storeAs('public/uploads/', $novoNome)) {
+					echo ':falha:arquivo não pode ser enviado';
+					return;
+				}
+			}
 
-			if($novoNome === null || $novoNome === "") {
+			if ($novoNome === null || $novoNome === "") {
 				echo ':falha:Nome do arquivo está nulo';
 			}
-            $messageData['message'] = $novoNome;
-        }
-        $messageData['user_id'] = $sessao->getIdUsuario();
-        $messageData['order_id'] = $_POST['ocorrencia'];
+			$messageData['message'] = $novoNome;
+		}
+		$messageData['user_id'] = $sessao->getIdUsuario();
+		$messageData['order_id'] = $_POST['ocorrencia'];
 
 
-        $orderMessage = OrderMessage::create($messageData);
-        if ($orderMessage && $orderMessage->id) {
-            echo ':sucesso:' . $order->id . ':';
-            $this->emailNotificationMessage($orderMessage, $order);
-        } else {
-            echo ':falha';
-        }
-    }
+		$orderMessage = OrderMessage::create($messageData);
+		if ($orderMessage && $orderMessage->id) {
+			echo ':sucesso:' . $order->id . ':';
+			$this->emailNotificationMessage($orderMessage, $order);
+		} else {
+			echo ':falha';
+		}
+	}
 
 	public function create()
 	{
@@ -949,8 +949,10 @@ class OcorrenciaController
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
 			$queryService->where('role', Sessao::NIVEL_COMUM);
 		}
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM
-			|| $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
+		if (
+			$this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM
+			|| $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO
+		) {
 			$queryService->whereIn('role', [Sessao::NIVEL_COMUM, Sessao::NIVEL_TECNICO]);
 		}
 		$services = $queryService->get();
@@ -975,93 +977,92 @@ class OcorrenciaController
             </div>';
 	}
 
-    public function mainApiMessage()
-    {
-        $sessao = new Sessao();
-        if ($sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
-            return;
-        }
-        header('Content-type: application/json');
-        $this->get();
-    }
+	public function mainApiMessage()
+	{
+		$sessao = new Sessao();
+		if ($sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
+			return;
+		}
+		header('Content-type: application/json');
+		$this->get();
+	}
 
-    private function parteInteressada($order)
-    {
-        $sessao = new Sessao();
-        if (
-            $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO
-            || $sessao->getNivelAcesso() == Sessao::NIVEL_ADM
-            || $order->customer->id === $sessao->getIdUsuario()
-            ) {
-            return true;
-        }
-        return false;
-    }
+	private function parteInteressada($order)
+	{
+		$sessao = new Sessao();
+		if (
+			$sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO
+			|| $sessao->getNivelAcesso() == Sessao::NIVEL_ADM
+			|| $order->customer->id === $sessao->getIdUsuario()
+		) {
+			return true;
+		}
+		return false;
+	}
 
-    private function get()
-    {
+	private function get()
+	{
 
-        if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-            return;
-        }
+		if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+			return;
+		}
 
-        if (!isset($_REQUEST['api'])) {
-            return;
-        }
+		if (!isset($_REQUEST['api'])) {
+			return;
+		}
 
-        $url = explode("/", $_REQUEST['api']);
-        if (count($url) == 0 || $url[0] == "") {
-            return;
-        }
-        if (!isset($url[1])) {
-            return;
-        }
-        if ($url[1] != 'mensagem_forum') {
-            return;
-        }
-        if (!isset($url[2])) {
-            return;
-        }
-        if (isset($url[2]) == "") {
-            return;
-        }
+		$url = explode("/", $_REQUEST['api']);
+		if (count($url) == 0 || $url[0] == "") {
+			return;
+		}
+		if (!isset($url[1])) {
+			return;
+		}
+		if ($url[1] != 'mensagem_forum') {
+			return;
+		}
+		if (!isset($url[2])) {
+			return;
+		}
+		if (isset($url[2]) == "") {
+			return;
+		}
 
-        $id = intval($url[2]);
-        $order = Order::findOrFail($id);
-        if (!$this->parteInteressada($order)) {
-            echo "{Acesso Negado}";
-            return;
-        }
-
-
-        if (isset($url[3]) && $url[3] != '') {
-            $idM = intval($url[3]);
-            $query = OrderMessage::where('order_id', '=', $order->id)->where('id', '>', $idM)->orderBy('id');
-
-        } else {
-            $query = OrderMessage::where('order_id', '=', $order->id)->orderBy('id');
-        }
-
-        $list = $query->get();
-
-        if ($list->count() === 0) {
-            echo "[]";
-            return;
-        }
+		$id = intval($url[2]);
+		$order = Order::findOrFail($id);
+		if (!$this->parteInteressada($order)) {
+			echo "{Acesso Negado}";
+			return;
+		}
 
 
-        $listagem = array();
-        foreach ($list as $linha) {
-            $listagem[] = array(
-                'id' => $linha->id,
-                'tipo' => $linha->type,
-                'mensagem' => strip_tags($linha->message),
-                'data_envio' => $linha->created_at,
-                'nome_usuario' => $linha->user->name
-            );
-        }
-        echo json_encode($listagem);
-    }
+		if (isset($url[3]) && $url[3] != '') {
+			$idM = intval($url[3]);
+			$query = OrderMessage::where('order_id', '=', $order->id)->where('id', '>', $idM)->orderBy('id');
+		} else {
+			$query = OrderMessage::where('order_id', '=', $order->id)->orderBy('id');
+		}
+
+		$list = $query->get();
+
+		if ($list->count() === 0) {
+			echo "[]";
+			return;
+		}
+
+
+		$listagem = array();
+		foreach ($list as $linha) {
+			$listagem[] = array(
+				'id' => $linha->id,
+				'tipo' => $linha->type,
+				'mensagem' => strip_tags($linha->message),
+				'data_envio' => $linha->created_at,
+				'nome_usuario' => $linha->user->name
+			);
+		}
+		echo json_encode($listagem);
+	}
 	public function passwordVerify()
 	{
 		$this->sessao = new Sessao();
@@ -1125,6 +1126,14 @@ class OcorrenciaController
 				$status = $this->ajaxAtender($order);
 				$mensagem = '<p>Chamado em atendimento</p>';
 				break;
+			case 'editar_solucao':
+				$status = $this->ajaxEditarSolucao($order);
+				$mensagem = '<p>Solução editada</p>';
+				break;
+			case 'editar_servico':
+				$status = $this->ajaxEditarServico($order);
+				$mensagem = '<p>Serviço alterado</p>';
+				break;
 			case 'fechar':
 				$status = $this->ajaxFechar($order);
 				$mensagem = '<p>Chamado fechado</p>';
@@ -1144,14 +1153,6 @@ class OcorrenciaController
 			case 'reabrir':
 				$status = $this->ajaxReabrir($order);
 				$mensagem = '<p>Chamado reaberto</p>';
-				break;
-			case 'editar_servico':
-				$status = $this->ajaxEditarServico($order);
-				$mensagem = '<p>Serviço alterado</p>';
-				break;
-			case 'editar_solucao':
-				$status = $this->ajaxEditarSolucao($order);
-				$mensagem = '<p>Solução editada</p>';
 				break;
 			case 'aguardar_ativos':
 				$status = $this->ajaxAguardandoAtivo($order);
@@ -1219,27 +1220,7 @@ class OcorrenciaController
 
 	public function ajaxCancelar($order)
 	{
-		if (!isset($_POST['status_acao'])) {
-			return false;
-		}
-		if (!isset($_POST['id_ocorrencia'])) {
-			return false;
-		}
-
 		$this->sessao = new Sessao();
-		if (!isset($_POST['status_acao'])) {
-			return false;
-		}
-		if ($_POST['status_acao'] != 'atender') {
-			return false;
-		}
-		if (!isset($_POST['id_ocorrencia'])) {
-			return false;
-		}
-		if (!isset($_POST['senha'])) {
-			return false;
-		}
-
 		if (!$this->possoCancelar($order)) {
 			echo ":falha:Este chamado não pode ser cancelado.";
 			return false;
@@ -1256,7 +1237,7 @@ class OcorrenciaController
 			$order->status = self::STATUS_CANCELADO;
 			$order->save();
 			DB::commit();
-			echo ':sucesso:' . $order->id . ':Chamado am atendimento!';
+			echo ':sucesso:' . $order->id . ':Chamado cancelado!';
 		} catch (\Exception $e) {
 			DB::rollback();
 			echo ':falha:Falha ao tentar inserir histórico.';
@@ -1266,54 +1247,29 @@ class OcorrenciaController
 
 	public function ajaxFechar($order)
 	{
+
+		$this->sessao = new Sessao();
 		if (!$this->possoFechar($order)) {
 			echo ':falha:Não é possível fechar este chamado.';
 			return false;
 		}
 
-		// $usuario = new Usuario();
-		// $usuario->setId($this->sessao->getIdUsuario());
-
-		// $usuarioDao = new UsuarioDAO($this->dao->getConnection());
-		// $usuarioDao->fillById($usuario);
-		// $this->ocorrencia->getAreaResponsavel()->setId($usuario->getIdSetor());
-
-
-		// $ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-		// $this->ocorrencia->setStatus(self::STATUS_FECHADO);
-
-		// $status = new Status();
-		// $status->setSigla(self::STATUS_FECHADO);
-
-		// $statusDao = new StatusDAO($this->dao->getConnection());
-		// $statusDao->fillBySigla($status);
-
-		// $this->statusOcorrencia = new StatusOcorrencia();
-		// $this->statusOcorrencia->setOcorrencia($this->ocorrencia);
-		// $this->statusOcorrencia->setStatus($status);
-		// $this->statusOcorrencia->setDataMudanca(date("Y-m-d G:i:s"));
-		// $this->statusOcorrencia->getUsuario()->setId($this->sessao->getIdUsuario());
-		// $this->statusOcorrencia->setMensagem("Ocorrência fechada pelo atendente");
-
-
-		// $this->ocorrencia->setDataFechamento(date("Y-m-d H:i:s"));
-
-
-		// $ocorrenciaDao->getConnection()->beginTransaction();
-
-		// if (!$ocorrenciaDao->update($this->ocorrencia)) {
-		// 	echo ':falha:Falha na alteração do status da ocorrência.';
-		// 	$ocorrenciaDao->getConnection()->rollBack();
-		// 	return false;
-		// }
-
-		// if (!$this->dao->insert($this->statusOcorrencia)) {
-		// 	echo ':falha:Falha ao tentar inserir histórico.';
-		// 	return false;
-		// }
-		// $ocorrenciaDao->getConnection()->commit();
-		echo ':sucesso:' . $order->id . ':Chamado fechado com sucesso!';
-
+		DB::beginTransaction();
+		try {
+			OrderStatusLog::create([
+				'order_id' => $order->id,
+				'status' => self::STATUS_FECHADO,
+				'message' => "Ocorrência fechada pelo atendente",
+				'user_id' => auth()->user()->id
+			]);
+			$order->status = self::STATUS_FECHADO;
+			$order->save();
+			DB::commit();
+			echo ':sucesso:' . $order->id . ':Chamado fechado com sucesso!';
+		} catch (\Exception $e) {
+			DB::rollback();
+			echo ':falha:Falha ao tentar inserir histórico.';
+		}
 		return true;
 	}
 	public function ajaxAvaliar($order)
@@ -1604,115 +1560,75 @@ class OcorrenciaController
 
 	public function ajaxEditarSolucao($order)
 	{
-		// if (!$this->possoEditarSolucao($this->ocorrencia)) {
-		// 	echo ':falha:Esta solução não pode ser editada.';
-		// 	return false;
-		// }
-		// if (!isset($_POST['solucao'])) {
-		// 	echo ':falha:Digite uma solução.';
-		// 	return false;
-		// }
-		// if (trim($_POST['solucao']) == "") {
-		// 	echo ':falha:Digite uma solução.';
-		// 	return false;
-		// }
 
+		$this->sessao = new Sessao();
+		if (!$this->possoEditarSolucao($order)) {
+			echo ":falha:Esta solução não pode ser editada.";
+			return false;
+		}
+		if (trim($_POST['solucao']) == "") {
+			echo ':falha:Digite uma solução.';
+			return false;
+		}
 
-
-		// $ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-		// $status = new Status();
-		// $status->setSigla($this->ocorrencia->getStatus());
-
-		// $statusDao = new StatusDAO($this->dao->getConnection());
-		// $statusDao->fillBySigla($status);
-
-		// $this->statusOcorrencia = new StatusOcorrencia();
-		// $this->statusOcorrencia->setOcorrencia($this->ocorrencia);
-		// $this->statusOcorrencia->setStatus($status);
-		// $this->statusOcorrencia->setDataMudanca(date("Y-m-d G:i:s"));
-		// $this->statusOcorrencia->getUsuario()->setId($this->sessao->getIdUsuario());
-		// $this->statusOcorrencia->setMensagem('Técnico editou a solução. ');
-
-		// $this->ocorrencia->setSolucao(strip_tags($_POST['solucao']));
-		// $ocorrenciaDao->getConnection()->beginTransaction();
-
-
-		// if (!$ocorrenciaDao->update($this->ocorrencia)) {
-		// 	echo ':falha:Falha na alteração do status da ocorrência.';
-		// 	$ocorrenciaDao->getConnection()->rollBack();
-		// 	return false;
-		// }
-
-		// if (!$this->dao->insert($this->statusOcorrencia)) {
-		// 	echo ':falha:Falha ao tentar inserir histórico.';
-		// 	return false;
-		// }
-		// $ocorrenciaDao->getConnection()->commit();
-
-		echo ':sucesso:' . $order->id . ':Solução editada com sucesso!';
+		DB::beginTransaction();
+		try {
+			OrderStatusLog::create([
+				'order_id' => $order->id,
+				'status' => self::STATUS_ATENDIMENTO,
+				'message' => "Técnico editou a solução.",
+				'user_id' => auth()->user()->id
+			]);
+			$order->status = self::STATUS_ATENDIMENTO;
+			$order->solution = trim($_POST['solucao']);
+			$order->save();
+			DB::commit();
+			echo ':sucesso:' . $order->id . ':Solução editada com sucesso!';
+		} catch (\Exception $e) {
+			DB::rollback();
+			echo ':falha:Falha ao tentar inserir histórico.';
+			return false;
+		}
 		return true;
 	}
 
 
 	public function ajaxEditarServico($order)
 	{
-		// if (!$this->possoEditarServico($this->ocorrencia)) {
-		// 	echo ':falha:Este serviço não pode ser editado.';
-		// 	return false;
-		// }
 
-		// if (!isset($_POST['id_servico'])) {
-		// 	echo ':falha:Selecione um serviço.';
-		// 	return false;
-		// }
+		$this->sessao = new Sessao();
+		if (!$this->possoEditarServico($order)) {
+			echo ':falha:Este serviço não pode ser editado.';
+			return false;
+		}
+		if (!isset($_POST['id_servico'])) {
+			echo ':falha:Selecione um serviço.';
+			return false;
+		}
+		$service = Service::findOrFail(intval($_POST['id_servico']));
+		$service->load([
+			'division'
+		]);
 
-
-		// $servico = new Servico();
-		// $servico->setId($_POST['id_servico']);
-
-		// $servicoDao = new ServicoDAO($this->dao->getConnection());
-		// $servicoDao->fillById($servico);
-
-
-		// $ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-
-
-		// $status = new Status();
-		// $status->setSigla($this->ocorrencia->getStatus());
-
-		// $statusDao = new StatusDAO($this->dao->getConnection());
-		// $statusDao->fillBySigla($status);
-
-		// $this->statusOcorrencia = new StatusOcorrencia();
-		// $this->statusOcorrencia->setOcorrencia($this->ocorrencia);
-		// $this->statusOcorrencia->setStatus($status);
-		// $this->statusOcorrencia->setDataMudanca(date("Y-m-d G:i:s"));
-		// $this->statusOcorrencia->getUsuario()->setId($this->sessao->getIdUsuario());
-		// $this->statusOcorrencia->setMensagem('Técnico editou o serviço ');
-
-		// $this->ocorrencia->getAreaResponsavel()->setId($servico->getAreaResponsavel()->getId());
-		// $this->ocorrencia->getServico()->setId($servico->getId());
-
-
-
-		// $ocorrenciaDao->getConnection()->beginTransaction();
-
-
-
-
-		// if (!$ocorrenciaDao->update($this->ocorrencia)) {
-		// 	echo ':falha:Falha na alteração do status da ocorrência.';
-		// 	$ocorrenciaDao->getConnection()->rollBack();
-		// 	return false;
-		// }
-
-		// if (!$this->dao->insert($this->statusOcorrencia)) {
-		// 	echo ':falha:Falha ao tentar inserir histórico.';
-		// 	return false;
-		// }
-		// $ocorrenciaDao->getConnection()->commit();
-
-		echo ':sucesso:' . $order->id . ':Serviço editado com sucesso!';
+		DB::beginTransaction();
+		try {
+			OrderStatusLog::create([
+				'order_id' => $order->id,
+				'status' => self::STATUS_ABERTO,
+				'message' => "Técnico alterou o serviço. ",
+				'user_id' => auth()->user()->id
+			]);
+			$order->status = self::STATUS_ABERTO;
+			$order->service_id = $service->id;
+			$order->division_id = $service->division->id;
+			$order->save();
+			DB::commit();
+			echo ':sucesso:' . $order->id . ':Serviço editado com sucesso!';
+		} catch (\Exception $e) {
+			DB::rollback();
+			echo ':falha:Falha ao editar serviço.';
+			return false;
+		}
 		return true;
 	}
 

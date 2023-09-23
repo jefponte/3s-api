@@ -42,7 +42,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <b>Serviço Solicitado: </b>{{ $order->service->name }} - {{ $order->service->description }}<br>
-                    @if ($canEditService)
+                    @if ($order->canEditService)
                         <button type="button" id="botao-editar-servico" acao="editar_servico"
                             class="dropdown-item text-right" data-toggle="modal" data-target="#modalStatus">
                             Editar Serviço
@@ -87,7 +87,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <b>Setor Responsável: </b>{{ $order->division->name }}<br>
-                    <b>Técnico Responsável: </b>{{ ($order->provider != null ? $order->provider->name : "Não informado") }}<br>
+                    <b>Técnico Responsável: </b>{{ (($order->status != 'opened' && $order->provider != null) ? $order->provider->name : "Não informado") }}<br>
                 </div>
             </div>
         </div>
