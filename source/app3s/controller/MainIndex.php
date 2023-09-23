@@ -30,13 +30,26 @@ class MainIndex
     }
 
     if (isset($_GET['ajax'])) {
-      $mainAjax = new MainAjax();
-      $mainAjax->main();
+      $controller = new OcorrenciaController();
+      switch ($_GET['ajax']) {
+        case 'mensagem_forum':
+          $controller->addMensagemAjax();
+          break;
+        case 'status_ocorrencia':
+          $controller->mainAjaxStatus();
+          break;
+        case 'mudar_nivel':
+          $controller->mudarNivel();
+          break;
+        default:
+          echo ':falha';
+          break;
+      }
       exit(0);
     }
     if (isset($_REQUEST['api'])) {
-      $mainApi = new MainApi();
-      $mainApi->main();
+      $controller = new OcorrenciaController();
+      $controller->mainApiMessage();
       exit(0);
     }
     $this->pagina();

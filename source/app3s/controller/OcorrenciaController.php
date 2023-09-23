@@ -226,18 +226,6 @@ class OcorrenciaController
 	}
 
 
-	public function parteInteressada()
-	{
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
-			return true;
-		} else if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM) {
-			return true;
-		} else if ($this->selecionado->getUsuarioCliente()->getId() == $this->sessao->getIdUsuario()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 
 	public function getColorStatus($siglaStatus)
@@ -283,8 +271,9 @@ class OcorrenciaController
 
 		$sessao = new Sessao();
 		$this->sessao = new Sessao();
+		$selected = Order::findOrFail($_GET['selecionar']);
 
-		if (!$this->parteInteressada()) {
+		if (!$this->parteInteressada($selected)) {
 			echo '
             <div class="alert alert-danger" role="alert">
                 Você não é cliente deste chamado, nem técnico para atendê-lo.
@@ -293,7 +282,7 @@ class OcorrenciaController
 			return;
 		}
 
-		$selected = Order::findOrFail($_GET['selecionar']);
+
 		$selected->load([
 			'messages.user' => function ($query) {
 				$query->orderBy('id', 'asc');
@@ -942,11 +931,6 @@ class OcorrenciaController
 	public function create()
 	{
 		$this->sessao = new Sessao();
-
-		$ocorrencia = new Ocorrencia();
-		$ocorrencia->getUsuarioCliente()->setId($this->sessao->getIdUsuario());
-
-
 		$listaNaoAvaliados = Order::where('customer_user_id', $this->sessao->getIdUsuario())->where(
 			'status',
 			self::STATUS_FECHADO
@@ -985,6 +969,94 @@ class OcorrenciaController
                 </div>
             </div>';
 	}
+
+    public function mainApiMessage()
+    {
+        $sessao = new Sessao();
+        if ($sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
+            return;
+        }
+        header('Content-type: application/json');
+        $this->get();
+    }
+
+    private function parteInteressada($order)
+    {
+        $sessao = new Sessao();
+        if (
+            $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO
+            || $sessao->getNivelAcesso() == Sessao::NIVEL_ADM
+            || $order->customer->id === $sessao->getIdUsuario()
+            ) {
+            return true;
+        }
+        return false;
+    }
+
+    private function get()
+    {
+
+        if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+            return;
+        }
+
+        if (!isset($_REQUEST['api'])) {
+            return;
+        }
+
+        $url = explode("/", $_REQUEST['api']);
+        if (count($url) == 0 || $url[0] == "") {
+            return;
+        }
+        if (!isset($url[1])) {
+            return;
+        }
+        if ($url[1] != 'mensagem_forum') {
+            return;
+        }
+        if (!isset($url[2])) {
+            return;
+        }
+        if (isset($url[2]) == "") {
+            return;
+        }
+
+        $id = intval($url[2]);
+        $order = Order::findOrFail($id);
+        if (!$this->parteInteressada($order)) {
+            echo "{Acesso Negado}";
+            return;
+        }
+
+
+        if (isset($url[3]) && $url[3] != '') {
+            $idM = intval($url[3]);
+            $query = OrderMessage::where('order_id', '=', $order->id)->where('id', '>', $idM)->orderBy('id');
+
+        } else {
+            $query = OrderMessage::where('order_id', '=', $order->id)->orderBy('id');
+        }
+
+        $list = $query->get();
+
+        if ($list->count() === 0) {
+            echo "[]";
+            return;
+        }
+
+
+        $listagem = array();
+        foreach ($list as $linha) {
+            $listagem[] = array(
+                'id' => $linha->id,
+                'tipo' => $linha->type,
+                'mensagem' => strip_tags($linha->message),
+                'data_envio' => $linha->created_at,
+                'nome_usuario' => $linha->user->name
+            );
+        }
+        echo json_encode($listagem);
+    }
 	public function passwordVerify()
 	{
 		$this->sessao = new Sessao();
