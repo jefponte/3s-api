@@ -55,7 +55,7 @@
                 <div class="row">
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
                         <label for="place">Local/Sala</label>
-                        <input class="form-control" type="text" name="local_sala" id="local_sala" value="">
+                        <input class="form-control" type="text" name="place" id="local_sala" value="">
                     </div>
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
                         <label for="patrimonio">Patrimônio</label>
