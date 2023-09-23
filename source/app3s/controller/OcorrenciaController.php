@@ -14,10 +14,12 @@ use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Division;
 use App\Models\Order;
+use App\Models\OrderMessage;
 use App\Models\OrderStatusLog;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class OcorrenciaController
 {
@@ -820,6 +822,122 @@ class OcorrenciaController
 
 		return $query;
 	}
+
+
+
+    public function emailNotificationMessage($orderMessage, $order)
+    {
+        $mail = new Mail();
+
+
+        $assunto = "[3S] - Chamado Nº " .  $order->id;
+
+
+
+
+        $corpo = '<p>Avisamos que houve uma mensagem nova na solicitação <a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' . $order->id. '">Nº' . $order->id . '</a></p>';
+
+        $corpo .= '<ul>
+
+                        <li>Corpo: ' . $orderMessage->message . '</li>
+                        <li>Serviço Solicitado: ' . $order->service->name . '</li>
+                        <li>Descrição do Problema: ' . $order->description . '</li>
+                        <li>Setor Responsável: ' . $order->division->name . ' -
+                        ' . $order->division->description . '</li>
+                        <li>Cliente: ' . $order->customer->name . '</li>
+                </ul><br><p>Mensagem enviada pelo sistema 3S. Favor não responder.</p>';
+
+
+        //cutomer
+        $saldacao =  '<p>Prezado(a) ' .$order->customer->name . ' ,</p>';
+        $mail->enviarEmail($order->email, $order->customer->name, $assunto, $saldacao . $corpo);
+        if ($order->provider != null) {
+            //Provider
+            $saldacao =  '<p>Prezado(a) ' . $order->provider->name . ' ,</p>';
+            $mail->enviarEmail($order->provider->email, $order->provider->name, $assunto, $saldacao . $corpo);
+        }
+    }
+
+    public function addMensagemAjax()
+    {
+
+        $sessao = new Sessao();
+        if (!isset($_POST['enviar_mensagem_forum'])) {
+            return;
+        }
+        if (!(isset($_POST['tipo'])
+            && isset($_POST['mensagem'])
+            && isset($_POST['ocorrencia']))) {
+            echo ':incompleto';
+            return;
+        }
+        $order = Order::findOrFail(intval($_POST['ocorrencia']));
+        $order->load([
+            'division',
+            'customer',
+            'provider.division',
+            'service.division'
+        ]);
+        if ($order->status == 'closed' || $order->status == 'commited') {
+            echo ':falha:O chamado já foi fechado.';
+            return;
+        }
+        $messageData = [];
+        $messageData['message'] = $_POST['mensagem'];
+        $novoNome = "";
+
+        if ($_POST['tipo'] == self::TIPO_TEXTO) {
+            $messageData['type'] = self::TIPO_TEXTO;
+        } else {
+
+            $messageData['type'] = self::TIPO_ARQUIVO;
+            if (request()->hasFile('anexo')) {
+                $anexo = request()->file('anexo');
+                if (!Storage::exists('public/uploads')) {
+                    Storage::makeDirectory('public/uploads');
+                }
+
+                $novoNome = $anexo->getClientOriginalName();
+
+                if (Storage::exists('public/uploads/' . $anexo->getClientOriginalName())) {
+                    $novoNome = uniqid() . '_' . $novoNome;
+                }
+
+                $extensaoArr = explode('.', $novoNome);
+                $extensao = strtolower(end($extensaoArr));
+
+                $extensoes_permitidas = [
+                    'xlsx', 'xlsm', 'xlsb', 'xltx', 'xltm', 'xls', 'xlt', 'xls', 'xml', 'xml', 'xlam', 'xla', 'xlw', 'xlr',
+                    'doc', 'docm', 'docx', 'docx', 'dot', 'dotm', 'dotx', 'odt', 'pdf', 'rtf', 'txt', 'wps', 'xml', 'zip', 'rar', 'ovpn',
+                    'xml', 'xps', 'jpg', 'gif', 'png', 'pdf', 'jpeg'
+                ];
+
+                if (!in_array($extensao, $extensoes_permitidas)) {
+                    echo ':falha:Extensão não permitida. Lista de extensões permitidas a seguir. ';
+                    echo '(' . implode(", ", $extensoes_permitidas) . ')';
+                    return;
+                }
+
+
+                if (!$anexo->storeAs('public/uploads/', $novoNome)) {
+                    echo ':falha:arquivo não pode ser enviado';
+                    return;
+                }
+            }
+            $messageData['message'] == $novoNome;
+        }
+        $messageData['user_id'] = $sessao->getIdUsuario();
+        $messageData['order_id'] = $_POST['ocorrencia'];
+
+
+        $orderMessage = OrderMessage::create($messageData);
+        if ($orderMessage && $orderMessage->id) {
+            echo ':sucesso:' . $order->id . ':';
+            $this->emailNotificationMessage($orderMessage, $order);
+        } else {
+            echo ':falha';
+        }
+    }
 
 	public function create()
 	{
