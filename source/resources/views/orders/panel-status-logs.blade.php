@@ -6,7 +6,11 @@
                 $strCartao = ' alert-warning ';
                 if ($status->status === 'opened') {
                     $strCartao = '  notice-warning';
-                } elseif ($status->status === 'in progress') {
+                }
+                elseif ($status->status === 'reopened') {
+                    $strCartao = '  notice-warning';
+                }
+                elseif ($status->status === 'in progress') {
                     $strCartao = '  notice-info ';
                 } elseif ($status->status == 'closed') {
                     $strCartao = 'notice-success ';
@@ -24,9 +28,9 @@
             @endphp
             <div class="notice {{ $strCartao }}">
                 <strong>{{ __($status->status) }} </strong><br>
-                @if ($status->status == 'commited')
+                @if ($status->status == 'committed')
                     <br>
-                    @for ($i = 0; $i < intval($order->avaliacao); $i++)
+                    @for ($i = 0; $i < intval($order->rating); $i++)
                         <img class="m-2 estrela-1" nota="1" src="{{ asset('img/star1.png') }}"
                             alt="1">
                     @endfor
