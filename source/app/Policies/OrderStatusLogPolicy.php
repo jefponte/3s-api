@@ -6,14 +6,14 @@ use Illuminate\Auth\Access\Response;
 use App\Models\OrderStatusLog;
 use App\Models\User;
 
-class StatusLogPolicy
+class OrderStatusLogPolicy
 {
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user): Response
     {
-        if ($user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -24,7 +24,7 @@ class StatusLogPolicy
      */
     public function view(User $user, OrderStatusLog $orderStatusLog): Response
     {
-        if ($user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -62,4 +62,5 @@ class StatusLogPolicy
         }
         return Response::deny('Esta tela exige permissão de administrador.');
     }
+
 }

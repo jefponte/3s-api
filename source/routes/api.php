@@ -11,15 +11,12 @@ use App\Http\Controllers\Api\DivisionsController;
 use Illuminate\Support\Facades\Auth;
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    //Qualquer um autenticado
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    //Provider e ADM
     Route::apiResource('orders', OrdersController::class);
     Route::get('/notifications', [OrdersController::class, 'notifications']);
-    // Route::apiResource('order_messages', OrderMessagesController::class);
-    // Route::apiResource('order_status_logs', OrderStatusLogsController::class);
-    //Adm
+    Route::apiResource('order_messages', OrderMessagesController::class);
+    Route::apiResource('order_status_logs', OrderStatusLogsController::class);
     Route::apiResource('services', ServicesController::class);
     Route::apiResource('divisions', DivisionsController::class);
     Route::apiResource('users', UsersController::class);

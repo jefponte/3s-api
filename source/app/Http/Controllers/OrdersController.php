@@ -21,6 +21,10 @@ class OrdersController extends Controller
 {
 
 
+    public function __construct()
+    {
+        $this->authorizeResource(Order::class, 'order');
+    }
     /**
      * Store a newly created resource in storage.
      *

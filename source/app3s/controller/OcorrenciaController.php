@@ -8,8 +8,6 @@
 namespace app3s\controller;
 
 use Illuminate\Support\Facades\Http;
-use app3s\dao\OcorrenciaDAO;
-use app3s\model\Ocorrencia;
 use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Division;
@@ -23,15 +21,10 @@ use Illuminate\Support\Facades\Storage;
 
 class OcorrenciaController
 {
-
-	protected $selecionado;
 	protected $sessao;
-	protected $dao;
 
-	public function __construct()
-	{
-		$this->dao = new OcorrenciaDAO();
-	}
+
+
 	public function main()
 	{
 

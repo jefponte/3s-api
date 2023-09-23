@@ -14,6 +14,10 @@ use Illuminate\Http\Request;
 class OrdersController extends BasicCrudController
 {
 
+    public function __construct()
+    {
+        $this->authorizeResource(Order::class, 'order');
+    }
     private $rules = [
         'description' => 'required|max:255'
     ];
@@ -45,6 +49,7 @@ class OrdersController extends BasicCrudController
 
     public function notifications(Request $request)
     {
+
         $perPage = (int) $request->get('per_page', $this->defaultPerPage);
         $hasFilter = in_array(Filterable::class, class_uses($this->model()));
 
