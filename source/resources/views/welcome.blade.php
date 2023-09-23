@@ -2,14 +2,14 @@
 @include('admin.partials.navbar')
 <div class="card mb-4">
     <div class="card-body">
-        <p>Procuramos melhorar continuamente a qualidade do sistema,
-         estamos melhorando as tecnologias utilizadas e trazendo
-         o que ah de mais novo no mercado. </p>
-         <p>Na necessidade de realizar mudanças graduais estou disponibilizando
-            primeiramente o kamban no novo serviço, no link abaixo: </p>
-
-
+        <p>Estamos constantemente aprimorando a qualidade do sistema,
+             utilizando tecnologias de ponta e incorporando as mais recentes inovações do mercado.</p>
+        <p>A nova versão do sistema 3s está em período experimental
+            e decidimos migrar algumas funcionalidades para a
+            nova plataforma, no link abaixo: </p>
+        <a href="https://app3s-staging.web.app/" class="btn btn-primary">Acesse a nova versão do Sistema 3S</a>
     </div>
 </div>
+
 
 @include('partials.footer')
