@@ -333,9 +333,20 @@ class OcorrenciaController
 			$status->color = $this->getColorStatus($status->status);
 		}
 
-		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
 
-		$this->painelStatus($selected);
+		echo '<div class="row">';
+		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
+		$this->sessao = new Sessao();
+		$selected->canCancel = $this->canCancel($selected);
+		$selected->canRespond = $this->possoAtender($selected);
+		$selected->canClose = $this->possoFechar($selected);
+		$selected->canRate = $this->possoAvaliar($selected);
+		$selected->canReopen = $this->possoReabrir($selected);
+		$selected->canReserve = $this->possoReservar($selected);
+		$selected->canRelease = $this->possoLiberar($selected);
+		$selected->canWait = $this->possoEditarSolucao($selected);
+
+		echo view('partials.panel-status', ['selected' => $selected]);
 
 
 		echo view('partials.show-order', [
@@ -351,88 +362,6 @@ class OcorrenciaController
 		]);
 		$mensagemController = new MensagemForumController();
 		$mensagemController->mainOcorrencia($selected);
-	}
-
-
-	public function painelStatus($selected)
-	{
-
-		$this->sessao = new Sessao();
-		$canCancel = $this->canCancel($selected);
-		echo '
-            <div class="row">
-                <div class="col-md-12 blog-main">
-					<div class="row">
-                		<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
-
-						<div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
-			<div class="alert  bg-light d-flex justify-content-between align-items-center" role="alert">
-				<div class="btn-group">
-					<button class="btn btn-light btn-lg dropdown-toggle p-2" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-					Chamado ' . $selected->id . '
-					</button>
-					<div class="dropdown-menu">
-
-					<button type="button" acao="cancelar" ' . ($canCancel ? '' : 'disabled') . ' class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-						Cancelar
-						</button>
-
-						';
-
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
-			echo '
-			<button type="button"  ' . ($this->possoAtender($selected) ? '' : 'disabled') . '  acao="atender" class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-			  Atender
-			</button>
-
-			';
-		}
-
-		echo '
-
-		<button type="button" ' . ($this->possoFechar($selected) ? '' : 'disabled') . '  acao="fechar"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-  			Fechar
-		</button>
-		<button type="button" ' . ($this->possoAvaliar($selected) ? '' : 'disabled') . '  id="avaliar-btn" acao="avaliar"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
-			Confirmar
-	  	</button>
-
-		  <button id="botao-reabrir" type="button" ' . ($this->possoReabrir($selected) ? '' : 'disabled') . '  acao="reabrir"  class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
-		  Reabrir
-		</button>
-
-		';
-
-		if ($this->possoReservar($selected)) {
-			echo '<button type="button" acao="reservar" id="botao-reservar" class="dropdown-item"  data-toggle="modal" data-target="#modalStatus">
-			Reservar
-		  </button>';
-		}
-
-		if ($this->possoLiberar($selected)) {
-			echo '<button type="button" acao="liberar_atendimento"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-			Liberar Ocorrência
-		  </button>';
-		}
-		echo '<div class="dropdown-divider"></div>
-
-		<button type="button" acao="aguardar_usuario"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-			Aguardar Usuário
-		  </button>
-		  <button type="button" acao="aguardar_ativos"  class="dropdown-item  botao-status"  data-toggle="modal" data-target="#modalStatus">
-			  Aguardar Ativos de TI
-		</button>
-		</div>
-		</div>
-		<button class="btn btn-light btn-lg p-2" type="button" disabled>
-		Status:  ' . $selected->status . '
-		</button>
-		</div>
-		</div>
-		</div>
-		</div>
-		<div class="row  border-bottom mb-3"></div>
-		</div>';
 	}
 
 	public function possoCancelar($order)
@@ -551,9 +480,6 @@ class OcorrenciaController
 	public function possoEditarSolucao($order)
 	{
 		$this->sessao = new Sessao();
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
-			return false;
-		}
 		if (
 			$order->status === self::STATUS_ATENDIMENTO
 			&& $order->provider != null &&
@@ -561,7 +487,6 @@ class OcorrenciaController
 		) {
 			return true;
 		}
-
 		return false;
 	}
 
