@@ -38,9 +38,9 @@ class MensagemForumController
     {
         $sessao = new Sessao();
         if(
-            $order->status === StatusOcorrenciaController::STATUS_ATENDIMENTO
-            || $order->status === StatusOcorrenciaController::STATUS_AGUARDANDO_ATIVO
-            || $order->status === StatusOcorrenciaController::STATUS_AGUARDANDO_USUARIO
+            $order->status === OcorrenciaController::STATUS_ATENDIMENTO
+            || $order->status === OcorrenciaController::STATUS_AGUARDANDO_ATIVO
+            || $order->status === OcorrenciaController::STATUS_AGUARDANDO_USUARIO
             &&
                 (
                     $order->provider != null && $order->provider->id === $sessao->getIdUsuario()
