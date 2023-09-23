@@ -11,6 +11,11 @@ use Illuminate\Http\Request;
 class OrderMessagesController extends BasicCrudController
 {
 
+    public function __construct()
+    {
+        $this->authorizeResource(OrderMessage::class, 'orderMessage');
+    }
+
     private $rules = [
         'name' => 'required|max:255'
     ];

@@ -10,7 +10,10 @@ use Illuminate\Http\Request;
 
 class OrderStatusLogsController extends BasicCrudController
 {
-
+    public function __construct()
+    {
+        $this->authorizeResource(OrderStatusLog::class, 'orderStatusLog');
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];
