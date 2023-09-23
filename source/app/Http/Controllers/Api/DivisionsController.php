@@ -11,6 +11,10 @@ use Illuminate\Http\Request;
 class DivisionsController extends BasicCrudController
 {
 
+    public function __construct()
+    {
+        $this->authorizeResource(Division::class, 'division');
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];

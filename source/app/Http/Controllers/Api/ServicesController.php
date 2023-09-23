@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 class ServicesController extends BasicCrudController
 {
 
+    public function __construct()
+    {
+        $this->authorizeResource(Service::class, 'service');
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];
