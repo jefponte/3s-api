@@ -269,8 +269,8 @@ class OcorrenciaController
 	public function canWait($currentStatus)
 	{
 		return $this->sessao->getNivelAcesso()
-		!= Sessao::NIVEL_COMUM && $currentStatus == 'e'
-		&& $this->sessao->getIdUsuario() != $this->selecionado->getIdUsuarioAtendente();
+			!= Sessao::NIVEL_COMUM && $currentStatus == 'e'
+			&& $this->sessao->getIdUsuario() != $this->selecionado->getIdUsuarioAtendente();
 	}
 	public function show()
 	{
@@ -326,6 +326,15 @@ class OcorrenciaController
 		$timeSolucaoEstimada = strtotime($dataSolucao);
 		$isLate = $timeNow > $timeSolucaoEstimada;
 
+		$selected->canCancel = $this->canCancel($selected);
+		$selected->canRespond = $this->possoAtender($selected);
+		$selected->canClose = $this->possoFechar($selected);
+		$selected->canRate = $this->possoAvaliar($selected);
+		$selected->canReopen = $this->possoReabrir($selected);
+		$selected->canReserve = $this->possoReservar($selected);
+		$selected->canRelease = $this->possoLiberar($selected);
+		$selected->canWait = $this->possoEditarSolucao($selected);
+
 
 		$providerName = '';
 		if ($selected->provider != null) {
@@ -338,15 +347,7 @@ class OcorrenciaController
 
 		echo '<div class="row">';
 		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
-		$this->sessao = new Sessao();
-		$selected->canCancel = $this->canCancel($selected);
-		$selected->canRespond = $this->possoAtender($selected);
-		$selected->canClose = $this->possoFechar($selected);
-		$selected->canRate = $this->possoAvaliar($selected);
-		$selected->canReopen = $this->possoReabrir($selected);
-		$selected->canReserve = $this->possoReservar($selected);
-		$selected->canRelease = $this->possoLiberar($selected);
-		$selected->canWait = $this->possoEditarSolucao($selected);
+
 
 		echo view('partials.panel-status', ['selected' => $selected]);
 
@@ -362,10 +363,163 @@ class OcorrenciaController
 			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
 			'providerName' => $providerName
 		]);
-		$mensagemController = new MensagemForumController();
-		$mensagemController->mainOcorrencia($selected);
+
+		$this->mainMessagesOcorrencia($selected);
 	}
 
+
+	public function possoEnviarMensagem($order)
+	{
+		$sessao = new Sessao();
+		if (
+			$order->status === OcorrenciaController::STATUS_ATENDIMENTO
+			|| $order->status === OcorrenciaController::STATUS_AGUARDANDO_ATIVO
+			|| $order->status === OcorrenciaController::STATUS_AGUARDANDO_USUARIO
+			&&
+			($order->provider != null && $order->provider->id === $sessao->getIdUsuario()
+				||
+				$order->customer != null && $order->customer->id === $sessao->getIdUsuario()
+			)
+		) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function mainMessagesOcorrencia($order)
+	{
+
+		echo '
+
+
+        <!-- Modal -->
+        <div class="modal fade" id="modalDeleteChat" tabindex="-1" aria-labelledby="modalDeleteChatLabel" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalDeleteChatLabel">Apagar Mensagem</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                Tem certeza que deseja apagar esta mensagem?
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <form action="" method="post">
+                    <input type="hidden" id="chatDelete" name="chatDelete" value=""/>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+<div class="container">
+		<div class="row">
+			<div class="chatbox chatbox22">
+				<div class="chatbox__title">
+					<h5 class="text-white">#<span id="id-ocorrencia">' . $order->id . '</span></h5>
+					<!--<button class="chatbox__title__tray">
+            <span></span>
+        </button>-->
+
+				</div>
+				<div id="corpo-chat" class="chatbox__body">';
+
+
+		$ultimoId = 0;
+
+		foreach ($order->messages as $mensagemForum) {
+			$ultimoId = $mensagemForum->id;
+			$nome = $mensagemForum->user->name;
+
+			$listaNome = explode(' ', $mensagemForum->user->name);
+			if (isset($listaNome[0])) {
+				$nome = ucfirst(strtolower($listaNome[0]));
+			}
+			if (isset($listaNome[1])) {
+				if (strlen($listaNome[1]) <= 2) {
+					$nome .= ' ' . strtolower($listaNome[1]);
+					if (isset($listaNome[2])) {
+						$nome .= ' ' . ucfirst(strtolower($listaNome[2]));
+					}
+				} else {
+					$nome .= ' ' . ucfirst(strtolower($listaNome[1]));
+				}
+			}
+
+
+			echo '
+
+
+
+            			<div class="chatbox__body__message chatbox__body__message--left">
+
+            				<div class="chatbox_timing">
+            					<ul>
+            						<li><a href="#"><i class="fa fa-calendar"></i> ' . date("d/m/Y", strtotime($mensagemForum->created_at)) . '</a></li>
+            						<li><a href="#"><i class="fa fa-clock-o"></i> ' . date("H:i", strtotime($mensagemForum->created_at)) . '</a></a></li>
+            					</ul>
+            				</div>
+            				<div class="clearfix"></div>
+            				<div class="ul_section_full">
+            					<ul class="ul_msg">
+                                    <li><strong>' . $nome . '</strong></li>';
+			if ($mensagemForum->type == self::TIPO_ARQUIVO) {
+				echo '<li>Anexo: <a href="./storage/uploads/' . $mensagemForum->message . '">Clique aqui</a></li>';
+			} else {
+				echo '
+                        <li>' . nl2br(htmlspecialchars($mensagemForum->message)) . '</li>';
+			}
+			echo '
+
+            					</ul>
+            					<div class="clearfix"></div>
+
+            				</div>
+
+            			</div>';
+		}
+		echo '<span id="ultimo-id-post" class="escondido">' . $ultimoId . '</span>';
+		echo '
+
+
+				</div>
+				<div class="panel-footer">';
+		if ($this->possoEnviarMensagem($order)) {
+			echo '<form id="insert_form_mensagem_forum" class="user" method="post">
+            <input type="hidden" name="enviar_mensagem_forum" value="1">
+            <input type="hidden" name="ocorrencia" value="' . $order->id . '">
+            <input type="hidden" id="campo_tipo" name="tipo" value="' . self::TIPO_TEXTO . '">
+
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" name="muda-tipo" id="muda-tipo">
+              <label class="custom-control-label" for="muda-tipo">Enviar Arquivo</label>
+            </div>
+            <div class="custom-file mb-3 escondido" id="campo-anexo">
+                  <input type="file" class="custom-file-input" name="anexo" id="anexo" accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint, text/plain, application/pdf, image/*, application/zip,application/rar, .ovpn, .xlsx">
+                  <label class="custom-file-label" for="anexo" data-browse="Anexar">Anexar um Arquivo</label>
+            </div>
+            <div class="input-group">
+                <textarea style="resize: none;" name="mensagem" rows="3" cols="40"  name="mensagem" id="campo-texto" t></textarea>
+                <span class="input-group-btn"> <button class="btn bt_bg btn-sm" id="botao-enviar-mensagem">Enviar</button></span>
+            </div>
+        </form>';
+		}
+
+		echo '
+				</div>
+			</div>
+		</div>
+	</div>
+
+';
+	}
 	public function possoCancelar($order)
 	{
 		return $this->sessao->getIdUsuario() === $order->customer->id
@@ -386,6 +540,8 @@ class OcorrenciaController
 				$order->status == self::STATUS_AGUARDANDO_USUARIO
 			)
 		) {
+			return true;
+		} else if ($this->possoEditarSolucao($order)) {
 			return true;
 		}
 		return false;
@@ -531,9 +687,13 @@ class OcorrenciaController
 	}
 	public function possoReabrir($order)
 	{
-		//Só permitir isso se o usuário for cliente do chamado
-		//O chamado deve estar fechado.
-		if ($order->customer != null && $order->status != self::STATUS_FECHADO && $this->sessao->getIdUsuario() != $order->customer->id) {
+		if (
+			$order->customer != null
+			&&
+			$this->sessao->getIdUsuario() === $order->customer->id
+			&&
+			$order->status === self::STATUS_FECHADO
+		) {
 			return true;
 		}
 		return false;
@@ -1464,4 +1624,6 @@ class OcorrenciaController
 			$mail->enviarEmail($destinatario, $nome, $assunto, $saldacao . $corpo);
 		}
 	}
+	const TIPO_ARQUIVO = 'file';
+	const TIPO_TEXTO = 'text';
 }

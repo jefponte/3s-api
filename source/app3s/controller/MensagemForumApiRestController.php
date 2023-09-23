@@ -7,21 +7,13 @@
 
 namespace app3s\controller;
 
-use app3s\dao\MensagemForumDAO;
 use app3s\util\Sessao;
-use app3s\dao\OcorrenciaDAO;
-use app3s\model\Ocorrencia;
+use App\Models\Order;
+use App\Models\OrderMessage;
 
 class MensagemForumApiRestController
 {
 
-
-    protected $dao;
-
-    public function __construct()
-    {
-        $this->dao = new MensagemForumDAO();
-    }
 
     public function main()
     {
@@ -33,18 +25,17 @@ class MensagemForumApiRestController
         $this->get();
     }
 
-    public function parteInteressada(Ocorrencia $selecionado)
+    public function parteInteressada($order)
     {
         $sessao = new Sessao();
-        if ($sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
+        if (
+            $sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO
+            || $sessao->getNivelAcesso() == Sessao::NIVEL_ADM
+            || $order->customer->id === $sessao->getIdUsuario()
+            ) {
             return true;
-        } else if ($sessao->getNivelAcesso() == Sessao::NIVEL_ADM) {
-            return true;
-        } else if ($selecionado->getUsuarioCliente()->getId() == $sessao->getIdUsuario()) {
-            return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public function get()
@@ -76,13 +67,8 @@ class MensagemForumApiRestController
         }
 
         $id = intval($url[2]);
-
-        $ocorrencia = new Ocorrencia();
-        $ocorrencia->setId($id);
-        $ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-        $ocorrenciaDao->fillById($ocorrencia);
-
-        if (!$this->parteInteressada($ocorrencia)) {
+        $order = Order::findOrFail($id);
+        if (!$this->parteInteressada($order)) {
             echo "{Acesso Negado}";
             return;
         }
@@ -90,14 +76,15 @@ class MensagemForumApiRestController
 
         if (isset($url[3]) && $url[3] != '') {
             $idM = intval($url[3]);
-            $ocorrenciaDao->fetchMensagensPag($ocorrencia, $idM);
+            $query = OrderMessage::where('order_id', '=', $order->id)->where('id', '>', $idM)->orderBy('id');
+
         } else {
-            $ocorrenciaDao->fetchMensagens($ocorrencia);
+            $query = OrderMessage::where('order_id', '=', $order->id)->orderBy('id');
         }
 
-        $list = $ocorrencia->getMensagens();
+        $list = $query->get();
 
-        if (count($list) == 0) {
+        if ($list->count() === 0) {
             echo "[]";
             return;
         }
@@ -106,11 +93,11 @@ class MensagemForumApiRestController
         $listagem = array();
         foreach ($list as $linha) {
             $listagem[] = array(
-                'id' => $linha->getId(),
-                'tipo' => $linha->getTipo(),
-                'mensagem' => strip_tags($linha->getMensagem()),
-                'data_envio' => $linha->getDataEnvio(),
-                'nome_usuario' => $linha->getUsuario()->getNome()
+                'id' => $linha->id,
+                'tipo' => $linha->type,
+                'mensagem' => strip_tags($linha->message),
+                'data_envio' => $linha->created_at,
+                'nome_usuario' => $linha->user->name
             );
         }
         echo json_encode($listagem);

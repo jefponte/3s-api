@@ -60,7 +60,7 @@
                         </div>
                     </div>
                     <button class="btn btn-light btn-lg p-2" type="button" disabled>
-                        Status: {{ $selected->status }}
+                        Status: {{ __($selected->status) }}
                     </button>
                 </div>
             </div>
