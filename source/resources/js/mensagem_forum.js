@@ -21,12 +21,12 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
         if ($("#muda-tipo").is(':checked')) {
             $("#campo-texto").addClass("escondido");
             $("#campo-anexo").removeClass("escondido");
-            $("#campo_tipo").val(2);
+            $("#campo_tipo").val("file");
         } else {
 
             $("#campo-texto").removeClass("escondido");
             $("#campo-anexo").addClass("escondido");
-            $("#campo_tipo").val(1);
+            $("#campo_tipo").val("text");
 
         }
     });
@@ -72,7 +72,7 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
         div += '<div class="ul_section_full"><ul class="ul_msg">';
 
         div += '<li><strong>' + item.nome_usuario + '</strong></li>';
-        if (item.tipo == 1) {
+        if (item.tipo == "text") {
             div += '<li>' + item.mensagem + '</li>';
         } else {
             div += '<li>Anexo: <a href="./storage/uploads/' + item.mensagem + '" download>Download</a></li>';

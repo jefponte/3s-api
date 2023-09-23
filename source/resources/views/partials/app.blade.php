@@ -116,7 +116,6 @@
 <script src="js/change-contraste.js?a=1"></script>
 <script src="js/jquery.easyPaginate.js?a=1"></script>
 <script src="js/ocorrencia.js?a=1451"></script>
-<script src="js/mensagem_forum.js?a=172"></script>
 <script src="js/status_ocorrencia.js?a=1"></script>
 
 </html>

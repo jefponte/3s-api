@@ -284,9 +284,10 @@ class OcorrenciaController
 
 
 		$selected->load([
-			'messages.user' => function ($query) {
+			'messages' => function ($query) {
 				$query->orderBy('id', 'asc');
 			},
+			'messages.user',
 			'statusLogs' => function ($query) {
 				$query->orderBy('id', 'asc');
 			},
@@ -885,7 +886,6 @@ class OcorrenciaController
                 if (!Storage::exists('public/uploads')) {
                     Storage::makeDirectory('public/uploads');
                 }
-
                 $novoNome = $anexo->getClientOriginalName();
 
                 if (Storage::exists('public/uploads/' . $anexo->getClientOriginalName())) {
@@ -913,7 +913,11 @@ class OcorrenciaController
                     return;
                 }
             }
-            $messageData['message'] == $novoNome;
+
+			if($novoNome === null || $novoNome === "") {
+				echo ':falha:Nome do arquivo está nulo';
+			}
+            $messageData['message'] = $novoNome;
         }
         $messageData['user_id'] = $sessao->getIdUsuario();
         $messageData['order_id'] = $_POST['ocorrencia'];
@@ -945,7 +949,8 @@ class OcorrenciaController
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
 			$queryService->where('role', Sessao::NIVEL_COMUM);
 		}
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
+		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM
+			|| $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			$queryService->whereIn('role', [Sessao::NIVEL_COMUM, Sessao::NIVEL_TECNICO]);
 		}
 		$services = $queryService->get();
