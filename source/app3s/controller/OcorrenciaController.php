@@ -542,8 +542,8 @@ class OcorrenciaController
 	public function possoAtender($order)
 	{
 		if (
-			$this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
-			|| $this->sessao->getNivelAcesso() === Sessao::NIVEL_TECNICO
+			($this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
+			|| $this->sessao->getNivelAcesso() === Sessao::NIVEL_TECNICO)
 			&&
 			($order->status == self::STATUS_ABERTO
 				||
@@ -1222,55 +1222,45 @@ class OcorrenciaController
 		if (!isset($_POST['status_acao'])) {
 			return false;
 		}
-		// if ($_POST['status_acao'] != 'cancelar') {
-		// 	return false;
-		// }
-		// if (!isset($_POST['id_ocorrencia'])) {
-		// 	return false;
-		// }
-		// if (!isset($_POST['senha'])) {
-		// 	return false;
-		// }
+		if (!isset($_POST['id_ocorrencia'])) {
+			return false;
+		}
 
-		// $order = Order::findOrFail($_POST['id_ocorrencia']);
+		$this->sessao = new Sessao();
+		if (!isset($_POST['status_acao'])) {
+			return false;
+		}
+		if ($_POST['status_acao'] != 'atender') {
+			return false;
+		}
+		if (!isset($_POST['id_ocorrencia'])) {
+			return false;
+		}
+		if (!isset($_POST['senha'])) {
+			return false;
+		}
 
-		// if (!$this->possoCancelar($order)) {
-		// 	echo ":falha:Este chamado não pode ser cancelado.";
-		// 	return false;
-		// }
+		if (!$this->possoCancelar($order)) {
+			echo ":falha:Este chamado não pode ser cancelado.";
+			return false;
+		}
 
-
-		// $ocorrenciaDao = new OcorrenciaDAO($this->dao->getConnection());
-		// $this->ocorrencia->setStatus(self::STATUS_CANCELADO);
-
-		// $status = new Status();
-		// $status->setSigla(self::STATUS_CANCELADO);
-
-		// $statusDao = new StatusDAO($this->dao->getConnection());
-		// $statusDao->fillBySigla($status);
-
-		// $this->statusOcorrencia = new StatusOcorrencia();
-		// $this->statusOcorrencia->setOcorrencia($this->ocorrencia);
-		// $this->statusOcorrencia->setStatus($status);
-		// $this->statusOcorrencia->setDataMudanca(date("Y-m-d G:i:s"));
-		// $this->statusOcorrencia->getUsuario()->setId($this->sessao->getIdUsuario());
-		// $this->statusOcorrencia->setMensagem("Ocorrência cancelada pelo usuário");
-
-
-		// $ocorrenciaDao->getConnection()->beginTransaction();
-
-		// if (!$ocorrenciaDao->update($this->ocorrencia)) {
-		// 	echo ':falha:Falha na alteração do status da ocorrência.';
-		// 	$ocorrenciaDao->getConnection()->rollBack();
-		// 	return false;
-		// }
-
-		// if (!$this->dao->insert($this->statusOcorrencia)) {
-		// 	echo ':falha:Falha ao tentar inserir histórico.';
-		// 	return false;
-		// }
-		// $ocorrenciaDao->getConnection()->commit();
-		echo ':sucesso:' . $order->id . ':Chamado cancelado com sucesso!';
+		DB::beginTransaction();
+		try {
+			OrderStatusLog::create([
+				'order_id' => $order->id,
+				'status' => self::STATUS_CANCELADO,
+				'message' => "Ocorrência cancelada pelo usuário",
+				'user_id' => auth()->user()->id
+			]);
+			$order->status = self::STATUS_CANCELADO;
+			$order->save();
+			DB::commit();
+			echo ':sucesso:' . $order->id . ':Chamado am atendimento!';
+		} catch (\Exception $e) {
+			DB::rollback();
+			echo ':falha:Falha ao tentar inserir histórico.';
+		}
 		return true;
 	}
 
