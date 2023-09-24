@@ -13,7 +13,7 @@ class ServicePolicy
      */
     public function viewAny(User $user): Response
     {
-        if ($user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -24,7 +24,7 @@ class ServicePolicy
      */
     public function view(User $user, Service $service): Response
     {
-        if ($user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -35,7 +35,7 @@ class ServicePolicy
      */
     public function create(User $user): Response
     {
-        if ($user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -46,7 +46,7 @@ class ServicePolicy
      */
     public function update(User $user, Service $service): Response
     {
-        if ($user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -57,7 +57,7 @@ class ServicePolicy
      */
     public function delete(User $user, Service $service): Response
     {
-        if ($user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');

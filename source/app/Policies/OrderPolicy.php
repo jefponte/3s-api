@@ -12,25 +12,34 @@ class OrderPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user): Response
     {
-        return true;
+        if ($user->role === 'administrator' || $user->role === 'provider') {
+            return Response::allow();
+        }
+        return Response::deny('Esta tela exige permissão de administrador.');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Order $order): bool
+    public function view(User $user, Order $order): Response
     {
-        return true;
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
+            return Response::allow();
+        }
+        return Response::deny('Esta tela exige permissão de administrador.');
     }
 
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user): Response
     {
-        return true;
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
+            return Response::allow();
+        }
+        return Response::deny('Esta tela exige permissão de administrador.');
     }
 
     /**
@@ -38,7 +47,10 @@ class OrderPolicy
      */
     public function update(User $user, Order $order): Response
     {
-        return Response::deny('Não é possível editar uma ocorrência');
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
+            return Response::allow();
+        }
+        return Response::deny('Esta tela exige permissão de administrador.');
     }
 
     /**
@@ -49,13 +61,7 @@ class OrderPolicy
         return Response::deny('Não é possível apagar uma ocorrência');
     }
 
-    public function open(User $user, Order $order): Response
-    {
-        if ($order->customer->id === $user->id && $order->status === 'closed') {
-            return Response::allow();
-        }
-        return Response::deny('Esta ocorrência não pode ser cancelada.');
-    }
+
     /**
      * Determine whether the user can delete the model.
      */

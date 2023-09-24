@@ -8,8 +8,6 @@
 namespace app3s\controller;
 
 use Illuminate\Support\Facades\Http;
-use app3s\dao\OcorrenciaDAO;
-use app3s\model\Ocorrencia;
 use app3s\util\Mail;
 use app3s\util\Sessao;
 use App\Models\Division;
@@ -23,15 +21,10 @@ use Illuminate\Support\Facades\Storage;
 
 class OcorrenciaController
 {
-
-	protected $selecionado;
 	protected $sessao;
-	protected $dao;
 
-	public function __construct()
-	{
-		$this->dao = new OcorrenciaDAO();
-	}
+
+
 	public function main()
 	{
 
@@ -123,7 +116,9 @@ class OcorrenciaController
 		echo '
 
 		<div class="row">
-			<div class="col-md-8 blog-main">
+
+
+		<div class="col-md-8 blog-main">
 				<div class="panel-group" id="accordion">';
 
 
@@ -143,10 +138,7 @@ class OcorrenciaController
 		$this->painel($lista2, "Ocorrências Encerradas", 'collapseEncerrada');
 		echo '
 			</div>
-		</div>';
-
-		//Painel Lateral
-		echo '
+		</div>
 		<aside class="col-md-4 blog-sidebar">';
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			$userDivision = Division::where('id', request()->user()->division_id)->first();

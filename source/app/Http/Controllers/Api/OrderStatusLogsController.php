@@ -14,6 +14,35 @@ class OrderStatusLogsController extends BasicCrudController
     {
         $this->authorizeResource(OrderStatusLog::class, 'orderStatusLog');
     }
+    public function show(OrderStatusLog $orderStatusLog)
+    {
+        return new OrderStatusLogResource($orderStatusLog);
+    }
+        /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, OrderStatusLog $orderStatusLog)
+    {
+        $orderStatusLog->update($request->all());
+        return response()->json($orderStatusLog, 200);
+    }
+        /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(OrderStatusLog $orderStatusLog)
+    {
+        $orderStatusLog->delete();
+        return response()->json(null, 204);
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];

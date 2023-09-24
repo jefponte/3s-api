@@ -15,7 +15,37 @@ class OrderMessagesController extends BasicCrudController
     {
         $this->authorizeResource(OrderMessage::class, 'orderMessage');
     }
+    public function show(OrderMessage $orderMessage)
+    {
+        return new OrderMessageResource($orderMessage);
+    }
+        /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, OrderMessage $orderMessage)
+    {
+        $orderMessage->update($request->all());
+        return response()->json($orderMessage, 200);
+    }
 
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(OrderMessage $orderMessage)
+    {
+        $orderMessage->delete();
+
+        return response()->json(null, 204);
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];

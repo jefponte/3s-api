@@ -23,11 +23,39 @@ class UsersController extends BasicCrudController
     {
         return User::class;
     }
-    public function show($id)
+    public function show(User $user)
     {
-        $user = User::with('division')->findOrFail($id);
-
+        $user->load(['division']);
         return new UserResource($user);
+    }
+        /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, User $user)
+    {
+        $this->validate($request, [
+			'name' => 'required|max:255'
+		]);
+
+        $user->update($request->all());
+        return response()->json($user, 200);
+    }
+       /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(User $user)
+    {
+        $user->delete();
+        return response()->json(null, 204);
     }
     protected function rulesStore()
     {
