@@ -36,7 +36,7 @@ class OrderPolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -47,7 +47,7 @@ class OrderPolicy
      */
     public function update(User $user, Order $order): Response
     {
-        if ( $user->role === 'administrator') {
+        if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
