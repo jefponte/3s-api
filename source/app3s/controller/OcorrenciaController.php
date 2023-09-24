@@ -280,27 +280,25 @@ class OcorrenciaController
 		echo view('partials.box-messages', ['order' => $selected]);
 	}
 
-
-
 	public function calcularHoraSolucao($dataAbertura, $tempoSla)
 	{
-		function fimDeSemana($data)
+		$isWeekend = function($data)
 		{
 			$diaDaSemana = intval(date('w', strtotime($data)));
 			return ($diaDaSemana == 6 || $diaDaSemana == 0);
-		}
-		function foraDoExpediente($data)
+		};
+		$outOfService = function($data)
 		{
 			$hora = intval(date('H', strtotime($data)));
 			return ($hora >= 17) || ($hora < 8) || ($hora == 11);
-		}
+		};
 		if ($dataAbertura == null) {
 			return "Indefinido";
 		}
-		while (fimDeSemana($dataAbertura)) {
+		while ($isWeekend($dataAbertura)) {
 			$dataAbertura = date("Y-m-d 08:00:00", strtotime('+1 day', strtotime($dataAbertura)));
 		}
-		while (foraDoExpediente($dataAbertura)) {
+		while ($outOfService($dataAbertura)) {
 			$dataAbertura = date("Y-m-d H:00:00", strtotime('+1 hour', strtotime($dataAbertura)));
 		}
 		$timeEstimado = strtotime($dataAbertura);
@@ -308,13 +306,13 @@ class OcorrenciaController
 		for ($i = 0; $i < $tempoSla; $i++) {
 			$timeEstimado = strtotime('+' . $i . ' hour', strtotime($dataAbertura));
 			$horaEstimada = date("Y-m-d H:i:s", $timeEstimado);
-			while (fimDeSemana($horaEstimada)) {
+			while ($isWeekend($horaEstimada)) {
 				$horaEstimada = date("Y-m-d 08:00:00", strtotime('+1 day', strtotime($horaEstimada)));
 				$i = $i + 24;
 				$tempoSla += 24;
 			}
 
-			while (foraDoExpediente($horaEstimada)) {
+			while ($outOfService($horaEstimada)) {
 				$horaEstimada = date("Y-m-d H:i:s", strtotime('+1 hour', strtotime($horaEstimada)));
 				$i++;
 				$tempoSla++;
