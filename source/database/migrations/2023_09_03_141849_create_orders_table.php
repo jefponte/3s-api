@@ -64,7 +64,7 @@ return new class extends Migration
                     WHEN status_temp = 'd' THEN 'pending customer response'
                     WHEN status_temp = 'b' THEN 'reserved'
                     WHEN status_temp = 'g' THEN 'committed'
-                    WHEN status_temp = 'i' THEN 'pending it resource'
+                    WHEN status_temp = 'i' THEN 'pending resource'
                     WHEN status_temp = 'h' THEN 'canceled'
                     WHEN status_temp = 'f' THEN 'closed'
                     WHEN status_temp = 'e' THEN 'in progress'

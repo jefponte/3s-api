@@ -2,31 +2,8 @@
     <h4 class="font-italic">Histórico</h4>
     <div class="container">
         @foreach ($order->statusLogs as $status)
-            @php
-                $strCartao = ' alert-warning ';
-                if ($status->status === 'opened') {
-                    $strCartao = '  notice-warning';
-                }
-                elseif ($status->status === 'reopened') {
-                    $strCartao = '  notice-warning';
-                }
-                elseif ($status->status === 'in progress') {
-                    $strCartao = '  notice-info ';
-                } elseif ($status->status == 'closed') {
-                    $strCartao = 'notice-success ';
-                } elseif ($status->status === 'committed') {
-                    $strCartao = 'notice-success ';
-                } elseif ($status->status == 'canceled') {
-                    $strCartao = ' notice-warning ';
-                } elseif ($status->status == 'reserved') {
-                    $strCartao = '  notice-warning ';
-                } elseif ($status->status === 'pending customer response') {
-                    $strCartao = '  notice-warning ';
-                } elseif ($status->status == 'pending it resource') {
-                    $strCartao = ' notice-warning';
-                }
-            @endphp
-            <div class="notice {{ $strCartao }}">
+
+            <div class="notice {{ $listColorStatus[$status->status]}}">
                 <strong>{{ __($status->status) }} </strong><br>
                 @if ($status->status == 'committed')
                     <br>

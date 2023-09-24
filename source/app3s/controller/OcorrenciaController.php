@@ -10,6 +10,7 @@ namespace app3s\controller;
 use Illuminate\Support\Facades\Http;
 use app3s\util\Mail;
 use app3s\util\Sessao;
+use App\Enums\OrderStatus;
 use App\Models\Division;
 use App\Models\Order;
 use App\Models\OrderMessage;
@@ -64,14 +65,15 @@ class OcorrenciaController
 			->whereIn(
 				'status',
 				[
-					self::STATUS_ABERTO,
-					self::STATUS_AGUARDANDO_ATIVO,
-					self::STATUS_AGUARDANDO_USUARIO,
-					self::STATUS_ATENDIMENTO,
-					self::STATUS_REABERTO,
-					self::STATUS_RESERVADO
+					OrderStatus::opened()->value,
+					OrderStatus::pendingResource()->value,
+					OrderStatus::pendingCustomerResponse()->value,
+					OrderStatus::inProgress()->value,
+					OrderStatus::reopened()->value,
+					OrderStatus::reserved()->value
 				]
 			)->orderByDesc('orders.id');
+
 		$queryFinished = Order::select(
 			'orders.id as id',
 			'orders.description as descricao',
@@ -81,9 +83,9 @@ class OcorrenciaController
 		)
 			->join('services', 'orders.service_id', '=', 'services.id')
 			->whereIn('status', [
-				self::STATUS_FECHADO,
-				self::STATUS_FECHADO_CONFIRMADO,
-				self::STATUS_CANCELADO
+				OrderStatus::closed()->value,
+				OrderStatus::committed()->value,
+				OrderStatus::canceled()->value
 			])->orderByDesc('orders.id');
 
 		$queryPendding = $this->applyFilters($queryPendding);
@@ -164,103 +166,6 @@ class OcorrenciaController
 	}
 
 
-	public function fimDeSemana($data)
-	{
-		$diaDaSemana = intval(date('w', strtotime($data)));
-		return ($diaDaSemana == 6 || $diaDaSemana == 0);
-	}
-
-	public function foraDoExpediente($data)
-	{
-		$hora = date('H', strtotime($data));
-		$hora = intval($hora);
-		if ($hora >= 17) {
-			return true;
-		}
-		if ($hora < 8) {
-			return true;
-		}
-		if ($hora == 11) {
-			return true;
-		}
-		return false;
-	}
-	public function calcularHoraSolucao($dataAbertura, $tempoSla)
-	{
-		if ($dataAbertura == null) {
-			return "Indefinido";
-		}
-		while ($this->fimDeSemana($dataAbertura)) {
-			$dataAbertura = date("Y-m-d 08:00:00", strtotime('+1 day', strtotime($dataAbertura)));
-		}
-		while ($this->foraDoExpediente($dataAbertura)) {
-			$dataAbertura = date("Y-m-d H:00:00", strtotime('+1 hour', strtotime($dataAbertura)));
-		}
-		$timeEstimado = strtotime($dataAbertura);
-		$tempoSla++;
-		for ($i = 0; $i < $tempoSla; $i++) {
-			$timeEstimado = strtotime('+' . $i . ' hour', strtotime($dataAbertura));
-			$horaEstimada = date("Y-m-d H:i:s", $timeEstimado);
-			while ($this->fimDeSemana($horaEstimada)) {
-				$horaEstimada = date("Y-m-d 08:00:00", strtotime('+1 day', strtotime($horaEstimada)));
-				$i = $i + 24;
-				$tempoSla += 24;
-			}
-
-			while ($this->foraDoExpediente($horaEstimada)) {
-				$horaEstimada = date("Y-m-d H:i:s", strtotime('+1 hour', strtotime($horaEstimada)));
-				$i++;
-				$tempoSla++;
-			}
-		}
-		$horaEstimada = date('Y-m-d H:i:s', $timeEstimado);
-		return $horaEstimada;
-	}
-
-
-
-
-	public function getColorStatus($siglaStatus)
-	{
-		$strCartao = ' alert-warning ';
-		if ($siglaStatus == self::STATUS_ABERTO) {
-			$strCartao = '  notice-warning';
-		} else if ($siglaStatus == self::STATUS_ATENDIMENTO) {
-			$strCartao = '  notice-info ';
-		} else if ($siglaStatus == self::STATUS_FECHADO) {
-			$strCartao = 'notice-success ';
-		} else if ($siglaStatus == self::STATUS_FECHADO_CONFIRMADO) {
-			$strCartao = 'notice-success ';
-		} else if ($siglaStatus == self::STATUS_CANCELADO) {
-			$strCartao = ' notice-warning ';
-		} else if ($siglaStatus == self::STATUS_REABERTO) {
-			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == self::STATUS_RESERVADO) {
-			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == self::STATUS_AGUARDANDO_USUARIO) {
-			$strCartao = '  notice-warning ';
-		} else if ($siglaStatus == self::STATUS_AGUARDANDO_ATIVO) {
-			$strCartao = ' notice-warning';
-		}
-		return $strCartao;
-	}
-	public function canCancel($order)
-	{
-		return $this->sessao->getIdUsuario() == $order->customer_user_id && $order->status == self::STATUS_ABERTO;
-	}
-	public function canWait($order)
-	{
-		$sessao = new Sessao();
-		if (
-			$order->provider != null
-			&& $order->provider->id === $sessao->getIdUsuario()
-			&& $order->status === self::STATUS_ATENDIMENTO
-		) {
-			return true;
-		}
-		return false;
-
-	}
 	public function show()
 	{
 
@@ -269,7 +174,6 @@ class OcorrenciaController
 		}
 
 		$sessao = new Sessao();
-		$this->sessao = new Sessao();
 		$selected = Order::findOrFail($_GET['selecionar']);
 
 		if (!$this->parteInteressada($selected)) {
@@ -280,8 +184,6 @@ class OcorrenciaController
             ';
 			return;
 		}
-
-
 		$selected->load([
 			'messages' => function ($query) {
 				$query->orderBy('id', 'asc');
@@ -325,63 +227,9 @@ class OcorrenciaController
 		$selected->canReserve = $this->possoReservar($selected);
 		$selected->canRelease = $this->possoLiberar($selected);
 		$selected->canWait = $this->canWait($selected);
+		$selected->canSendMessage = $this->possoEnviarMensagem($selected);
 
-
-		$providerName = '';
-		if ($selected->provider != null) {
-			$providerName = $selected->provider->name;
-		}
-		foreach ($selected->statusLogs as $status) {
-			$status->color = $this->getColorStatus($status->status);
-		}
-
-
-		echo '<div class="row">';
-		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
-
-
-
-		echo view('partials.panel-status', ['selected' => $selected]);
-
-
-		echo view('partials.show-order', [
-			'order' => $selected,
-			'canEditTag' => $canEditTag,
-			'canEditSolution' => $canEditSolution,
-			'isLevelClient' => $isClient,
-			'isLate' => $isLate,
-			'dataSolucao' => $dataSolucao,
-			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
-			'providerName' => $providerName
-		]);
-
-		$this->mainMessagesOcorrencia($selected);
-	}
-
-
-	public function possoEnviarMensagem($order)
-	{
-		$sessao = new Sessao();
-		if (
-			$order->status === OcorrenciaController::STATUS_ATENDIMENTO
-			|| $order->status === OcorrenciaController::STATUS_AGUARDANDO_ATIVO
-			|| $order->status === OcorrenciaController::STATUS_AGUARDANDO_USUARIO
-			&&
-			($order->provider != null && $order->provider->id === $sessao->getIdUsuario()
-				||
-				$order->customer != null && $order->customer->id === $sessao->getIdUsuario()
-			)
-		) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public function mainMessagesOcorrencia($order)
-	{
-		foreach ($order->messages as $mensagemForum) {
-			$ultimoId = $mensagemForum->id;
+		foreach ($selected->messages as $mensagemForum) {
 			$nome = $mensagemForum->user->name;
 
 			$listaNome = explode(' ', $mensagemForum->user->name);
@@ -400,221 +248,206 @@ class OcorrenciaController
 			}
 			$mensagemForum->firstName = $nome;
 		}
-		$canSendMessage = $this->possoEnviarMensagem($order);
-		echo '
-        <!-- Modal -->
-        <div class="modal fade" id="modalDeleteChat" tabindex="-1" aria-labelledby="modalDeleteChatLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="modalDeleteChatLabel">Apagar Mensagem</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body">
-                Tem certeza que deseja apagar esta mensagem?
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <form action="" method="post">
-                    <input type="hidden" id="chatDelete" name="chatDelete" value=""/>
-                    <button type="submit" class="btn btn-primary">Confirmar</button>
-                </form>
 
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-<div class="container">
-		<div class="row">
-			<div class="chatbox chatbox22">
-				<div class="chatbox__title">
-					<h5 class="text-white">#<span id="id-ocorrencia">' . $order->id . '</span></h5>
-					<!--<button class="chatbox__title__tray">
-            <span></span>
-        </button>-->
-
-				</div>
-				<div id="corpo-chat" class="chatbox__body">';
-
-
-		$ultimoId = 0;
-
-		foreach ($order->messages as $mensagemForum) {
-			echo '
+		$listColorStatus = [
+			OrderStatus::opened()->value => '  notice-warning',
+			OrderStatus::inProgress()->value => '  notice-info ',
+			OrderStatus::closed()->value => 'notice-success ',
+			OrderStatus::committed()->value => 'notice-success ',
+			OrderStatus::canceled()->value => ' notice-warning ',
+			OrderStatus::reopened()->value => '  notice-warning ',
+			OrderStatus::reserved()->value => '  notice-warning ',
+			OrderStatus::pendingResource()->value => '  notice-warning ',
+			OrderStatus::pendingCustomerResponse()->value => ' notice-warning',
+		];
 
 
 
-            			<div class="chatbox__body__message chatbox__body__message--left">
+		echo '<div class="row">';
+		echo view('partials.modal-form-status', ['services' => $services, 'providers' => $listaUsuarios, 'divisions' => $divisions, 'order' => $selected]);
+		echo view('partials.panel-status', ['selected' => $selected]);
+		echo view('partials.show-order', [
+			'listColorStatus' => $listColorStatus,
+			'order' => $selected,
+			'canEditTag' => $canEditTag,
+			'canEditSolution' => $canEditSolution,
+			'isLevelClient' => $isClient,
+			'isLate' => $isLate,
+			'dataSolucao' => $dataSolucao,
+			'providerDivision' => $selected->division->name . ' - ' . $selected->division->description,
 
-            				<div class="chatbox_timing">
-            					<ul>
-            						<li><a href="#"><i class="fa fa-calendar"></i> ' . date("d/m/Y", strtotime($mensagemForum->created_at)) . '</a></li>
-            						<li><a href="#"><i class="fa fa-clock-o"></i> ' . date("H:i", strtotime($mensagemForum->created_at)) . '</a></a></li>
-            					</ul>
-            				</div>
-            				<div class="clearfix"></div>
-            				<div class="ul_section_full">
-            					<ul class="ul_msg">
-                                    <li><strong>' . $mensagemForum->firstName . '</strong></li>';
-			if ($mensagemForum->type == self::TIPO_ARQUIVO) {
-				echo '<li>Anexo: <a href="./storage/uploads/' . $mensagemForum->message . '">Clique aqui</a></li>';
-			} else {
-				echo '
-                        <li>' . nl2br(htmlspecialchars($mensagemForum->message)) . '</li>';
+		]);
+		echo view('partials.box-messages', ['order' => $selected]);
+	}
+
+
+
+	public function calcularHoraSolucao($dataAbertura, $tempoSla)
+	{
+		function fimDeSemana($data)
+		{
+			$diaDaSemana = intval(date('w', strtotime($data)));
+			return ($diaDaSemana == 6 || $diaDaSemana == 0);
+		}
+		function foraDoExpediente($data)
+		{
+			$hora = intval(date('H', strtotime($data)));
+			return ($hora >= 17) || ($hora < 8) || ($hora == 11);
+		}
+		if ($dataAbertura == null) {
+			return "Indefinido";
+		}
+		while (fimDeSemana($dataAbertura)) {
+			$dataAbertura = date("Y-m-d 08:00:00", strtotime('+1 day', strtotime($dataAbertura)));
+		}
+		while (foraDoExpediente($dataAbertura)) {
+			$dataAbertura = date("Y-m-d H:00:00", strtotime('+1 hour', strtotime($dataAbertura)));
+		}
+		$timeEstimado = strtotime($dataAbertura);
+		$tempoSla++;
+		for ($i = 0; $i < $tempoSla; $i++) {
+			$timeEstimado = strtotime('+' . $i . ' hour', strtotime($dataAbertura));
+			$horaEstimada = date("Y-m-d H:i:s", $timeEstimado);
+			while (fimDeSemana($horaEstimada)) {
+				$horaEstimada = date("Y-m-d 08:00:00", strtotime('+1 day', strtotime($horaEstimada)));
+				$i = $i + 24;
+				$tempoSla += 24;
 			}
-			echo '
 
-            					</ul>
-            					<div class="clearfix"></div>
-
-            				</div>
-
-            			</div>';
+			while (foraDoExpediente($horaEstimada)) {
+				$horaEstimada = date("Y-m-d H:i:s", strtotime('+1 hour', strtotime($horaEstimada)));
+				$i++;
+				$tempoSla++;
+			}
 		}
-		echo '<span id="ultimo-id-post" class="escondido">' . $order->messages->last()->id . '</span>';
-		echo '
-
-
-				</div>
-				<div class="panel-footer">';
-		if ($canSendMessage) {
-			echo '<form id="insert_form_mensagem_forum" class="user" method="post">
-            <input type="hidden" name="enviar_mensagem_forum" value="1">
-            <input type="hidden" name="ocorrencia" value="' . $order->id . '">
-            <input type="hidden" id="campo_tipo" name="tipo" value="' . self::TIPO_TEXTO . '">
-
-            <div class="custom-control custom-switch">
-              <input type="checkbox" class="custom-control-input" name="muda-tipo" id="muda-tipo">
-              <label class="custom-control-label" for="muda-tipo">Enviar Arquivo</label>
-            </div>
-            <div class="custom-file mb-3 escondido" id="campo-anexo">
-                  <input type="file" class="custom-file-input" name="anexo" id="anexo" accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint, text/plain, application/pdf, image/*, application/zip,application/rar, .ovpn, .xlsx">
-                  <label class="custom-file-label" for="anexo" data-browse="Anexar">Anexar um Arquivo</label>
-            </div>
-            <div class="input-group">
-                <textarea style="resize: none;" name="mensagem" rows="3" cols="40"  name="mensagem" id="campo-texto" t></textarea>
-                <span class="input-group-btn"> <button class="btn bt_bg btn-sm" id="botao-enviar-mensagem">Enviar</button></span>
-            </div>
-        </form>';
-		}
-
-		echo '
-				</div>
-			</div>
-		</div>
-	</div>
-
-';
+		$horaEstimada = date('Y-m-d H:i:s', $timeEstimado);
+		return $horaEstimada;
 	}
-	public function possoCancelar($order)
+	//Policies em uso
+
+	public function possoEditarServico($order)
 	{
-		return $this->sessao->getIdUsuario() === $order->customer->id
-			&&
-			($order->status == self::STATUS_REABERTO || $order->status == self::STATUS_ABERTO);
+		return (
+			$order->provider != null && auth()->user()->id === $order->provider->id
+			&& $order->status === OrderStatus::inProgress()->value
+		);
 	}
-	public function possoLiberar($order)
+	public function canCancel($order)
 	{
-		if (
-			$this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
-			&&
-			($order->status == self::STATUS_ATENDIMENTO
-				||
-				$order->status == self::STATUS_RESERVADO
-				||
-				$order->status == self::STATUS_AGUARDANDO_ATIVO
-				||
-				$order->status == self::STATUS_AGUARDANDO_USUARIO
-			)
-		) {
-			return true;
-		} else if ($this->possoEditarSolucao($order)) {
-			return true;
-		}
-		return false;
+		return auth()->user()->id == $order->customer_user_id && $order->status ==  OrderStatus::opened()->value;
 	}
 
 	public function possoAtender($order)
 	{
-		if (
-			($this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
-				|| $this->sessao->getNivelAcesso() === Sessao::NIVEL_TECNICO)
+		return (
+			(auth()->user()->role === Sessao::NIVEL_ADM
+				|| auth()->user()->role === Sessao::NIVEL_TECNICO)
 			&&
-			($order->status == self::STATUS_ABERTO
+			($order->status == OrderStatus::opened()->value
 				||
-				$order->status == self::STATUS_REABERTO
+				$order->status == OrderStatus::reopened()->value
 				||
-				$order->status == self::STATUS_RESERVADO
+				$order->status == OrderStatus::reserved()->value
 				||
-				$order->status == self::STATUS_AGUARDANDO_USUARIO
+				$order->status == OrderStatus::pendingCustomerResponse()->value
 				||
-				$order->status == self::STATUS_AGUARDANDO_ATIVO
+				$order->status == OrderStatus::pendingResource()->value
 			)
-		) {
-			return true;
-		}
-		return false;
+		);
 	}
 
 	public function possoFechar($order)
 	{
-		if (trim($order->solution) == "") {
-			return false;
-		}
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_COMUM) {
-			return false;
-		}
-		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_DESLOGADO) {
-			return false;
-		}
-
-		if ($order->status == Self::STATUS_ATENDIMENTO) {
-			if ($this->sessao->getIdUsuario() == $order->provider->id) {
-				return true;
-			}
-		}
-
-		return false;
+		return (
+					$order->provider != null
+					&& auth()->user()->id == $order->provider->id
+					&& trim($order->solution) != ""
+					&& $order->status == OrderStatus::inProgress()->value
+				);
 	}
-
-
-	public function possoEditarServico($order)
+	public function possoAvaliar($order)
 	{
-		$this->sessao = new Sessao();
-		if (
-			$order->provider != null && $this->sessao->getIdUsuario() === $order->provider->id
-			&& $order->status === self::STATUS_ATENDIMENTO
-		) {
-			return true;
-		}
-		return false;
+		return (
+			$order->status === OrderStatus::closed()->value
+			&& auth()->user()->id === $order->customer->id
+			&& $order->customer != null
+		);
 	}
-	public function possoEditarAreaResponsavel($order)
+
+	public function possoReabrir($order)
 	{
-
-		$this->sessao = new Sessao();
-		if ($this->sessao->getNivelAcesso() != Sessao::NIVEL_ADM) {
-			return false;
-		}
-
-		if ($order->status == self::STATUS_ABERTO) {
-			return true;
-		}
-		if ($order->status == self::STATUS_REABERTO) {
-			return true;
-		}
-		return false;
+		return (
+			$order->customer != null
+			&&
+			auth()->user()->id === $order->customer->id
+			&&
+			$order->status === OrderStatus::closed()->value
+		);
 	}
 
+	public function possoReservar($order)
+	{
+		return (
+			auth()->user()->role === Sessao::NIVEL_ADM
+			&& ($order->status === OrderStatus::opened()->value
+				||
+				$order->status === OrderStatus::reopened()->value
+				||
+				$order->status === OrderStatus::inProgress()->value
+				||
+				$order->status === OrderStatus::pendingCustomerResponse()->value
+				||
+				$order->status === OrderStatus::pendingResource()->value
+			)
+		);
+	}
+	public function possoLiberar($order)
+	{
+		return (auth()->user()->role === Sessao::NIVEL_ADM
+			&&
+			($order->status == OrderStatus::inProgress()->value
+				||
+				$order->status == OrderStatus::reserved()->value
+				||
+				$order->status == OrderStatus::pendingCustomerResponse()->value
+				||
+				$order->status == OrderStatus::pendingResource()->value
+			)
+		);
+	}
+	public function canWait($order)
+	{
+		return ($order->provider != null
+			&& $order->provider->id === auth()->user()->id
+			&& $order->status === OrderStatus::inProgress()->value
+		);
+	}
+
+
+	public function possoEnviarMensagem($order)
+	{
+		return ($order->status ===  OrderStatus::inProgress()->value
+			|| $order->status ===  OrderStatus::pendingCustomerResponse()->value
+			|| $order->status ===  OrderStatus::pendingResource()->value
+			&&
+			($order->provider != null && $order->provider->id === auth()->user()->id
+				||
+				$order->customer != null && $order->customer->id === auth()->user()->id
+			)
+		);
+	}
+
+	public function possoCancelar(User $user, Order $order)
+	{
+		return $user->id === $order->customer->id && ($order->status == OrderStatus::inProgress()->value);
+	}
 
 	public function possoEditarSolucao($order)
 	{
+
 		$this->sessao = new Sessao();
 		if (
-			$order->status === self::STATUS_ATENDIMENTO
+			$order->status === OrderStatus::inProgress()->value
 			&& $order->provider != null &&
 			$this->sessao->getIdUsuario() === $order->provider->id
 		) {
@@ -623,37 +456,19 @@ class OcorrenciaController
 		return false;
 	}
 
-	public function possoReservar($order)
-	{
-		if (
-			$this->sessao->getNivelAcesso() === Sessao::NIVEL_ADM
-			&& ($order->status === self::STATUS_ABERTO
-				||
-				$order->status === self::STATUS_REABERTO
-				||
-				$order->status === self::STATUS_ATENDIMENTO
-				||
-				$order->status === self::STATUS_AGUARDANDO_ATIVO
-				||
-				$order->status === self::STATUS_AGUARDANDO_USUARIO
-			)
-		) {
-			return true;
-		}
-		return false;
-	}
 
 	public function possoEditarPatrimonio($order)
 	{
 		$this->sessao = new Sessao();
 
-		if ($order->status == self::STATUS_FECHADO) {
+		if ($order->status == OrderStatus::closed()->value) {
 			return false;
 		}
-		if ($order->status == self::STATUS_CANCELADO) {
+
+		if ($order->status == OrderStatus::canceled()->value) {
 			return false;
 		}
-		if ($order->status == self::STATUS_FECHADO_CONFIRMADO) {
+		if ($order->status == OrderStatus::committed()->value) {
 			return false;
 		}
 		if ($this->sessao->getIdUsuario() == $order->customer->id) {
@@ -663,40 +478,6 @@ class OcorrenciaController
 			return true;
 		}
 	}
-	public function possoAvaliar($order)
-	{
-		if (
-			$order->status === self::STATUS_FECHADO
-			&& $this->sessao->getIdUsuario() === $order->customer->id
-			&& $order->customer != null
-		) {
-			return true;
-		}
-
-		return false;
-	}
-	public function possoReabrir($order)
-	{
-		if (
-			$order->customer != null
-			&&
-			$this->sessao->getIdUsuario() === $order->customer->id
-			&&
-			$order->status === self::STATUS_FECHADO
-		) {
-			return true;
-		}
-		return false;
-	}
-	const STATUS_ABERTO = 'opened';
-	const STATUS_RESERVADO = 'reserved';
-	const STATUS_AGUARDANDO_USUARIO = 'pending customer response';
-	const STATUS_ATENDIMENTO = 'in progress';
-	const STATUS_FECHADO = 'closed';
-	const STATUS_FECHADO_CONFIRMADO = 'committed';
-	const STATUS_CANCELADO = 'canceled';
-	const STATUS_AGUARDANDO_ATIVO = 'pending it resource';
-	const STATUS_REABERTO = 'reopened';
 
 	public function mudarNivel()
 	{
@@ -736,21 +517,21 @@ class OcorrenciaController
 	public function arrayStatusPendente()
 	{
 		$arrStatus = array();
-		$arrStatus[] = self::STATUS_ABERTO;
-		$arrStatus[] = self::STATUS_AGUARDANDO_ATIVO;
-		$arrStatus[] = self::STATUS_AGUARDANDO_USUARIO;
-		$arrStatus[] = self::STATUS_ATENDIMENTO;
-		$arrStatus[] = self::STATUS_REABERTO;
-		$arrStatus[] = self::STATUS_RESERVADO;
+		$arrStatus[] = OrderStatus::opened()->value;
+		$arrStatus[] = OrderStatus::pendingResource()->value;
+		$arrStatus[] = OrderStatus::pendingCustomerResponse()->value;
+		$arrStatus[] = OrderStatus::inProgress()->value;
+		$arrStatus[] = OrderStatus::reopened()->value;
+		$arrStatus[] = OrderStatus::reserved()->value;
 		return $arrStatus;
 	}
 	public function arrayStatusFinalizado()
 	{
 
 		$arrStatus = array();
-		$arrStatus[] = self::STATUS_FECHADO;
-		$arrStatus[] = self::STATUS_FECHADO_CONFIRMADO;
-		$arrStatus[] = self::STATUS_CANCELADO;
+		$arrStatus[] = OrderStatus::closed()->value;
+		$arrStatus[] = OrderStatus::committed()->value;
+		$arrStatus[] = OrderStatus::canceled()->value;
 		return $arrStatus;
 	}
 
@@ -935,7 +716,7 @@ class OcorrenciaController
 		$this->sessao = new Sessao();
 		$listaNaoAvaliados = Order::where('customer_user_id', $this->sessao->getIdUsuario())->where(
 			'status',
-			self::STATUS_FECHADO
+			OrderStatus::closed()->value
 		)->get();
 
 		echo '
@@ -1186,11 +967,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_ATENDIMENTO,
+				'status' => OrderStatus::inProgress()->value,
 				'message' => 'Chamado em atendimento',
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_ATENDIMENTO;
+			$order->status = OrderStatus::inProgress()->value;
 			$order->division_id = auth()->user()->division_id;
 			$order->provider_user_id = auth()->user()->id;
 			$order->save();
@@ -1206,7 +987,7 @@ class OcorrenciaController
 	public function ajaxCancelar($order)
 	{
 		$this->sessao = new Sessao();
-		if (!$this->possoCancelar($order)) {
+		if (!$this->possoCancelar(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1215,11 +996,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_CANCELADO,
+				'status' => OrderStatus::canceled()->value,
 				'message' => "Ocorrência cancelada pelo usuário",
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_CANCELADO;
+			$order->status = OrderStatus::canceled()->value;
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1243,11 +1024,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_FECHADO,
+				'status' => OrderStatus::closed()->value,
 				'message' => "Ocorrência fechada pelo atendente",
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_FECHADO;
+			$order->status = OrderStatus::closed()->value;
 			$order->finished_at =  date("Y-m-d H:i:s");
 			$order->save();
 			DB::commit();
@@ -1272,11 +1053,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_REABERTO,
+				'status' => OrderStatus::reopened()->value,
 				'message' => "Ocorrência Reaberta pelo cliente",
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_REABERTO;
+			$order->status = OrderStatus::reopened()->value;
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1305,11 +1086,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_ABERTO,
+				'status' => OrderStatus::opened()->value,
 				'message' => 'Técnico editou o Patrimônio para: ' . $_POST['patrimonio'],
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_ABERTO;
+			$order->status = OrderStatus::opened()->value;
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1338,11 +1119,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_RESERVADO,
+				'status' => OrderStatus::reserved()->value,
 				'message' => 'Atendimento reservado para ' . $provider->name,
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_RESERVADO;
+			$order->status = OrderStatus::reserved()->value;
 			$order->provider_user_id = $provider->id;
 			$order->save();
 			DB::commit();
@@ -1370,11 +1151,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_FECHADO_CONFIRMADO,
+				'status' => OrderStatus::committed()->value,
 				'message' => 'Atendimento avaliado pelo cliente',
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_FECHADO_CONFIRMADO;
+			$order->status = OrderStatus::committed()->value;
 			$order->rating = $_POST['avaliacao'];
 			$order->committed_at = date("Y-m-d H:i:s");
 			$order->save();
@@ -1402,11 +1183,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_AGUARDANDO_ATIVO,
+				'status' => OrderStatus::pendingResource()->value,
 				'message' => 'Aguardando ativo',
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_AGUARDANDO_ATIVO;
+			$order->status = OrderStatus::pendingResource()->value;
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1429,11 +1210,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_AGUARDANDO_USUARIO,
+				'status' => OrderStatus::pendingCustomerResponse()->value,
 				'message' => 'Aguardando ativo',
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_AGUARDANDO_USUARIO;
+			$order->status = OrderStatus::pendingCustomerResponse()->value;
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1461,11 +1242,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_ATENDIMENTO,
+				'status' => OrderStatus::inProgress()->value,
 				'message' => "Técnico editou a solução.",
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_ATENDIMENTO;
+			$order->status = OrderStatus::inProgress()->value;
 			$order->solution = trim($_POST['solucao']);
 			$order->save();
 			DB::commit();
@@ -1500,11 +1281,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_ABERTO,
+				'status' => OrderStatus::opened()->value,
 				'message' => "Técnico alterou o serviço. ",
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_ABERTO;
+			$order->status = OrderStatus::opened()->value;
 			$order->service_id = $service->id;
 			$order->division_id = $service->division->id;
 			$order->save();
@@ -1530,11 +1311,11 @@ class OcorrenciaController
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
-				'status' => self::STATUS_ABERTO,
+				'status' => OrderStatus::opened()->value,
 				'message' => "Liberado para atendimento. ",
 				'user_id' => auth()->user()->id
 			]);
-			$order->status = self::STATUS_ABERTO;
+			$order->status = OrderStatus::opened()->value;
 
 			$order->save();
 			DB::commit();
