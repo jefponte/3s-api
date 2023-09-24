@@ -15,7 +15,10 @@ class OrderMessagesController extends BasicCrudController
     {
         $this->authorizeResource(OrderMessage::class, 'orderMessage');
     }
-
+    public function show(OrderMessage $orderMessage)
+    {
+        return new OrderMessageResource($orderMessage);
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];

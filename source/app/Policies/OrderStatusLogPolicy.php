@@ -13,7 +13,7 @@ class OrderStatusLogPolicy
      */
     public function viewAny(User $user): Response
     {
-        if ($user->role === 'administrator') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -24,7 +24,7 @@ class OrderStatusLogPolicy
      */
     public function view(User $user, OrderStatusLog $orderStatusLog): Response
     {
-        if ($user->role === 'administrator') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');

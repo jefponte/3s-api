@@ -116,7 +116,9 @@ class OcorrenciaController
 		echo '
 
 		<div class="row">
-			<div class="col-md-8 blog-main">
+
+
+		<div class="col-md-8 blog-main">
 				<div class="panel-group" id="accordion">';
 
 
@@ -136,10 +138,7 @@ class OcorrenciaController
 		$this->painel($lista2, "Ocorrências Encerradas", 'collapseEncerrada');
 		echo '
 			</div>
-		</div>';
-
-		//Painel Lateral
-		echo '
+		</div>
 		<aside class="col-md-4 blog-sidebar">';
 		if ($this->sessao->getNivelAcesso() == Sessao::NIVEL_ADM || $this->sessao->getNivelAcesso() == Sessao::NIVEL_TECNICO) {
 			$userDivision = Division::where('id', request()->user()->division_id)->first();

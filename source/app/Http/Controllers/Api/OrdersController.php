@@ -18,6 +18,10 @@ class OrdersController extends BasicCrudController
     {
         $this->authorizeResource(Order::class, 'order');
     }
+    public function show(Order $order)
+    {
+        return new OrderResource($order);
+    }
     private $rules = [
         'description' => 'required|max:255'
     ];

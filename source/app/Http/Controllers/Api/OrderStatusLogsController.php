@@ -14,6 +14,10 @@ class OrderStatusLogsController extends BasicCrudController
     {
         $this->authorizeResource(OrderStatusLog::class, 'orderStatusLog');
     }
+    public function show(OrderStatusLog $orderStatusLog)
+    {
+        return new OrderStatusLogResource($orderStatusLog);
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];

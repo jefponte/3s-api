@@ -16,6 +16,11 @@ class ServicesController extends BasicCrudController
     {
         $this->authorizeResource(Service::class, 'service');
     }
+
+    public function show(Service $service)
+    {
+        return new ServiceResource($service);
+    }
     private $rules = [
         'name' => 'required|max:255'
     ];

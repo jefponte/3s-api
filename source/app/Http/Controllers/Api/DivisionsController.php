@@ -15,6 +15,11 @@ class DivisionsController extends BasicCrudController
     {
         $this->authorizeResource(Division::class, 'division');
     }
+    public function show(Division $division)
+    {
+        return new DivisionResource($division);
+    }
+
     private $rules = [
         'name' => 'required|max:255'
     ];
