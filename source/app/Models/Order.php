@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\ModelFilters\OrderFilter;
 use Illuminate\Database\Eloquent\Model;
+use EloquentFilter\Filterable;
 
 class Order extends Model
 {
+    use Filterable;
     /**
      * The database table used by the model.
      *
@@ -75,4 +78,10 @@ class Order extends Model
     {
         return $this->belongsTo(User::class, 'provider_user_id');
     }
+
+    public function modelFilter()
+    {
+        return $this->provideFilter(OrderFilter::class);
+    }
+
 }
