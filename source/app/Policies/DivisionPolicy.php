@@ -13,7 +13,7 @@ class DivisionPolicy
      */
     public function viewAny(User $user): Response
     {
-        if ($user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');

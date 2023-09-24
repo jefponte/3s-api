@@ -12,7 +12,7 @@ class UserPolicy
      */
     public function viewAny(User $user): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ( $user->role === 'administrator') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -23,7 +23,7 @@ class UserPolicy
      */
     public function view(User $user, User $model): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ( $user->role === 'administrator') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -34,10 +34,7 @@ class UserPolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta função está desabilitada.');
     }
 
     /**
@@ -45,7 +42,7 @@ class UserPolicy
      */
     public function update(User $user, User $model): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ( $user->role === 'administrator') {
             return Response::allow();
         }
         return Response::deny('Esta tela exige permissão de administrador.');
@@ -56,7 +53,7 @@ class UserPolicy
      */
     public function delete(User $user, User $model): Response
     {
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta função está desabilitada.');
     }
 
 }

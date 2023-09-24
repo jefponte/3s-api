@@ -39,7 +39,7 @@ class OrderPolicy
         if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta permissão está desabilitada.');
     }
 
     /**
@@ -47,10 +47,7 @@ class OrderPolicy
      */
     public function update(User $user, Order $order): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta permissão está desabilitada.');
     }
 
     /**
@@ -62,9 +59,6 @@ class OrderPolicy
     }
 
 
-    /**
-     * Determine whether the user can delete the model.
-     */
     public function cancel(User $user, Order $order): Response
     {
         if ($order->customer->id === $user->id && $order->status === 'opened') {
