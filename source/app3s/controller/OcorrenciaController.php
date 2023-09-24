@@ -380,10 +380,28 @@ class OcorrenciaController
 
 	public function mainMessagesOcorrencia($order)
 	{
+		foreach ($order->messages as $mensagemForum) {
+			$ultimoId = $mensagemForum->id;
+			$nome = $mensagemForum->user->name;
 
+			$listaNome = explode(' ', $mensagemForum->user->name);
+			if (isset($listaNome[0])) {
+				$nome = ucfirst(strtolower($listaNome[0]));
+			}
+			if (isset($listaNome[1])) {
+				if (strlen($listaNome[1]) <= 2) {
+					$nome .= ' ' . strtolower($listaNome[1]);
+					if (isset($listaNome[2])) {
+						$nome .= ' ' . ucfirst(strtolower($listaNome[2]));
+					}
+				} else {
+					$nome .= ' ' . ucfirst(strtolower($listaNome[1]));
+				}
+			}
+			$mensagemForum->firstName = $nome;
+		}
+		$canSendMessage = $this->possoEnviarMensagem($order);
 		echo '
-
-
         <!-- Modal -->
         <div class="modal fade" id="modalDeleteChat" tabindex="-1" aria-labelledby="modalDeleteChatLabel" aria-hidden="true">
           <div class="modal-dialog">
@@ -426,25 +444,6 @@ class OcorrenciaController
 		$ultimoId = 0;
 
 		foreach ($order->messages as $mensagemForum) {
-			$ultimoId = $mensagemForum->id;
-			$nome = $mensagemForum->user->name;
-
-			$listaNome = explode(' ', $mensagemForum->user->name);
-			if (isset($listaNome[0])) {
-				$nome = ucfirst(strtolower($listaNome[0]));
-			}
-			if (isset($listaNome[1])) {
-				if (strlen($listaNome[1]) <= 2) {
-					$nome .= ' ' . strtolower($listaNome[1]);
-					if (isset($listaNome[2])) {
-						$nome .= ' ' . ucfirst(strtolower($listaNome[2]));
-					}
-				} else {
-					$nome .= ' ' . ucfirst(strtolower($listaNome[1]));
-				}
-			}
-
-
 			echo '
 
 
@@ -460,7 +459,7 @@ class OcorrenciaController
             				<div class="clearfix"></div>
             				<div class="ul_section_full">
             					<ul class="ul_msg">
-                                    <li><strong>' . $nome . '</strong></li>';
+                                    <li><strong>' . $mensagemForum->firstName . '</strong></li>';
 			if ($mensagemForum->type == self::TIPO_ARQUIVO) {
 				echo '<li>Anexo: <a href="./storage/uploads/' . $mensagemForum->message . '">Clique aqui</a></li>';
 			} else {
@@ -476,13 +475,13 @@ class OcorrenciaController
 
             			</div>';
 		}
-		echo '<span id="ultimo-id-post" class="escondido">' . $ultimoId . '</span>';
+		echo '<span id="ultimo-id-post" class="escondido">' . $order->messages->last()->id . '</span>';
 		echo '
 
 
 				</div>
 				<div class="panel-footer">';
-		if ($this->possoEnviarMensagem($order)) {
+		if ($canSendMessage) {
 			echo '<form id="insert_form_mensagem_forum" class="user" method="post">
             <input type="hidden" name="enviar_mensagem_forum" value="1">
             <input type="hidden" name="ocorrencia" value="' . $order->id . '">
