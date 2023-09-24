@@ -185,10 +185,10 @@ class OcorrenciaController
 			return;
 		}
 		$selected->load([
+			'messages.user',
 			'messages' => function ($query) {
 				$query->orderBy('id', 'asc');
 			},
-			'messages.user',
 			'statusLogs' => function ($query) {
 				$query->orderBy('id', 'asc');
 			},

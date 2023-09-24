@@ -19,6 +19,20 @@ class OrdersController extends BasicCrudController
     }
     public function show(Order $order)
     {
+        $order->load(
+        [
+            'messages.user',
+            'statusLogs.user',
+            'messages' => function ($query) {
+                $query->orderBy('id', 'asc');
+            },
+            'statusLogs' => function ($query) {
+                $query->orderBy('id', 'asc');
+            },
+            'service.division',
+            'customer',
+            'provider.division'
+        ]);
         return new OrderResource($order);
     }
     /**
@@ -120,10 +134,11 @@ class OrdersController extends BasicCrudController
     private function combineNotifications($orderMessagesQuery, $orderStatusLogsQuery)
     {
 
+
         $orderMessagesQuery->selectRaw('*, type as type');
         $orderStatusLogsQuery->selectRaw('*, \'status_log\' as type');
         $combinedQuery = $orderMessagesQuery->union($orderStatusLogsQuery);
-        $combinedQuery = $combinedQuery->orderBy('id', 'desc');
+        $combinedQuery = $combinedQuery->orderBy('created_at', 'desc');
 
         return $combinedQuery;
     }
