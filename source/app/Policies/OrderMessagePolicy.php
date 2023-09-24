@@ -46,10 +46,7 @@ class OrderMessagePolicy
      */
     public function update(User $user, OrderMessage $orderMessage): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Função desabilitada.');
     }
 
     /**
@@ -57,10 +54,8 @@ class OrderMessagePolicy
      */
     public function delete(User $user, OrderMessage $orderMessage): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+
+        return Response::deny('Função desabilitada');
     }
 
 }

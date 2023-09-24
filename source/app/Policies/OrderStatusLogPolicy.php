@@ -16,7 +16,7 @@ class OrderStatusLogPolicy
         if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta tela exige permissão de administrador ou técnico.');
     }
 
     /**
@@ -27,7 +27,7 @@ class OrderStatusLogPolicy
         if ( $user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta tela exige permissão de administrador ou técnico.');
     }
 
     /**
@@ -35,10 +35,7 @@ class OrderStatusLogPolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta função está desabilitada.');
     }
 
     /**
@@ -46,10 +43,7 @@ class OrderStatusLogPolicy
      */
     public function update(User $user, OrderStatusLog $orderStatusLog): Response
     {
-        if ($user->role === 'administrator') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta função está desabilitada.');
     }
 
     /**
@@ -57,10 +51,7 @@ class OrderStatusLogPolicy
      */
     public function delete(User $user, OrderStatusLog $orderStatusLog): Response
     {
-        if ($user->role === 'administrator') {
-            return Response::allow();
-        }
-        return Response::deny('Esta tela exige permissão de administrador.');
+        return Response::deny('Esta função está desabilitada.');
     }
 
 }
