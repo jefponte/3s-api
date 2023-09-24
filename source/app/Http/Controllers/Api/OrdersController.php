@@ -22,6 +22,33 @@ class OrdersController extends BasicCrudController
     {
         return new OrderResource($order);
     }
+        /**
+     * Update the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, Order $order)
+    {
+
+        $order->update($request->all());
+        return response()->json($order, 200);
+    }
+        /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Order $order)
+    {
+        $order->delete();
+
+        return response()->json(null, 204);
+    }
     private $rules = [
         'description' => 'required|max:255'
     ];

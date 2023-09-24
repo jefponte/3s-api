@@ -63,18 +63,6 @@ abstract class BasicCrudController extends Controller
 
     }
 
-    public function update(Request $request, $id)
-    {
-        $obj = $this->findOrFail($id);
-        $validatedData = $this->validate(
-            $request,
-            $request->isMethod('PUT') ? $this->rulesUpdate() : $this->rulesPatch()
-        );
-        $obj->update($validatedData);
-        $resource = $this->resource();
-        return new $resource($obj);
-    }
-
     protected function rulesPatch()
     {
         return array_map(function ($rules) {
@@ -90,12 +78,6 @@ abstract class BasicCrudController extends Controller
         }, $this->rulesUpdate());
     }
 
-    public function destroy($id)
-    {
-        $obj = $this->findOrFail($id);
-        $obj->delete();
-        return response()->noContent();
-    }
 
     public function destroyCollection(Request $request)
     {

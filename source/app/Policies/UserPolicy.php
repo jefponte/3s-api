@@ -45,9 +45,9 @@ class UserPolicy
      */
     public function update(User $user, User $model): Response
     {
-        if ($user->role === 'administrator') {
-            return Response::allow();
-        }
+        // if ($user->role === 'administrator') {
+        //     return Response::allow();
+        // }
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -56,9 +56,9 @@ class UserPolicy
      */
     public function delete(User $user, User $model): Response
     {
-        if ($user->role === 'administrator') {
-            return Response::allow();
-        }
+        // if ($user->role === 'administrator') {
+        //     return Response::allow();
+        // }
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
