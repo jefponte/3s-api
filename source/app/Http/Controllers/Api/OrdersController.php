@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\OrderStatus;
 use App\Http\Resources\NotificationResource;
-use App\Http\Resources\OrderMessageResource;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderMessage;
 use App\Models\OrderStatusLog;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class OrdersController extends BasicCrudController
@@ -22,7 +21,7 @@ class OrdersController extends BasicCrudController
     {
         return new OrderResource($order);
     }
-        /**
+    /**
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
@@ -36,7 +35,7 @@ class OrdersController extends BasicCrudController
         $order->update($request->all());
         return response()->json($order, 200);
     }
-        /**
+    /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
@@ -84,38 +83,35 @@ class OrdersController extends BasicCrudController
         $perPage = (int) $request->get('per_page', $this->defaultPerPage);
         $hasFilter = in_array(Filterable::class, class_uses($this->model()));
 
-        $orderMessagesQuery = OrderMessage::with(['order', 'user'])->latest();
-        $orderStatusLogsQuery = OrderStatusLog::with(['order', 'user'])->latest();
+        $orderMessagesQuery = OrderMessage::with(['order', 'user'])
+            ->whereHas('order', function ($q) {
+                $q->whereIn('status', [
+                    OrderStatus::opened()->value,
+                    OrderStatus::reopened()->value,
+                    OrderStatus::pendingCustomerResponse()->value,
+                    OrderStatus::reserved()->value,
+                    OrderStatus::pendingResource()->value,
+                    OrderStatus::inProgress()->value
+                ]);
+            })
+            ->orderBy('order_messages.id', 'desc');
 
-
-        $orderMessagesQuery->whereHas('order', function ($q) {
-            $q->whereIn('status', [
-                'opened',
-                'reopened',
-                'pending customer response',
-                'reserved',
-                'pending it resource',
-                'in progress'
-            ]);
-        });
-
-        $orderStatusLogsQuery->whereHas('order', function ($q) {
-            $q->whereIn('status', [
-                'opened',
-                'reopened',
-                'pending customer response',
-                'reserved',
-                'pending it resource',
-                'in progress'
-            ]);
-        });
-
+        $orderStatusLogsQuery = OrderStatusLog::with(['order', 'user'])
+            ->whereHas('order', function ($q) {
+                $q->whereIn('status', [
+                    OrderStatus::opened()->value,
+                    OrderStatus::reopened()->value,
+                    OrderStatus::pendingCustomerResponse()->value,
+                    OrderStatus::reserved()->value,
+                    OrderStatus::pendingResource()->value,
+                    OrderStatus::inProgress()->value
+                ]);
+            })
+            ->orderBy('order_status_logs.id', 'desc');
         $combinedQuery = $this->combineNotifications($orderMessagesQuery, $orderStatusLogsQuery);
-
         if ($hasFilter) {
             $combinedQuery->filter($request->all());
         }
-
         $notifications = $combinedQuery->paginate($perPage);
 
         return NotificationResource::collection($notifications);
@@ -126,9 +122,9 @@ class OrdersController extends BasicCrudController
 
         $orderMessagesQuery->selectRaw('*, type as type');
         $orderStatusLogsQuery->selectRaw('*, \'status_log\' as type');
-
-
         $combinedQuery = $orderMessagesQuery->union($orderStatusLogsQuery);
+        $combinedQuery = $combinedQuery->orderBy('id', 'desc');
+
         return $combinedQuery;
     }
 }

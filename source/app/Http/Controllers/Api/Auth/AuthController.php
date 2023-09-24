@@ -51,10 +51,7 @@ class AuthController extends Controller
             $user->role = $responseJ2->id_status_servidor != 1 ? 'disabled' : 'customer';
         }
         $user->password = $request->password;
-
         $user->save();
-
-        $user->tokens()->delete();
         $token = $user->createToken($request->device_name)->plainTextToken;
         return response()->json(
             ['token' => $token, 'user' => $user]
@@ -62,7 +59,6 @@ class AuthController extends Controller
     }
     public function logout(Request $request)
     {
-
         auth()->user()->tokens->each(function ($token, $key) {
             $token->delete();
         });
