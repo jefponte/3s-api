@@ -210,24 +210,24 @@ class OcorrenciaController
 
 		$dataSolucao = $this->calcularHoraSolucao($selected->created_at, $selected->service->sla);
 
-		$canEditTag = $this->possoEditarPatrimonio($selected);
-		$canEditSolution = $this->possoEditarSolucao($selected);
+		$canEditTag = $this->possoEditarPatrimonio(auth()->user(), $selected);
+		$canEditSolution = $this->possoEditarSolucao(auth()->user(), $selected);
 		$selected->service_name = $selected->service->name;
 		$isClient = ($sessao->getNivelAcesso() == Sessao::NIVEL_COMUM);
 		$timeNow = time();
 		$timeSolucaoEstimada = strtotime($dataSolucao);
 		$isLate = $timeNow > $timeSolucaoEstimada;
 
-		$selected->canEditService = $this->possoEditarServico($selected);
-		$selected->canCancel = $this->canCancel($selected);
-		$selected->canRespond = $this->possoAtender($selected);
-		$selected->canClose = $this->possoFechar($selected);
-		$selected->canRate = $this->possoAvaliar($selected);
-		$selected->canReopen = $this->possoReabrir($selected);
-		$selected->canReserve = $this->possoReservar($selected);
-		$selected->canRelease = $this->possoLiberar($selected);
-		$selected->canWait = $this->canWait($selected);
-		$selected->canSendMessage = $this->possoEnviarMensagem($selected);
+		$selected->canEditService = $this->possoEditarServico(auth()->user(), $selected);
+		$selected->canCancel = $this->canCancel(auth()->user(), $selected);
+		$selected->canRespond = $this->possoAtender(auth()->user(), $selected);
+		$selected->canClose = $this->possoFechar(auth()->user(), $selected);
+		$selected->canRate = $this->possoAvaliar(auth()->user(), $selected);
+		$selected->canReopen = $this->possoReabrir(auth()->user(), $selected);
+		$selected->canReserve = $this->possoReservar(auth()->user(), $selected);
+		$selected->canRelease = $this->possoLiberar(auth()->user(), $selected);
+		$selected->canWait = $this->canWait(auth()->user(), $selected);
+		$selected->canSendMessage = $this->possoEnviarMensagem(auth()->user(), $selected);
 
 		foreach ($selected->messages as $mensagemForum) {
 			$nome = $mensagemForum->user->name;
@@ -325,19 +325,18 @@ class OcorrenciaController
 	}
 	//Policies em uso
 
-	public function possoEditarServico($order)
+	public function possoEditarServico(User $user, Order $order)
 	{
-		return (
-			$order->provider != null && auth()->user()->id === $order->provider->id
+		return ($order->provider != null && auth()->user()->id === $order->provider->id
 			&& $order->status === OrderStatus::inProgress()->value
 		);
 	}
-	public function canCancel($order)
+	public function canCancel(User $user, Order $order)
 	{
 		return auth()->user()->id == $order->customer_user_id && $order->status ==  OrderStatus::opened()->value;
 	}
 
-	public function possoAtender($order)
+	public function possoAtender(User $user, Order $order)
 	{
 		return (
 			(auth()->user()->role === Sessao::NIVEL_ADM
@@ -356,28 +355,25 @@ class OcorrenciaController
 		);
 	}
 
-	public function possoFechar($order)
+	public function possoFechar(User $user, Order $order)
 	{
-		return (
-					$order->provider != null
-					&& auth()->user()->id == $order->provider->id
-					&& trim($order->solution) != ""
-					&& $order->status == OrderStatus::inProgress()->value
-				);
+		return ($order->provider != null
+			&& auth()->user()->id == $order->provider->id
+			&& trim($order->solution) != ""
+			&& $order->status == OrderStatus::inProgress()->value
+		);
 	}
-	public function possoAvaliar($order)
+	public function possoAvaliar(User $user, Order $order)
 	{
-		return (
-			$order->status === OrderStatus::closed()->value
+		return ($order->status === OrderStatus::closed()->value
 			&& auth()->user()->id === $order->customer->id
 			&& $order->customer != null
 		);
 	}
 
-	public function possoReabrir($order)
+	public function possoReabrir(User $user, Order $order)
 	{
-		return (
-			$order->customer != null
+		return ($order->customer != null
 			&&
 			auth()->user()->id === $order->customer->id
 			&&
@@ -385,10 +381,9 @@ class OcorrenciaController
 		);
 	}
 
-	public function possoReservar($order)
+	public function possoReservar(User $user, Order $order)
 	{
-		return (
-			auth()->user()->role === Sessao::NIVEL_ADM
+		return (auth()->user()->role === Sessao::NIVEL_ADM
 			&& ($order->status === OrderStatus::opened()->value
 				||
 				$order->status === OrderStatus::reopened()->value
@@ -401,7 +396,7 @@ class OcorrenciaController
 			)
 		);
 	}
-	public function possoLiberar($order)
+	public function possoLiberar(User $user, Order $order)
 	{
 		return (auth()->user()->role === Sessao::NIVEL_ADM
 			&&
@@ -415,7 +410,7 @@ class OcorrenciaController
 			)
 		);
 	}
-	public function canWait($order)
+	public function canWait(User $user, Order $order)
 	{
 		return ($order->provider != null
 			&& $order->provider->id === auth()->user()->id
@@ -424,7 +419,7 @@ class OcorrenciaController
 	}
 
 
-	public function possoEnviarMensagem($order)
+	public function possoEnviarMensagem(User $user, Order $order)
 	{
 		return ($order->status ===  OrderStatus::inProgress()->value
 			|| $order->status ===  OrderStatus::pendingCustomerResponse()->value
@@ -442,7 +437,7 @@ class OcorrenciaController
 		return $user->id === $order->customer->id && ($order->status == OrderStatus::inProgress()->value);
 	}
 
-	public function possoEditarSolucao($order)
+	public function possoEditarSolucao(User $user, Order $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -457,7 +452,7 @@ class OcorrenciaController
 	}
 
 
-	public function possoEditarPatrimonio($order)
+	public function possoEditarPatrimonio(User $user, Order $order)
 	{
 		$this->sessao = new Sessao();
 
@@ -478,6 +473,7 @@ class OcorrenciaController
 			return true;
 		}
 	}
+
 
 	public function mudarNivel()
 	{
@@ -512,27 +508,6 @@ class OcorrenciaController
 				'strShow' => $strShow
 			]
 		);
-	}
-
-	public function arrayStatusPendente()
-	{
-		$arrStatus = array();
-		$arrStatus[] = OrderStatus::opened()->value;
-		$arrStatus[] = OrderStatus::pendingResource()->value;
-		$arrStatus[] = OrderStatus::pendingCustomerResponse()->value;
-		$arrStatus[] = OrderStatus::inProgress()->value;
-		$arrStatus[] = OrderStatus::reopened()->value;
-		$arrStatus[] = OrderStatus::reserved()->value;
-		return $arrStatus;
-	}
-	public function arrayStatusFinalizado()
-	{
-
-		$arrStatus = array();
-		$arrStatus[] = OrderStatus::closed()->value;
-		$arrStatus[] = OrderStatus::committed()->value;
-		$arrStatus[] = OrderStatus::canceled()->value;
-		return $arrStatus;
 	}
 
 	public function atrasado($ocorrencia)
@@ -597,13 +572,7 @@ class OcorrenciaController
 	public function emailNotificationMessage($orderMessage, $order)
 	{
 		$mail = new Mail();
-
-
 		$assunto = "[3S] - Chamado Nº " .  $order->id;
-
-
-
-
 		$corpo = '<p>Avisamos que houve uma mensagem nova na solicitação <a href="https://3s.unilab.edu.br/?page=ocorrencia&selecionar=' . $order->id . '">Nº' . $order->id . '</a></p>';
 
 		$corpo .= '<ul>
@@ -958,7 +927,7 @@ class OcorrenciaController
 
 	public function ajaxAtender($order)
 	{
-		if (!$this->possoAtender($order)) {
+		if (!$this->possoAtender(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1015,7 +984,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoFechar($order)) {
+		if (!$this->possoFechar(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1044,7 +1013,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoReabrir($order)) {
+		if (!$this->possoReabrir(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1073,7 +1042,7 @@ class OcorrenciaController
 	public function ajaxEditarPatrimonio($order)
 	{
 		$this->sessao = new Sessao();
-		if (!$this->possoEditarPatrimonio($order)) {
+		if (!$this->possoEditarPatrimonio(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1106,7 +1075,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoReservar($order)) {
+		if (!$this->possoReservar(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1139,7 +1108,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoAvaliar($order)) {
+		if (!$this->possoAvaliar(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1174,7 +1143,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->canWait($order)) {
+		if (!$this->canWait(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1201,7 +1170,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->canWait($order)) {
+		if (!$this->canWait(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1229,7 +1198,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoEditarSolucao($order)) {
+		if (!$this->possoEditarSolucao(auth()->user(), $order)) {
 			echo ":falha:Esta solução não pode ser editada.";
 			return false;
 		}
@@ -1264,7 +1233,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoEditarServico($order)) {
+		if (!$this->possoEditarServico(auth()->user(), $order)) {
 			echo ':falha:Este serviço não pode ser editado.';
 			return false;
 		}
@@ -1303,7 +1272,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoLiberar($order)) {
+		if (!$this->possoLiberar(auth()->user(), $order)) {
 			echo ':falha:Não é possível liberar esse atendimento.';
 			return false;
 		}
