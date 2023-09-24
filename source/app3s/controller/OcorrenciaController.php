@@ -1080,7 +1080,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoReservar(auth()->user(), $order)) {
+		if (!$this->possoReservar($user, $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1089,16 +1089,19 @@ class OcorrenciaController
 			return false;
 		}
 		$provider = User::findOrFail($_POST['tecnico']);
+
+		$order->status = OrderStatus::reserved()->value;
+		$order->provider_user_id = $provider->id;
+
 		DB::beginTransaction();
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
 				'status' => OrderStatus::reserved()->value,
 				'message' => 'Atendimento reservado para ' . $provider->name,
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
-			$order->status = OrderStatus::reserved()->value;
-			$order->provider_user_id = $provider->id;
+
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1113,7 +1116,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoAvaliar(auth()->user(), $order)) {
+		if (!$this->possoAvaliar($user, $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1127,7 +1130,7 @@ class OcorrenciaController
 				'order_id' => $order->id,
 				'status' => OrderStatus::committed()->value,
 				'message' => 'Atendimento avaliado pelo cliente',
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
 			$order->status = OrderStatus::committed()->value;
 			$order->rating = $_POST['avaliacao'];
@@ -1148,7 +1151,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->canWait(auth()->user(), $order)) {
+		if (!$this->canWait($user, $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1159,7 +1162,7 @@ class OcorrenciaController
 				'order_id' => $order->id,
 				'status' => OrderStatus::pendingResource()->value,
 				'message' => 'Aguardando ativo',
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
 			$order->status = OrderStatus::pendingResource()->value;
 			$order->save();
@@ -1175,7 +1178,7 @@ class OcorrenciaController
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->canWait(auth()->user(), $order)) {
+		if (!$this->canWait($user, $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1186,7 +1189,7 @@ class OcorrenciaController
 				'order_id' => $order->id,
 				'status' => OrderStatus::pendingCustomerResponse()->value,
 				'message' => 'Aguardando ativo',
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
 			$order->status = OrderStatus::pendingCustomerResponse()->value;
 			$order->save();
@@ -1218,7 +1221,7 @@ class OcorrenciaController
 				'order_id' => $order->id,
 				'status' => OrderStatus::inProgress()->value,
 				'message' => "Técnico editou a solução.",
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
 			$order->status = OrderStatus::inProgress()->value;
 			$order->solution = trim($_POST['solucao']);
@@ -1275,7 +1278,6 @@ class OcorrenciaController
 
 	public function ajaxLiberar(User $user, $order)
 	{
-
 		$this->sessao = new Sessao();
 		if (!$this->possoLiberar($user, $order)) {
 			echo ':falha:Não é possível liberar esse atendimento.';
@@ -1290,8 +1292,6 @@ class OcorrenciaController
 				'message' => "Liberado para atendimento. ",
 				'user_id' => $user->id
 			]);
-
-
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Liberado para atendimento com sucesso!';
