@@ -80,7 +80,7 @@ class OrdersController extends BasicCrudController
 
     public function notifications(Request $request)
     {
-
+        $this->authorize('viewAny', Order::class);
         $perPage = (int) $request->get('per_page', $this->defaultPerPage);
         $hasFilter = in_array(Filterable::class, class_uses($this->model()));
 
