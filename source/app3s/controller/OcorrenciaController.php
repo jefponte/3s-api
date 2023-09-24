@@ -282,13 +282,11 @@ class OcorrenciaController
 
 	public function calcularHoraSolucao($dataAbertura, $tempoSla)
 	{
-		$isWeekend = function($data)
-		{
+		$isWeekend = function ($data) {
 			$diaDaSemana = intval(date('w', strtotime($data)));
 			return ($diaDaSemana == 6 || $diaDaSemana == 0);
 		};
-		$outOfService = function($data)
-		{
+		$outOfService = function ($data) {
 			$hora = intval(date('H', strtotime($data)));
 			return ($hora >= 17) || ($hora < 8) || ($hora == 11);
 		};
@@ -865,51 +863,51 @@ class OcorrenciaController
 		$mensagem = "";
 		switch ($_POST['status_acao']) {
 			case 'cancelar':
-				$status = $this->ajaxCancelar($order);
+				$status = $this->ajaxCancelar(auth()->user(), $order);
 				$mensagem = '<p>Chamado cancelado</p>';
 				break;
 			case 'atender':
-				$status = $this->ajaxAtender($order);
+				$status = $this->ajaxAtender(auth()->user(), $order);
 				$mensagem = '<p>Chamado em atendimento</p>';
 				break;
 			case 'editar_solucao':
-				$status = $this->ajaxEditarSolucao($order);
+				$status = $this->ajaxEditarSolucao(auth()->user(), $order);
 				$mensagem = '<p>Solução editada</p>';
 				break;
 			case 'editar_servico':
-				$status = $this->ajaxEditarServico($order);
+				$status = $this->ajaxEditarServico(auth()->user(), $order);
 				$mensagem = '<p>Serviço alterado</p>';
 				break;
 			case 'fechar':
-				$status = $this->ajaxFechar($order);
+				$status = $this->ajaxFechar(auth()->user(), $order);
 				$mensagem = '<p>Chamado fechado</p>';
 				break;
 			case 'reabrir':
-				$status = $this->ajaxReabrir($order);
+				$status = $this->ajaxReabrir(auth()->user(), $order);
 				$mensagem = '<p>Chamado reaberto</p>';
 				break;
 			case 'liberar_atendimento':
-				$status = $this->ajaxLiberar($order);
+				$status = $this->ajaxLiberar(auth()->user(), $order);
 				$mensagem = '<p>Chamado Liberado para atendimento</p>';
 				break;
 			case 'editar_patrimonio':
-				$status = $this->ajaxEditarPatrimonio($order);
+				$status = $this->ajaxEditarPatrimonio(auth()->user(), $order);
 				$mensagem = '<p>Patrimônio editado.</p>';
 				break;
 			case 'reservar':
-				$status = $this->ajaxReservar($order);
+				$status = $this->ajaxReservar(auth()->user(), $order);
 				$mensagem = '<p>Chamado reservado</p>';
 				break;
 			case 'avaliar':
-				$status = $this->ajaxAvaliar($order);
+				$status = $this->ajaxAvaliar(auth()->user(), $order);
 				$mensagem = '<p>Chamado avaliado</p>';
 				break;
 			case 'aguardar_ativos':
-				$status = $this->ajaxAguardandoAtivo($order);
+				$status = $this->ajaxAguardandoAtivo(auth()->user(), $order);
 				$mensagem = '<p>Aguardando ativo de TI</p>';
 				break;
 			case 'aguardar_usuario':
-				$status = $this->ajaxAguardandoUsuario($order);
+				$status = $this->ajaxAguardandoUsuario(auth()->user(), $order);
 				$mensagem = '<p>Aguardando resposta do cliente</p>';
 				break;
 
@@ -923,24 +921,28 @@ class OcorrenciaController
 		}
 	}
 
-	public function ajaxAtender($order)
+	public function ajaxAtender(User $user, $order)
 	{
-		if (!$this->possoAtender(auth()->user(), $order)) {
+		if (!$this->possoAtender($user, $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
+		$newStatus = OrderStatus::inProgress()->value;
+		$messageStatus = 'Chamado em atendimento';
+		$order->status = $newStatus;
+		$order->division_id = $user->division_id;
+		$order->provider_user_id = $user->id;
+
+		$newLog = [
+			'order_id' => $order->id,
+			'status' => $newStatus,
+			'message' => $messageStatus,
+			'user_id' => $user->id
+		];
 
 		DB::beginTransaction();
 		try {
-			OrderStatusLog::create([
-				'order_id' => $order->id,
-				'status' => OrderStatus::inProgress()->value,
-				'message' => 'Chamado em atendimento',
-				'user_id' => auth()->user()->id
-			]);
-			$order->status = OrderStatus::inProgress()->value;
-			$order->division_id = auth()->user()->division_id;
-			$order->provider_user_id = auth()->user()->id;
+			OrderStatusLog::create($newLog);
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -951,23 +953,26 @@ class OcorrenciaController
 	}
 
 
-	public function ajaxCancelar($order)
+	public function ajaxCancelar(User $user, $order)
 	{
 		$this->sessao = new Sessao();
 		if (!$this->possoCancelar(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
+		$newStatus = OrderStatus::canceled()->value;
+		$order->status = $newStatus;
+		$messageStatus = "Ocorrência cancelada pelo usuário";
+		$newLog = [
+			'order_id' => $order->id,
+			'status' => $newStatus,
+			'message' => $messageStatus,
+			'user_id' => $user->id
+		];
 
 		DB::beginTransaction();
 		try {
-			OrderStatusLog::create([
-				'order_id' => $order->id,
-				'status' => OrderStatus::canceled()->value,
-				'message' => "Ocorrência cancelada pelo usuário",
-				'user_id' => auth()->user()->id
-			]);
-			$order->status = OrderStatus::canceled()->value;
+			OrderStatusLog::create($newLog);
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -978,25 +983,27 @@ class OcorrenciaController
 		return true;
 	}
 
-	public function ajaxFechar($order)
+	public function ajaxFechar(User $user, $order)
 	{
-
-		$this->sessao = new Sessao();
 		if (!$this->possoFechar(auth()->user(), $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
+		$newStatus = OrderStatus::closed()->value;
+		$messageStatus = "Ocorrência fechada pelo atendente";
+		$order->status = $newStatus;
+		$order->finished_at =  date("Y-m-d H:i:s");
+
+		$newLog = [
+			'order_id' => $order->id,
+			'status' => $newStatus,
+			'message' => $messageStatus,
+			'user_id' => $user->id
+		];
 
 		DB::beginTransaction();
 		try {
-			OrderStatusLog::create([
-				'order_id' => $order->id,
-				'status' => OrderStatus::closed()->value,
-				'message' => "Ocorrência fechada pelo atendente",
-				'user_id' => auth()->user()->id
-			]);
-			$order->status = OrderStatus::closed()->value;
-			$order->finished_at =  date("Y-m-d H:i:s");
+			OrderStatusLog::create($newLog);
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
@@ -1007,11 +1014,11 @@ class OcorrenciaController
 		return true;
 	}
 
-	public function ajaxReabrir($order)
+	public function ajaxReabrir(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoReabrir(auth()->user(), $order)) {
+		if (!$this->possoReabrir($user, $order)) {
 			echo ':falha:Você não pode fazer esta alteração.';
 			return false;
 		}
@@ -1022,7 +1029,7 @@ class OcorrenciaController
 				'order_id' => $order->id,
 				'status' => OrderStatus::reopened()->value,
 				'message' => "Ocorrência Reaberta pelo cliente",
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
 			$order->status = OrderStatus::reopened()->value;
 			$order->save();
@@ -1037,7 +1044,7 @@ class OcorrenciaController
 
 
 
-	public function ajaxEditarPatrimonio($order)
+	public function ajaxEditarPatrimonio(User $user, $order)
 	{
 		$this->sessao = new Sessao();
 		if (!$this->possoEditarPatrimonio(auth()->user(), $order)) {
@@ -1069,7 +1076,7 @@ class OcorrenciaController
 	}
 
 
-	public function ajaxReservar($order)
+	public function ajaxReservar(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -1102,7 +1109,7 @@ class OcorrenciaController
 		return true;
 	}
 
-	public function ajaxAvaliar($order)
+	public function ajaxAvaliar(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -1137,7 +1144,7 @@ class OcorrenciaController
 
 
 
-	public function ajaxAguardandoAtivo($order)
+	public function ajaxAguardandoAtivo(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -1164,7 +1171,7 @@ class OcorrenciaController
 		}
 		return true;
 	}
-	public function ajaxAguardandoUsuario($order)
+	public function ajaxAguardandoUsuario(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -1192,7 +1199,7 @@ class OcorrenciaController
 		return true;
 	}
 
-	public function ajaxEditarSolucao($order)
+	public function ajaxEditarSolucao(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -1227,7 +1234,7 @@ class OcorrenciaController
 	}
 
 
-	public function ajaxEditarServico($order)
+	public function ajaxEditarServico(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
@@ -1250,7 +1257,7 @@ class OcorrenciaController
 				'order_id' => $order->id,
 				'status' => OrderStatus::opened()->value,
 				'message' => "Técnico alterou o serviço. ",
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
 			$order->status = OrderStatus::opened()->value;
 			$order->service_id = $service->id;
@@ -1266,23 +1273,24 @@ class OcorrenciaController
 		return true;
 	}
 
-	public function ajaxLiberar($order)
+	public function ajaxLiberar(User $user, $order)
 	{
 
 		$this->sessao = new Sessao();
-		if (!$this->possoLiberar(auth()->user(), $order)) {
+		if (!$this->possoLiberar($user, $order)) {
 			echo ':falha:Não é possível liberar esse atendimento.';
 			return false;
 		}
+		$order->status = OrderStatus::opened()->value;
 		DB::beginTransaction();
 		try {
 			OrderStatusLog::create([
 				'order_id' => $order->id,
 				'status' => OrderStatus::opened()->value,
 				'message' => "Liberado para atendimento. ",
-				'user_id' => auth()->user()->id
+				'user_id' => $user->id
 			]);
-			$order->status = OrderStatus::opened()->value;
+
 
 			$order->save();
 			DB::commit();
