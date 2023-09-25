@@ -19,5 +19,8 @@ class OrderFilter extends DefaultModelFilter
     *
     * @var array
     */
+    public function status($status) {
+        $this->whereIn('status', $status);
+    }
     public $relations = [];
 }
