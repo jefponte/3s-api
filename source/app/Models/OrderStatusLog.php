@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Models;
-
+use App\ModelFilters\OrderStatusLogFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderStatusLog extends Model
 {
+    use Filterable;
     /**
      * The database table used by the model.
      *
@@ -35,5 +37,9 @@ class OrderStatusLog extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+    public function modelFilter()
+    {
+        return $this->provideFilter(OrderStatusLogFilter::class);
     }
 }

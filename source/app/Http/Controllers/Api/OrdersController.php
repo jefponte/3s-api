@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use ReflectionClass;
 use EloquentFilter\Filterable;
+
 class OrdersController extends BasicCrudController
 {
 
@@ -28,14 +29,14 @@ class OrdersController extends BasicCrudController
 
         $query = $this->queryBuilder();
 
-        if($hasFilter){
+        if ($hasFilter) {
             $query = $query->filter($request->all());
         }
 
         $data = $request->has('all') || !$this->defaultPerPage
             ? $query->get()
             : $query->paginate($perPage);
-        $data->load(['service', 'customer','provider', 'division']);
+        $data->load(['service', 'customer', 'provider', 'division']);
         $resourceCollectionClass = $this->resourceCollection();
         $refClass = new ReflectionClass($this->resourceCollection());
         return $refClass->isSubclassOf(ResourceCollection::class)
@@ -46,19 +47,20 @@ class OrdersController extends BasicCrudController
     public function show(Order $order)
     {
         $order->load(
-        [
-            'messages.user',
-            'statusLogs.user',
-            'messages' => function ($query) {
-                $query->orderBy('id', 'asc');
-            },
-            'statusLogs' => function ($query) {
-                $query->orderBy('id', 'asc');
-            },
-            'service.division',
-            'customer',
-            'provider.division'
-        ]);
+            [
+                'messages.user',
+                'statusLogs.user',
+                'messages' => function ($query) {
+                    $query->orderBy('id', 'asc');
+                },
+                'statusLogs' => function ($query) {
+                    $query->orderBy('id', 'asc');
+                },
+                'service.division',
+                'customer',
+                'provider.division'
+            ]
+        );
         return new OrderResource($order);
     }
     /**
@@ -148,24 +150,18 @@ class OrdersController extends BasicCrudController
                 ]);
             })
             ->orderBy('order_status_logs.id', 'desc');
-        $combinedQuery = $this->combineNotifications($orderMessagesQuery, $orderStatusLogsQuery);
+
+
         if ($hasFilter) {
-            $combinedQuery->filter($request->all());
+            $orderMessagesQuery->filter($request->all());
+            $orderStatusLogsQuery->filter($request->all());
         }
-        $notifications = $combinedQuery->paginate($perPage);
-
-        return NotificationResource::collection($notifications);
-    }
-
-    private function combineNotifications($orderMessagesQuery, $orderStatusLogsQuery)
-    {
-
-
         $orderMessagesQuery->selectRaw('*, type as type');
         $orderStatusLogsQuery->selectRaw('*, \'status_log\' as type');
         $combinedQuery = $orderMessagesQuery->union($orderStatusLogsQuery);
         $combinedQuery = $combinedQuery->orderBy('created_at', 'desc');
+        $notifications = $combinedQuery->paginate($perPage);
 
-        return $combinedQuery;
+        return NotificationResource::collection($notifications);
     }
 }

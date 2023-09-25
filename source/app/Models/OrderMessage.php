@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Models;
-
+use App\ModelFilters\OrderMessageFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderMessage extends Model
-{
+{    use Filterable;
     /**
      * The database table used by the model.
      *
@@ -36,6 +37,9 @@ class OrderMessage extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-
+    public function modelFilter()
+    {
+        return $this->provideFilter(OrderMessageFilter::class);
+    }
 
 }
