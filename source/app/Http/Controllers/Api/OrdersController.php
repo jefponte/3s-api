@@ -32,10 +32,11 @@ class OrdersController extends BasicCrudController
         if ($hasFilter) {
             $query = $query->filter($request->all());
         }
-
+        $query->whereNotNull('created_at');
         $data = $request->has('all') || !$this->defaultPerPage
             ? $query->get()
             : $query->paginate($perPage);
+
         $data->load(['service', 'customer', 'provider', 'division']);
         $resourceCollectionClass = $this->resourceCollection();
         $refClass = new ReflectionClass($this->resourceCollection());
