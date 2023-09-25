@@ -12,15 +12,17 @@ class OrderFilter extends DefaultModelFilter
     {
         $this->where('description', 'LIKE', "%$search%");
     }
-
-    /**
-    * Related Models that have ModelFilters as well as the method on the ModelFilter
-    * As [relationMethod => [input_key1, input_key2]].
-    *
-    * @var array
-    */
-    public function status($status) {
+    public function status($status)
+    {
         $this->whereIn('status', $status);
     }
+
+    /**
+     * Related Models that have ModelFilters as well as the method on the ModelFilter
+     * As [relationMethod => [input_key1, input_key2]].
+     *
+     * @var array
+     */
+
     public $relations = [];
 }

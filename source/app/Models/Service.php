@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\ModelFilters\ServiceFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
 {
+    use Filterable;
     /**
      * The database table used by the model.
      *
@@ -34,5 +37,9 @@ class Service extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+    public function modelFilter()
+    {
+        return $this->provideFilter(ServiceFilter::class);
     }
 }

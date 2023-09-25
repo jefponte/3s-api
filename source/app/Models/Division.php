@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\ModelFilters\DivisionFilter;
+use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
 
 class Division extends Model
 {
+    use Filterable;
     /**
      * The database table used by the model.
      *
@@ -27,5 +30,8 @@ class Division extends Model
      */
     protected $fillable = ['name', 'description', 'email'];
 
-
+    public function modelFilter()
+    {
+        return $this->provideFilter(DivisionFilter::class);
+    }
 }
