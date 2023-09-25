@@ -9,7 +9,9 @@ use App\Models\Order;
 use App\Models\OrderMessage;
 use App\Models\OrderStatusLog;
 use Illuminate\Http\Request;
-
+use Illuminate\Http\Resources\Json\ResourceCollection;
+use ReflectionClass;
+use EloquentFilter\Filterable;
 class OrdersController extends BasicCrudController
 {
 
@@ -17,6 +19,30 @@ class OrdersController extends BasicCrudController
     {
         $this->authorizeResource(Order::class, 'order');
     }
+
+
+    public function index(Request $request)
+    {
+        $perPage = (int) $request->get('per_page', $this->defaultPerPage);
+        $hasFilter = in_array(Filterable::class, class_uses($this->model()));
+
+        $query = $this->queryBuilder();
+
+        if($hasFilter){
+            $query = $query->filter($request->all());
+        }
+
+        $data = $request->has('all') || !$this->defaultPerPage
+            ? $query->get()
+            : $query->paginate($perPage);
+        $data->load(['service', 'customer','provider', 'division']);
+        $resourceCollectionClass = $this->resourceCollection();
+        $refClass = new ReflectionClass($this->resourceCollection());
+        return $refClass->isSubclassOf(ResourceCollection::class)
+            ? new $resourceCollectionClass($data)
+            : $resourceCollectionClass::collection($data);
+    }
+
     public function show(Order $order)
     {
         $order->load(
