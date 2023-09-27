@@ -190,9 +190,9 @@ z-index: 999;
     min-height: 50px;
     outline: 0;
     resize: none;
-    border: none;
     font-size: 12px;
-    border: 1px solid #ddd;
+    border: 1px solid #c0c0c0;
+    border-bottom: none;
     background-color: #fefefe;
 }
 
