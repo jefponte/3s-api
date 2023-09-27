@@ -10,16 +10,17 @@ use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\DivisionsController;
 use Illuminate\Support\Facades\Auth;
 
+
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::apiResource('orders', OrdersController::class);
-    Route::get('/notifications', [OrdersController::class, 'notifications']);
-    Route::apiResource('order_messages', OrderMessagesController::class);
-    Route::apiResource('order_status_logs', OrderStatusLogsController::class);
-    Route::apiResource('services', ServicesController::class);
-    Route::apiResource('divisions', DivisionsController::class);
-    Route::apiResource('users', UsersController::class);
+    Route::get('/me', [AuthController::class, 'me'])->name('user.profile');
+    Route::post('/logout', [AuthController::class, 'logout'])->name('user.logout');
+    Route::apiResource('orders', OrdersController::class)->names('orders.api');
+    Route::get('/notifications', [OrdersController::class, 'notifications'])->name('orders.notifications');
+    Route::apiResource('order_messages', OrderMessagesController::class)->names('order_messages.api');
+    Route::apiResource('order_status_logs', OrderStatusLogsController::class)->names('order_status_logs.api');
+    Route::apiResource('services', ServicesController::class)->names('services.api');
+    Route::apiResource('divisions', DivisionsController::class)->names('divisions.api');
+    Route::apiResource('users', UsersController::class)->names('users.api');
 });
-//Todo mundo
-Route::post('/login', [AuthController::class, 'auth']);
+
+Route::post('/login', [AuthController::class, 'auth'])->name('user.login');
