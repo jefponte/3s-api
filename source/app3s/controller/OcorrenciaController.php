@@ -932,6 +932,7 @@ class OcorrenciaController
 		$order->status = $newStatus;
 		$order->division_id = $user->division_id;
 		$order->provider_user_id = $user->id;
+		$order->service_at = now();
 
 		$newLog = [
 			'order_id' => $order->id,
@@ -992,7 +993,7 @@ class OcorrenciaController
 		$newStatus = OrderStatus::closed()->value;
 		$messageStatus = "Ocorrência fechada pelo atendente";
 		$order->status = $newStatus;
-		$order->finished_at =  date("Y-m-d H:i:s");
+		$order->finished_at =  now();
 
 		$newLog = [
 			'order_id' => $order->id,
@@ -1134,7 +1135,7 @@ class OcorrenciaController
 			]);
 			$order->status = OrderStatus::committed()->value;
 			$order->rating = $_POST['avaliacao'];
-			$order->committed_at = date("Y-m-d H:i:s");
+			$order->committed_at = now();
 			$order->save();
 			DB::commit();
 			echo ':sucesso:' . $order->id . ':Atendimento alterado com sucesso!';
