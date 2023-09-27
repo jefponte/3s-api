@@ -16,9 +16,9 @@
         "vite": "^4.0.0"
     },
     "dependencies": {
+        "@selectize/selectize": "^0.15.2",
         "bootstrap": "^4.6.0",
         "datatables.net-bs4": "^1.13.6",
-        "font-awesome": "^4.7.0",
-        "selectize": "^0.12.6"
+        "font-awesome": "^4.7.0"
     }
 }
