@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="pt-br">
 
 <head>
     <title>Status do Pedido Atualizado</title>
