@@ -105,7 +105,7 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
                             clearInterval(interval);
                             alocaMensagem(element);
                             let newUrl = urlApiMensagem + idOcorrencia + "/" + data[data.length - 1].id;
-                            intervalId = setInterval(function() {
+                            intervalId = setInterval(function () {
                                 verifyMessages(newUrl, alocaMensagem, intervalId);
                             }, 10000);
                         });
@@ -113,7 +113,7 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
             }
         });
     }
-    intervalId = setInterval(function() {
+    intervalId = setInterval(function () {
         verifyMessages(url1, alocaMensagem, intervalId);
     }, 10000);
 
@@ -130,6 +130,9 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
 
         jQuery.ajax({
             type: "POST",
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             url: "?ajax=mensagem_forum",
             data: dados,
             success: function (data) {

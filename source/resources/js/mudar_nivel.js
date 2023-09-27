@@ -6,6 +6,9 @@ $( ".change-level" ).click(function() {
 function mudarNivel(dados){
     jQuery.ajax({
         type: "POST",
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
         url: "?ajax=mudar_nivel",
         data: dados,
         success: function( data )

@@ -42,7 +42,7 @@
         </ul>
 
         <form action="" method="get">
-
+            @csrf
             <div class="input-group">
                 <input type="hidden" name="page" value="ocorrencia">
                 <input type="text" name="selecionar" class="form-control" placeholder="Número do chamado"
