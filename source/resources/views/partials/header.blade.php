@@ -15,7 +15,6 @@
     <link rel="stylesheet" type="text/css" href="css/selectize.default.css" />
 
 
-    <link href="js/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
     <link href="css/style_form_login.css" rel="stylesheet">
     <!-- Desenvolvido por Jefferson Uchôa Ponte-->
     <meta http-equiv="Cache-control" content="no-cache">
