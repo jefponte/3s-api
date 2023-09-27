@@ -1,5 +1,6 @@
 <div class="card card-body">
     <form id="form_insert_order" method="post" action="{{route('orders.store')}}" enctype="multipart/form-data">
+        @csrf
         <span class="titulo medio">Informe os dados para cadastro</span><br>
         <div class="row">
             <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
