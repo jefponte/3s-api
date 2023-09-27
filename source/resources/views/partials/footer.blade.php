@@ -3,7 +3,7 @@
     <p>Desenvolvido pela <a href="https://dti.unilab.edu.br/"> Diretoria de Tecnologia da Informação DTI - </a> / <a
             href="http://unilab.edu.br">Unilab</a></p>
     <p>versão do 3s: {{ env('APP_VERSION') }}</p>
-
+    <!-- Desenvolvido por Jefferson Uchoa Ponte - jefponte@gmail.com -->
 </footer>
 
 
@@ -49,8 +49,7 @@
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script src="js/jquery.easyPaginate.js?a=1"></script>
-<script src="js/ocorrencia.js?a=111"></script>
-<script src="js/status_ocorrencia.js"></script>
+
 
 @vite(['resources/js/app.js'])
 
