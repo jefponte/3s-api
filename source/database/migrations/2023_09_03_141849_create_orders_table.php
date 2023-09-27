@@ -53,7 +53,7 @@ return new class extends Migration
             });
 
             Schema::table('orders', function (Blueprint $table) {
-                $table->enum('status', ['opened', 'reopened', 'pending customer response', 'reserved', 'closed', 'pending it resource', 'canceled', 'committed', 'in progress'])->nullable();
+                $table->enum('status', ['opened', 'reopened', 'pending customer response', 'reserved', 'closed', 'pending resource', 'canceled', 'committed', 'in progress'])->nullable();
             });
 
             DB::table('orders')->update([
