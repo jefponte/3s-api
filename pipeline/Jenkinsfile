@@ -228,88 +228,88 @@ pipeline {
       }
     }
 
-    stage('Aprovar Deploy') {
-      steps {
-        script {
-          try {
-            emailext (
-              mimeType: 'text/html',
-              subject: "🚀 Aprovar Deploy [${env.JOB_NAME}] ${currentBuild.fullDisplayName}",
-              to: "${env.RECIPIENT_APPROVAL_EMAILS}",
-              body: """
-                  <p>Prezado(a) Leader</p>Existe um Continuous Deployment (CD) aguardando aprovação para produção.
-                  <h3><a href='${BUILD_URL}input'><strong>Ir para APROVAÇÃO</strong></a></h3>
-                  <p>Endpoint da homologação: ${env.APP_URI_STAGING}</p><br /><p>${env.EMAIL_ASSINATURA}</p><hr><p>${env.EMAIL_RODAPE}</p>
-              """)
-            def clusterChoices = ['Kubernetes C1', 'Kubernetes C2', 'Kubernetes C3']
-            def approval = input(
-              id: 'ApprovalID',
-              message: 'Aprovar Deploy?',
-              ok: 'APROVAR',
-              submitterParameter: 'approver',
-              submitter: "${env.APROVADORES}",
-              parameters: [
-                choice(
-                  choices: clusterChoices,
-                  description: 'Selecione o cluster para implantar',
-                  name: 'Cluster')
-            ])
+    // stage('Aprovar Deploy') {
+    //   steps {
+    //     script {
+    //       try {
+    //         emailext (
+    //           mimeType: 'text/html',
+    //           subject: "🚀 Aprovar Deploy [${env.JOB_NAME}] ${currentBuild.fullDisplayName}",
+    //           to: "${env.RECIPIENT_APPROVAL_EMAILS}",
+    //           body: """
+    //               <p>Prezado(a) Leader</p>Existe um Continuous Deployment (CD) aguardando aprovação para produção.
+    //               <h3><a href='${BUILD_URL}input'><strong>Ir para APROVAÇÃO</strong></a></h3>
+    //               <p>Endpoint da homologação: ${env.APP_URI_STAGING}</p><br /><p>${env.EMAIL_ASSINATURA}</p><hr><p>${env.EMAIL_RODAPE}</p>
+    //           """)
+    //         def clusterChoices = ['Kubernetes C1', 'Kubernetes C2', 'Kubernetes C3']
+    //         def approval = input(
+    //           id: 'ApprovalID',
+    //           message: 'Aprovar Deploy?',
+    //           ok: 'APROVAR',
+    //           submitterParameter: 'approver',
+    //           submitter: "${env.APROVADORES}",
+    //           parameters: [
+    //             choice(
+    //               choices: clusterChoices,
+    //               description: 'Selecione o cluster para implantar',
+    //               name: 'Cluster')
+    //         ])
 
-            switch (approval['Cluster']) {
-              case "Kubernetes C1":
-                env.K8S_CLUSTER = "c1"
-                break
-              case "Kubernetes C2": // c2 desabilitado para CD
-                env.K8S_CLUSTER = "c1"
-                break
-              case "Kubernetes C3":  // c3 desabilitado para CD
-                env.K8S_CLUSTER = "c1"
-                break
-              default:
-                error "N/A"
-            }
+    //         switch (approval['Cluster']) {
+    //           case "Kubernetes C1":
+    //             env.K8S_CLUSTER = "c1"
+    //             break
+    //           case "Kubernetes C2": // c2 desabilitado para CD
+    //             env.K8S_CLUSTER = "c1"
+    //             break
+    //           case "Kubernetes C3":  // c3 desabilitado para CD
+    //             env.K8S_CLUSTER = "c1"
+    //             break
+    //           default:
+    //             error "N/A"
+    //         }
 
-            withEnv([
-            "K8S_CLUSTER=${env.K8S_CLUSTER}"
-            ]) {
-              env.APPROVER_NAME = approval['approver']
-            }
-          } catch(Exception e) {
-            error(e.getMessage())
-            currentBuild.result = 'ABORTED';
-            }
-        }
-      }
-    }
+    //         withEnv([
+    //         "K8S_CLUSTER=${env.K8S_CLUSTER}"
+    //         ]) {
+    //           env.APPROVER_NAME = approval['approver']
+    //         }
+    //       } catch(Exception e) {
+    //         error(e.getMessage())
+    //         currentBuild.result = 'ABORTED';
+    //         }
+    //     }
+    //   }
+    // }
 
-    stage('Deploy Produção') {
-      steps {
-        script {
+    // stage('Deploy Produção') {
+    //   steps {
+    //     script {
 
-          sh '''
-            sed -i "s/main/${TAG}/" ./kubernetes/kustomize/overlays/production/kustomization.yaml
-            sed -i "s/beta1/${TAG}/" ./kubernetes/kustomize/overlays/production/configmap.yaml
-            kubectl kustomize ./kubernetes/kustomize/overlays/production > /tmp/temp-production.yaml
-            cat /tmp/temp-production.yaml
-          '''
+    //       sh '''
+    //         sed -i "s/main/${TAG}/" ./kubernetes/kustomize/overlays/production/kustomization.yaml
+    //         sed -i "s/beta1/${TAG}/" ./kubernetes/kustomize/overlays/production/configmap.yaml
+    //         kubectl kustomize ./kubernetes/kustomize/overlays/production > /tmp/temp-production.yaml
+    //         cat /tmp/temp-production.yaml
+    //       '''
 
-          withKubeConfig([credentialsId: "kubeconfig-${env.K8S_CLUSTER}", serverUrl: "https://dti-k8s-${env.K8S_CLUSTER}.unilab.edu.br:6443"]) {
-            sh 'kubectl create namespace $APP_NAMESPACE_PROD --dry-run=client -o yaml | kubectl apply -f -'
-            def status = sh(script: 'kubectl get pods -n ${APP_NAMESPACE_PROD} --field-selector=status.phase=Running --no-headers 2>/dev/null | wc -l', returnStdout: true).trim()
-            if (Integer.parseInt(status) > 0) { sh 'kubectl delete -k ./kubernetes/kustomize/overlays/production/ --ignore-not-found --cascade=orphan' }
-            sh '''
-              kubectl apply -k ./kubernetes/kustomize/overlays/production/ --record
-              kubectl get all,ing,pvc,sa,secret -n $APP_NAMESPACE_PROD -o wide
-            '''
-            env.APP_URI_PROD = sh(script: 'kubectl get ingress $INGRESS_NAME -n $APP_NAMESPACE_PROD -o jsonpath="{.spec.rules[0].host}" | sed "s/^/http:\\/\\//"', returnStdout: true).trim()
-            withEnv(["APP_URI_PROD=${env.APP_URI_PROD}"]) {
-              sh 'echo Endpoint: $APP_URI_PROD'
-            }
-          }
+    //       withKubeConfig([credentialsId: "kubeconfig-${env.K8S_CLUSTER}", serverUrl: "https://dti-k8s-${env.K8S_CLUSTER}.unilab.edu.br:6443"]) {
+    //         sh 'kubectl create namespace $APP_NAMESPACE_PROD --dry-run=client -o yaml | kubectl apply -f -'
+    //         def status = sh(script: 'kubectl get pods -n ${APP_NAMESPACE_PROD} --field-selector=status.phase=Running --no-headers 2>/dev/null | wc -l', returnStdout: true).trim()
+    //         if (Integer.parseInt(status) > 0) { sh 'kubectl delete -k ./kubernetes/kustomize/overlays/production/ --ignore-not-found --cascade=orphan' }
+    //         sh '''
+    //           kubectl apply -k ./kubernetes/kustomize/overlays/production/ --record
+    //           kubectl get all,ing,pvc,sa,secret -n $APP_NAMESPACE_PROD -o wide
+    //         '''
+    //         env.APP_URI_PROD = sh(script: 'kubectl get ingress $INGRESS_NAME -n $APP_NAMESPACE_PROD -o jsonpath="{.spec.rules[0].host}" | sed "s/^/http:\\/\\//"', returnStdout: true).trim()
+    //         withEnv(["APP_URI_PROD=${env.APP_URI_PROD}"]) {
+    //           sh 'echo Endpoint: $APP_URI_PROD'
+    //         }
+    //       }
 
-        }
-      }
-    }
+    //     }
+    //   }
+    // }
   }
 
   post{
