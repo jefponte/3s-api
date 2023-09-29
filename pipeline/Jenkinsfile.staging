@@ -63,6 +63,7 @@ pipeline {
           // executar alguns comandos shell para configurar outros detalhes.
           sh '''
             # Instala pacotes
+            echo ABCD
             apt-get update && apt-get upgrade -y
             apt-get install -y locales sudo curl wget postgresql-client unzip rsync procps git
             # Setup locale
