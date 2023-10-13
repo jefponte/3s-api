@@ -4,9 +4,7 @@ namespace App\Http\Requests\Api;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Validation\ValidationException;
+
 class AuthRequest extends FormRequest
 {
     /**
@@ -26,7 +24,7 @@ class AuthRequest extends FormRequest
     {
         return [
             'login' => ['required', 'max:255'],
-            'password' => ['required', 'max:255']
+            'password' => ['required', 'max:255'],
         ];
     }
 }

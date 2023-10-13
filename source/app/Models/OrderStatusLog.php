@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use App\ModelFilters\OrderStatusLogFilter;
 use EloquentFilter\Filterable;
 use Illuminate\Database\Eloquent\Model;
@@ -8,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class OrderStatusLog extends Model
 {
     use Filterable;
+
     /**
      * The database table used by the model.
      *
@@ -16,10 +18,10 @@ class OrderStatusLog extends Model
     protected $table = 'order_status_logs';
 
     /**
-    * The database primary key value.
-    *
-    * @var string
-    */
+     * The database primary key value.
+     *
+     * @var string
+     */
     protected $primaryKey = 'id';
 
     /**
@@ -38,6 +40,7 @@ class OrderStatusLog extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
     public function modelFilter()
     {
         return $this->provideFilter(OrderStatusLogFilter::class);

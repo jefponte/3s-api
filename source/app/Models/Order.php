@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use App\ModelFilters\OrderFilter;
-use Illuminate\Database\Eloquent\Model;
 use EloquentFilter\Filterable;
+use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
     use Filterable;
+
     /**
      * The database table used by the model.
      *
@@ -50,30 +51,38 @@ class Order extends Model
         'place',
         'priority',
         'updated_at',
-        'status'
+        'status',
     ];
+
     protected $enums = [
         'status' => OrderStatus::class,
     ];
-    public function division() {
+
+    public function division()
+    {
         return $this->belongsTo(Division::class);
     }
+
     public function service()
     {
         return $this->belongsTo(Service::class);
     }
+
     public function messages()
     {
         return $this->hasMany(OrderMessage::class);
     }
+
     public function statusLogs()
     {
         return $this->hasMany(OrderStatusLog::class);
     }
+
     public function customer()
     {
         return $this->belongsTo(User::class, 'customer_user_id');
     }
+
     public function provider()
     {
         return $this->belongsTo(User::class, 'provider_user_id');
@@ -83,5 +92,4 @@ class Order extends Model
     {
         return $this->provideFilter(OrderFilter::class);
     }
-
 }

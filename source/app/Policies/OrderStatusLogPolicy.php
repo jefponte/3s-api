@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\OrderStatusLog;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class OrderStatusLogPolicy
 {
@@ -13,9 +13,10 @@ class OrderStatusLogPolicy
      */
     public function viewAny(User $user): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador ou técnico.');
     }
 
@@ -24,9 +25,10 @@ class OrderStatusLogPolicy
      */
     public function view(User $user, OrderStatusLog $orderStatusLog): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador ou técnico.');
     }
 
@@ -53,5 +55,4 @@ class OrderStatusLogPolicy
     {
         return Response::deny('Esta função está desabilitada.');
     }
-
 }

@@ -11,18 +11,17 @@ use Illuminate\Support\Facades\Validator;
 
 abstract class BasicCrudController extends Controller
 {
-
     protected $defaultPerPage = 15;
 
-    protected abstract function model();
+    abstract protected function model();
 
-    protected abstract function rulesStore();
+    abstract protected function rulesStore();
 
-    protected abstract function rulesUpdate();
+    abstract protected function rulesUpdate();
 
-    protected abstract function resource();
+    abstract protected function resource();
 
-    protected abstract function resourceCollection();
+    abstract protected function resourceCollection();
 
     public function index(Request $request)
     {
@@ -31,16 +30,17 @@ abstract class BasicCrudController extends Controller
 
         $query = $this->queryBuilder();
 
-        if($hasFilter){
+        if ($hasFilter) {
             $query = $query->filter($request->all());
         }
 
-        $data = $request->has('all') || !$this->defaultPerPage
+        $data = $request->has('all') || ! $this->defaultPerPage
             ? $query->get()
             : $query->paginate($perPage);
 
         $resourceCollectionClass = $this->resourceCollection();
         $refClass = new \ReflectionClass($this->resourceCollection());
+
         return $refClass->isSubclassOf(ResourceCollection::class)
             ? new $resourceCollectionClass($data)
             : $resourceCollectionClass::collection($data);
@@ -52,6 +52,7 @@ abstract class BasicCrudController extends Controller
         $obj = $this->queryBuilder()->create($validatedData);
         $obj->refresh();
         $resource = $this->resource();
+
         return new $resource($obj);
     }
 
@@ -59,6 +60,7 @@ abstract class BasicCrudController extends Controller
     {
         $model = $this->model();
         $keyName = (new $model)->getRouteKeyName();
+
         return $this->queryBuilder()->where($keyName, $id)->firstOrFail();
 
     }
@@ -67,22 +69,23 @@ abstract class BasicCrudController extends Controller
     {
         return array_map(function ($rules) {
             if (is_array($rules)) {
-                $exists = in_array("required", $rules);
+                $exists = in_array('required', $rules);
                 if ($exists) {
-                    array_unshift($rules, "sometimes");
+                    array_unshift($rules, 'sometimes');
                 }
             } else {
-                return str_replace("required", "sometimes|required", $rules);
+                return str_replace('required', 'sometimes|required', $rules);
             }
+
             return $rules;
         }, $this->rulesUpdate());
     }
-
 
     public function destroyCollection(Request $request)
     {
         $data = $this->validateIds($request);
         $this->model()::whereIn('id', $data['ids'])->delete();
+
         return response()->noContent();
     }
 
@@ -92,16 +95,18 @@ abstract class BasicCrudController extends Controller
         $ids = explode(',', $request->get('ids'));
         $validator = Validator::make(
             [
-                'ids' => $ids
+                'ids' => $ids,
             ],
             [
-                'ids' => 'required|exists:' . (new $model)->getTable() . ',id'
+                'ids' => 'required|exists:'.(new $model)->getTable().',id',
             ]
         );
+
         return $validator->validate();
     }
 
-    protected function queryBuilder(): Builder{
+    protected function queryBuilder(): Builder
+    {
         return $this->model()::query();
     }
 }

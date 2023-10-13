@@ -8,19 +8,17 @@ use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderMessage;
 use App\Models\OrderStatusLog;
+use EloquentFilter\Filterable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use ReflectionClass;
-use EloquentFilter\Filterable;
 
 class OrdersController extends BasicCrudController
 {
-
     public function __construct()
     {
         $this->authorizeResource(Order::class, 'order');
     }
-
 
     public function index(Request $request)
     {
@@ -33,13 +31,14 @@ class OrdersController extends BasicCrudController
             $query = $query->filter($request->all());
         }
         $query->whereNotNull('created_at');
-        $data = $request->has('all') || !$this->defaultPerPage
+        $data = $request->has('all') || ! $this->defaultPerPage
             ? $query->get()
             : $query->paginate($perPage);
 
         $data->load(['service', 'customer', 'provider', 'division']);
         $resourceCollectionClass = $this->resourceCollection();
         $refClass = new ReflectionClass($this->resourceCollection());
+
         return $refClass->isSubclassOf(ResourceCollection::class)
             ? new $resourceCollectionClass($data)
             : $resourceCollectionClass::collection($data);
@@ -59,30 +58,31 @@ class OrdersController extends BasicCrudController
                 },
                 'service.division',
                 'customer',
-                'provider.division'
+                'provider.division',
             ]
         );
+
         return new OrderResource($order);
     }
+
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
      * @param  int  $id
-     *
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Order $order)
     {
 
         $order->update($request->all());
+
         return response()->json($order, 200);
     }
+
     /**
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Order $order)
@@ -91,8 +91,9 @@ class OrdersController extends BasicCrudController
 
         return response()->json(null, 204);
     }
+
     private $rules = [
-        'description' => 'required|max:255'
+        'description' => 'required|max:255',
     ];
 
     protected function model()
@@ -134,7 +135,7 @@ class OrdersController extends BasicCrudController
                     OrderStatus::pendingCustomerResponse()->value,
                     OrderStatus::reserved()->value,
                     OrderStatus::pendingResource()->value,
-                    OrderStatus::inProgress()->value
+                    OrderStatus::inProgress()->value,
                 ]);
             })
             ->orderBy('order_messages.id', 'desc');
@@ -147,11 +148,10 @@ class OrdersController extends BasicCrudController
                     OrderStatus::pendingCustomerResponse()->value,
                     OrderStatus::reserved()->value,
                     OrderStatus::pendingResource()->value,
-                    OrderStatus::inProgress()->value
+                    OrderStatus::inProgress()->value,
                 ]);
             })
             ->orderBy('order_status_logs.id', 'desc');
-
 
         if ($hasFilter) {
             $orderMessagesQuery->filter($request->all());

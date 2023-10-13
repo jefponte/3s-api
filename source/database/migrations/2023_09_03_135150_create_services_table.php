@@ -2,9 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -52,7 +51,7 @@ return new class extends Migration
                             ELSE \'Indefinido\' -- Adicione um valor padrão caso nenhum dos casos se aplique
                         END
                     )
-                ')
+                '),
                 ]);
 
             Schema::table('servico', function (Blueprint $table) {

@@ -2,16 +2,15 @@
 
 namespace App\ModelFilters;
 
-
 class OrderFilter extends DefaultModelFilter
 {
-
     protected $sortable = ['created_at'];
 
     public function search($search)
     {
         $this->where('description', 'LIKE', "%$search%");
     }
+
     public function status($status)
     {
         $this->whereIn('status', $status);
@@ -23,6 +22,5 @@ class OrderFilter extends DefaultModelFilter
      *
      * @var array
      */
-
     public $relations = [];
 }

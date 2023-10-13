@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -14,7 +14,6 @@ return new class extends Migration
     {
         if (Schema::hasTable('status_ocorrencia')) {
             Schema::dropIfExists('status');
-
 
             Schema::table('status_ocorrencia', function (Blueprint $table) {
                 $table->renameColumn('id_ocorrencia', 'order_id');
@@ -28,19 +27,19 @@ return new class extends Migration
                 $table->string('status', 255)->change();
             });
             Schema::rename('status_ocorrencia', 'order_status_logs');
-        // // Renomear a coluna existente para uma coluna temporária
-        Schema::table('order_status_logs', function (Blueprint $table) {
-            $table->renameColumn('status', 'status_temp');
-        });
+            // // Renomear a coluna existente para uma coluna temporária
+            Schema::table('order_status_logs', function (Blueprint $table) {
+                $table->renameColumn('status', 'status_temp');
+            });
 
-        // Criar uma nova coluna com o tipo enum
-        Schema::table('order_status_logs', function (Blueprint $table) {
-            $table->enum('status', ['opened', 'reopened', 'pending customer response', 'reserved', 'closed', 'pending it resource', 'canceled', 'committed', 'in progress'])->nullable();
-        });
+            // Criar uma nova coluna com o tipo enum
+            Schema::table('order_status_logs', function (Blueprint $table) {
+                $table->enum('status', ['opened', 'reopened', 'pending customer response', 'reserved', 'closed', 'pending it resource', 'canceled', 'committed', 'in progress'])->nullable();
+            });
 
-        // Preencher os valores da nova coluna com base na coluna temporária
-        DB::table('order_status_logs')->update([
-            'status' => DB::raw("CASE
+            // Preencher os valores da nova coluna com base na coluna temporária
+            DB::table('order_status_logs')->update([
+                'status' => DB::raw("CASE
                 WHEN status_temp = '2' THEN 'opened'
                 WHEN status_temp = '7' THEN 'reopened'
                 WHEN status_temp = '8' THEN 'opened'
@@ -52,12 +51,12 @@ return new class extends Migration
                 WHEN status_temp = '5' THEN 'committed'
                 WHEN status_temp = '3' THEN 'in progress'
             END"),
-        ]);
+            ]);
 
-        // Remover a coluna temporária
-        Schema::table('order_status_logs', function (Blueprint $table) {
-            $table->dropColumn('status_temp');
-        });
+            // Remover a coluna temporária
+            Schema::table('order_status_logs', function (Blueprint $table) {
+                $table->dropColumn('status_temp');
+            });
         } else {
             Schema::create('status_logs', function (Blueprint $table) {
                 $table->id();

@@ -27,7 +27,7 @@ class OrderUpdated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '[3S] - Chamado Nº '. $this->order->id,
+            subject: '[3S] - Chamado Nº '.$this->order->id,
         );
     }
 

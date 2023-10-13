@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\OrderMessage;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class OrderMessagePolicy
 {
@@ -16,6 +16,7 @@ class OrderMessagePolicy
         if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -24,9 +25,10 @@ class OrderMessagePolicy
      */
     public function view(User $user, OrderMessage $orderMessage): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -35,9 +37,10 @@ class OrderMessagePolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -57,5 +60,4 @@ class OrderMessagePolicy
 
         return Response::deny('Função desabilitada');
     }
-
 }

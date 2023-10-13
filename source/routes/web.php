@@ -1,10 +1,9 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrdersController;
 use app3s\controller\MainIndex;
 use app3s\util\Sessao;
-use App\Http\Controllers\OrdersController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,31 +18,32 @@ use App\Http\Controllers\OrdersController;
 
 Route::get('/', function () {
     $main = new MainIndex();
+
     return $main->main();
 })->name('root');
 
 Route::post('/', function () {
     $main = new MainIndex();
+
     return $main->main();
 })->name('root-post');
 
 Route::get('/kamban', function () {
     $sessao = new Sessao();
     $firstName = $sessao->getNome();
-    $arr = explode(" ", $sessao->getNome());
+    $arr = explode(' ', $sessao->getNome());
     if (isset($arr[0])) {
-      $firstName = $arr[0];
+        $firstName = $arr[0];
     }
     $firstName = ucfirst(strtolower($firstName));
-    return view('welcome', ['userFirstName' => $firstName, 'divisionSig' =>  $sessao->getUnidade()]);
+
+    return view('welcome', ['userFirstName' => $firstName, 'divisionSig' => $sessao->getUnidade()]);
 })->name('kamban');
-
-
 
 Route::middleware('auth')->group(function () {
     Route::resources(
         [
-            'orders' => OrdersController::class
+            'orders' => OrdersController::class,
         ]
     );
 });

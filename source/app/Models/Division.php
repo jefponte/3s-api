@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Division extends Model
 {
     use Filterable;
+
     /**
      * The database table used by the model.
      *
@@ -17,10 +18,10 @@ class Division extends Model
     protected $table = 'divisions';
 
     /**
-    * The database primary key value.
-    *
-    * @var string
-    */
+     * The database primary key value.
+     *
+     * @var string
+     */
     protected $primaryKey = 'id';
 
     /**
