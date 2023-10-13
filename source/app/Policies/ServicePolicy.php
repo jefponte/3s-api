@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\Service;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class ServicePolicy
 {
@@ -13,9 +13,10 @@ class ServicePolicy
      */
     public function viewAny(User $user): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -24,9 +25,10 @@ class ServicePolicy
      */
     public function view(User $user, Service $service): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -35,9 +37,10 @@ class ServicePolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -46,9 +49,10 @@ class ServicePolicy
      */
     public function update(User $user, Service $service): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -57,10 +61,10 @@ class ServicePolicy
      */
     public function delete(User $user, Service $service): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
-
 }

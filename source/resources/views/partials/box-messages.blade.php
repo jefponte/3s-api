@@ -37,7 +37,7 @@
 
                     </div>
                 @endforeach
-                <span id="ultimo-id-post" class="escondido">{{ $order->messages->last() != null && $order->messages->last()->id }} </span>
+                <span id="ultimo-id-post" class="d-none">{{ $order->messages->last() != null && $order->messages->last()->id }} </span>
             </div>
             <div class="panel-footer">
                 @if ($order->canSendMessage)
@@ -50,7 +50,7 @@
                             <input type="checkbox" class="custom-control-input" name="muda-tipo" id="muda-tipo">
                             <label class="custom-control-label" for="muda-tipo">Enviar Arquivo</label>
                         </div>
-                        <div class="custom-file mb-3 escondido" id="campo-anexo">
+                        <div class="custom-file mb-3 d-none" id="campo-anexo">
                             <input type="file" class="custom-file-input" name="anexo" id="anexo"
                                 accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint, text/plain, application/pdf, image/*, application/zip,application/rar, .ovpn, .xlsx">
                             <label class="custom-file-label" for="anexo" data-browse="Anexar">Anexar um

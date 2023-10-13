@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Service extends Model
 {
     use Filterable;
+
     /**
      * The database table used by the model.
      *
@@ -17,10 +18,10 @@ class Service extends Model
     protected $table = 'services';
 
     /**
-    * The database primary key value.
-    *
-    * @var string
-    */
+     * The database primary key value.
+     *
+     * @var string
+     */
     protected $primaryKey = 'id';
 
     /**
@@ -34,10 +35,12 @@ class Service extends Model
     {
         return $this->belongsTo(Division::class);
     }
+
     public function orders()
     {
         return $this->hasMany(Order::class);
     }
+
     public function modelFilter()
     {
         return $this->provideFilter(ServiceFilter::class);

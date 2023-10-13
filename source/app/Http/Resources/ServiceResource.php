@@ -15,9 +15,9 @@ class ServiceResource extends JsonResource
     public function toArray($request)
     {
         return parent::toArray($request) + [
-                'division' => DivisionResource::collection(
-                    $this->whenLoaded('division')
-                )
-            ];
+            'division' => DivisionResource::collection(
+                $this->whenLoaded('division')
+            ),
+        ];
     }
 }

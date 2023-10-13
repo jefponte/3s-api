@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
@@ -12,9 +12,10 @@ class UserPolicy
      */
     public function viewAny(User $user): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -23,9 +24,10 @@ class UserPolicy
      */
     public function view(User $user, User $model): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -42,9 +44,10 @@ class UserPolicy
      */
     public function update(User $user, User $model): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -55,5 +58,4 @@ class UserPolicy
     {
         return Response::deny('Esta função está desabilitada.');
     }
-
 }

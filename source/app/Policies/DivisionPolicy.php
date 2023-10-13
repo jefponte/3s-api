@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use Illuminate\Auth\Access\Response;
 use App\Models\Division;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class DivisionPolicy
 {
@@ -16,6 +16,7 @@ class DivisionPolicy
         if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -24,9 +25,10 @@ class DivisionPolicy
      */
     public function view(User $user, Division $division): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -35,9 +37,10 @@ class DivisionPolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -46,9 +49,10 @@ class DivisionPolicy
      */
     public function update(User $user, Division $division): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -57,9 +61,10 @@ class DivisionPolicy
      */
     public function delete(User $user, Division $division): Response
     {
-        if ( $user->role === 'administrator') {
+        if ($user->role === 'administrator') {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 }

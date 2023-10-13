@@ -3,9 +3,9 @@
 namespace App\Policies;
 
 use App\Enums\OrderStatus;
-use Illuminate\Auth\Access\Response;
 use App\Models\Order;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 class OrderPolicy
 {
@@ -26,11 +26,12 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
-        } else if($user->id === $order->customer->id) {
+        } elseif ($user->id === $order->customer->id) {
             return Response::allow();
         }
+
         return Response::deny('Esta tela exige permissão de administrador.');
     }
 
@@ -39,9 +40,10 @@ class OrderPolicy
      */
     public function create(User $user): Response
     {
-        if ( $user->role === 'administrator' || $user->role === 'provider') {
+        if ($user->role === 'administrator' || $user->role === 'provider') {
             return Response::allow();
         }
+
         return Response::deny('Esta permissão está desabilitada.');
     }
 
@@ -61,14 +63,15 @@ class OrderPolicy
         return Response::deny('Não é possível apagar uma ocorrência');
     }
 
-
     public function cancel(User $user, Order $order): Response
     {
         if ($order->customer->id === $user->id && $order->status === 'opened') {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function editTag(User $user, Order $order): Response
     {
         if (
@@ -78,8 +81,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function editSolution(User $user, Order $order): Response
     {
         if (
@@ -88,8 +93,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function editService(User $user, Order $order): Response
     {
         $role = request()->session()->get('role');
@@ -100,6 +107,7 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
 
@@ -115,8 +123,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function close(User $user, Order $order): Response
     {
         if (
@@ -125,8 +135,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function commit(User $user, Order $order): Response
     {
         if (
@@ -134,8 +146,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function reserve(User $user, Order $order): Response
     {
         if (
@@ -145,8 +159,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function pendingCustomer(User $user, Order $order): Response
     {
         if (
@@ -155,8 +171,10 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function pendingResource(User $user, Order $order): Response
     {
         if (
@@ -165,17 +183,20 @@ class OrderPolicy
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
+
     public function requestHelp(User $user, Order $order): Response
     {
         if (
             $order->customer->id === $user->id
             && $order->status === OrderStatus::opened()->value && $order->isLate
-            && !request()->session()->get('helpRequested')
+            && ! request()->session()->get('helpRequested')
         ) {
             return Response::allow();
         }
+
         return Response::deny('Esta ocorrência não pode ser cancelada.');
     }
 }

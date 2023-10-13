@@ -19,13 +19,13 @@ if (url.searchParams.get("page") === "ocorrencia" && url.searchParams.has("selec
     $("#muda-tipo").on('change', function (e) {
 
         if ($("#muda-tipo").is(':checked')) {
-            $("#campo-texto").addClass("escondido");
-            $("#campo-anexo").removeClass("escondido");
+            $("#campo-texto").addClass("d-none");
+            $("#campo-anexo").removeClass("d-none");
             $("#campo_tipo").val("file");
         } else {
 
-            $("#campo-texto").removeClass("escondido");
-            $("#campo-anexo").addClass("escondido");
+            $("#campo-texto").removeClass("d-none");
+            $("#campo-anexo").addClass("d-none");
             $("#campo_tipo").val("text");
 
         }

@@ -7,7 +7,6 @@ use Illuminate\Support\Str;
 
 abstract class DefaultModelFilter extends ModelFilter
 {
-
     protected $sortable = [];
 
     public function setup()
@@ -22,7 +21,7 @@ abstract class DefaultModelFilter extends ModelFilter
 
     public function sort($column)
     {
-        if(method_exists($this, $method = 'sortBy' . Str::studly($column))){
+        if (method_exists($this, $method = 'sortBy'.Str::studly($column))) {
             $this->$method();
         }
 
@@ -36,8 +35,6 @@ abstract class DefaultModelFilter extends ModelFilter
     {
         return in_array($column, $this->sortable);
     }
-
 }
-
 
 //endereco?sort=created_at&dir=xpto
