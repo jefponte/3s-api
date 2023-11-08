@@ -2,6 +2,7 @@
 <footer class="blog-footer">
     <p>Desenvolvido pela <a href="https://dti.unilab.edu.br/"> Diretoria de Tecnologia da Informação DTI </a> / <a
             href="http://unilab.edu.br">Unilab</a></p>
+    <p>versão: {{ env('APP_VERSION') }} </p>
 
 </footer>
 

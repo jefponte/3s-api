@@ -32,7 +32,7 @@
                     <b> Descricao: </b>{{ $order->descricao }}<br>
 
                     @if ($order->anexo != '')
-                        <b>Anexo: </b><a target="_blank" href="{{asset('storage/uploads/'.$order->anexo)}}"> Clique aqui</a> <br>
+                        <b>Anexo: </b><a href="{{asset('storage/uploads/'.$order->anexo)}}" download> Clique aqui</a> <br>
                     @endif
 
                 </div>
