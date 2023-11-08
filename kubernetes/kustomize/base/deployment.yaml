@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app3s-laravel
+  namespace: app3s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app3s-laravel
+  template:
+    metadata:
+      labels:
+        app: app3s-laravel
+    spec:
+      initContainers:
+      - name: config-init
+        image: debian:stable-slim
+        command:
+        - /bin/bash
+        - -c
+        - |
+          mkdir -p /var/www/html/storage/framework/{sessions,views,cache}
+          chown -R www-data:www-data /var/www/html/storage
+        volumeMounts:
+        - name: app3s-storage
+          mountPath: /var/www/html/storage
+        securityContext:
+          privileged: true
+          runAsUser: 33
+      containers:
+      - name: app3s-laravel
+        image: dti-registro.unilab.edu.br/unilab/app-3s:latest
+        resources: {}
+        imagePullPolicy: Always
+        command:
+        - /bin/bash
+        - -cp
+        - |
+          source /vault/secrets/config
+          php artisan config:clear
+          apache2-foreground
+          
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - /health-check.sh
+          initialDelaySeconds: 20
+          periodSeconds: 20
+
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - /health-check.sh
+          initialDelaySeconds: 19
+          periodSeconds: 19
+
+        ports:
+        - containerPort: 80
+          name: http
+        envFrom:
+        - configMapRef:
+            name: app3s-config
+        volumeMounts:
+        - name: tz-america
+          mountPath: /etc/localtime
+        - name: app3s-storage
+          mountPath: /var/www/html/storage
+      volumes:
+      - name: tz-america
+        hostPath:
+          path: /usr/share/zoneinfo/America/Fortaleza
+          type: File
+      - name: app3s-storage
+        persistentVolumeClaim:
+          claimName: pvc-3s-laravel
+      imagePullSecrets:
+      - name: harbor-regcred

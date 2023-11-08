@@ -1,0 +1,35 @@
+### Como usar:
+#
+# docker login https://dti-registro.unilab.edu.br
+# docker build -t dti-registro.unilab.edu.br/unilab/app-3s:main .
+# docker push dti-registro.unilab.edu.br/unilab/app-3s:main
+# docker-compose up -d
+# docker-compose logs -f
+# docker exec -it 3s-debug /bin/bash
+# docker-compose down
+
+version: '3.9'
+services:
+  ###################################
+  # Application
+  ################################### 
+  app-dev-debug:
+    image: dti-registro.unilab.edu.br/unilab/app-3s:main
+    container_name: 3s-debug
+    restart: always
+    user: "root:www-data"
+    env_file:
+      - ./source/.env
+    volumes:
+      - ./source:/var/www/html
+      - /tmp:/var/www/html/public/uploads
+    ports:
+      - "8083:80"
+      - "22:22"
+    networks:
+      - developer
+    
+networks:
+ developer:
+   name: developer
+   driver: bridge
