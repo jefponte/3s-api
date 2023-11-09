@@ -124,6 +124,7 @@ pipeline {
             chown -R www-data:www-data /usr/local/bin/composer
             composer install --ignore-platform-reqs --no-interaction --no-progress --no-scripts --optimize-autoloader
             mv .env.example .env
+            curl -fsSLk https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs
             npm install
             npm run build
             ls -la .
