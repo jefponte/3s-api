@@ -12,23 +12,47 @@ version: '3.9'
 services:
   ###################################
   # Application
-  ################################### 
+  ###################################
   app-dev-debug:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: dti-registro.unilab.edu.br/unilab/app-3s:main
     container_name: 3s-debug
     restart: always
     user: "root:www-data"
     env_file:
-      - ./source/.env
+      - .env
     volumes:
-      - ./source:/var/www/html
-      - /tmp:/var/www/html/public/uploads
+      - .:/var/www/html
     ports:
       - "8083:80"
       - "22:22"
     networks:
       - developer
-    
+
+  ###################################
+  # PostgreSQL (Optional BD Local)
+  ###################################
+  postgresql:
+    image: postgres:15-bullseye
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ocorrencias
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    networks:
+      - developer
+
+volumes:
+  postgresql_data:
+    driver: local
+
 networks:
  developer:
    name: developer
