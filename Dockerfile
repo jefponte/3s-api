@@ -40,11 +40,14 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev locales curl nano unzip \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+COPY . /var/www/html
+
+WORKDIR /var/www/html
+
 RUN docker-php-ext-install pdo pdo_pgsql
 RUN docker-php-ext-configure opcache --enable-opcache
-RUN curl -fsSLk https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs
-RUN npm install
-RUN npm run build
+RUN curl -fsSLk https://deb.nodesource.com/setup_16.x | bash - && apt-get install -y nodejs
+RUN npm install && npm run build
 
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
   curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
@@ -76,14 +79,9 @@ RUN cd /tmp \
   && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
   && composer
 
-COPY . /var/www/html
-
 RUN composer install --ignore-platform-reqs --no-interaction --no-progress --no-scripts --optimize-autoloader
 
-RUN sed -i "s/'default' => env('DB_CONNECTION', 'mysql'),/'default' => env('DB_CONNECTION', 'pgsql'),/g" config/database.php
-RUN sed -i "s/        \/\//        '*',/g" app/Http/Middleware/VerifyCsrfToken.php
-RUN cp bash/apache/000-default.conf /etc/apache2/sites-available/000-default.conf \
-  && apachectl configtest
+RUN cp bash/apache/000-default.conf /etc/apache2/sites-available/000-default.conf && apachectl configtest
 
 RUN adduser --no-create-home --disabled-password --shell /bin/bash --gecos "" --force-badname 3s \
   && echo "3s ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
