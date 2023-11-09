@@ -54,6 +54,7 @@ return [
     | your application so that it is used when running Artisan tasks.
     |
     */
+    'Debugbar' => Barryvdh\Debugbar\Facades\Debugbar::class,
 
     'url' => env('APP_URL', 'http://localhost'),
 
@@ -70,7 +71,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'America/Fortaleza',
 
     /*
     |--------------------------------------------------------------------------
@@ -83,7 +84,7 @@ return [
     |
     */
 
-    'locale' => 'en',
+    'locale' => 'pt-BR',
 
     /*
     |--------------------------------------------------------------------------
@@ -141,7 +142,7 @@ return [
 
     'maintenance' => [
         'driver' => 'file',
-        // 'store' => 'redis',
+        // 'store'  => 'redis',
     ],
 
     /*
@@ -159,7 +160,7 @@ return [
         /*
          * Package Service Providers...
          */
-
+        EloquentFilter\ServiceProvider::class,
         /*
          * Application Service Providers...
          */

@@ -1,0 +1,34 @@
+{
+  "model": "OrderMessage",
+  "fields": [
+    {
+      "name": "order_id",
+      "type": "integer",
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "name": "message",
+      "type": "text",
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "name": "user_id",
+      "type": "integer",
+      "validations": {
+        "required": true
+      }
+    },
+    {
+      "name": "type",
+      "type": "text",
+      "validations": {
+        "required": true
+      }
+    }
+  ],
+  "primaryKey": "id"
+}
