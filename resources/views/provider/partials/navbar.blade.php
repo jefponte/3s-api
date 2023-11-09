@@ -19,8 +19,8 @@
                     Paineis
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="?page=painel_kamban">Kanban</a>
-                    <a class="dropdown-item" href="?page=painel_tabela">Tabela</a>
+                    <a class="dropdown-item" href="{{route('kamban')}}">Kanban</a>
+                    <a class="dropdown-item" href="{{route('kamban')}}">Tabela</a>
                 </div>
             </li>
         </ul>
@@ -51,13 +51,13 @@
                 <button type="button" disabled class="dropdown-item change-level">
                     Perfil Técnico
                 </button>
-                @if($originalLevel === 'a')
-                <button type="button" nivel="a" class="dropdown-item change-level">
+                @if($originalLevel === 'administrator')
+                <button type="button" nivel="administrator" class="dropdown-item change-level">
                     Perfil Admin
                 </button>
                 @endif
-                @if($originalLevel === 'a' || $originalLevel === 't')
-                <button type="button" nivel="c" id="change-to-tec" ' . $disabled . '
+                @if($originalLevel === 'administrator' || $originalLevel === 'provider')
+                <button type="button" nivel="customer" id="change-to-tec" ' . $disabled . '
                     class="dropdown-item change-level">
                     Perfil Cliente
                 </button>

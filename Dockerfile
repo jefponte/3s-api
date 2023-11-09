@@ -38,11 +38,13 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev locales curl nano unzip \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN docker-php-ext-install pdo pdo_pgsql
 RUN docker-php-ext-configure opcache --enable-opcache
 RUN curl -fsSLk https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs
+RUN npm install
+RUN npm run build
 
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
   curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
