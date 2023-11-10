@@ -118,15 +118,13 @@ pipeline {
       steps {
         script {
           sh '''
-            # Instala compose
             curl -sS https://getcomposer.org/installer -o composer-setup.php
             php composer-setup.php --install-dir=/usr/local/bin --filename=composer
             chown -R www-data:www-data /usr/local/bin/composer
             composer install --ignore-platform-reqs --no-interaction --no-progress --no-scripts --optimize-autoloader
             mv .env.example .env
-            ls -la .
-            ls -la public/
-            ls -la storage/
+            curl -fsSLk https://deb.nodesource.com/setup_16.x | bash - && apt-get install -y nodejs
+            sudo npm install && sudo npm run build
           '''
         }
       }
@@ -152,7 +150,7 @@ pipeline {
             def scannerHome = tool 'SonarScanner'
             def projectKey = env.SONAR_PROJECT_KEY
             withSonarQubeEnv('SonarQube') {
-              sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.sources=./new-source -Dsonar.exclusions=vendor/** -Dsonar.language=php -Dsonar.sourceEncoding=UTF-8"
+              sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.sources=./app -Dsonar.exclusions=vendor/** -Dsonar.language=php -Dsonar.sourceEncoding=UTF-8"
               def props = readProperties  file: '.scannerwork/report-task.txt'
               def sonarServerUrl=props['serverUrl']
               def ceTaskUrl= props['ceTaskUrl']

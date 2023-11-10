@@ -113,6 +113,18 @@ Dê um exemplo
 
 Adicione notas sobre como usar o sistema.
 
+Install hadolint local.
+``` bash
+wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64
+sudo mv hadolint /usr/local/bin/hadolint
+sudo chmod +x /usr/local/bin/hadolint
+```
+
+Hadolint supports specifying using a configuration file.  
+``` bash
+hadolint --config .hadolint.yaml Dockerfile
+```
+
 ## 🚀 Deployment <a name = "deployment"></a>
 
 Adicione notas adicionais sobre como implantar isso em um sistema ativo.
