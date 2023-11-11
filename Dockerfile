@@ -57,15 +57,9 @@ WORKDIR /var/www/html
 RUN docker-php-ext-install pdo pdo_pgsql \
   && docker-php-ext-configure opcache --enable-opcache \
   && mkdir -p /etc/apt/keyrings \
-  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-  && curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh \
-  && chmod 500 nsolid_setup_deb.sh \
-  && ./nsolid_setup_deb.sh 16 \
-  && apt-get install -y --no-install-recommends nodejs=16* \
-  && npm install \
   && chown -Rf www-data:www-data /var/www/html/public \
-  && chmod -Rf 755 /var/www/html/public \
-  && npm run build
+  && chmod -Rf 755 /var/www/html/public
+
 
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
   curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
@@ -134,7 +128,6 @@ RUN composer install --prefer-dist --no-interaction --no-dev \
   && php artisan config:clear \
   && php artisan view:clear \
   && php artisan storage:link \
-  && php artisan key:generate \
   && a2enmod rewrite
 
 EXPOSE 80
