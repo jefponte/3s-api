@@ -51,6 +51,6 @@
 <script src="js/jquery.easyPaginate.js?a=1"></script>
 
 
-@vite(['resources/js/app.js'])
+@vite(['{{ asset('resources/js/app.js') }}'])
 
 </html>
