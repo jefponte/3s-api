@@ -8,7 +8,9 @@
     <title>{{ config('app.name', '3s') }}</title>
     <title>3s | Sistema de Solicitação de Ocorrências</title>
     <!-- Desenvolvido por Jefferson Uchôa Ponte-->
-    @vite(['{{ asset('resources/css/app.css') }}'])
+    <style>
+        {!! Vite::content('resources/css/app.css') !!}
+    </style>
     <meta http-equiv="Cache-control" content="no-cache">
 </head>
 
