@@ -1,5 +1,15 @@
 <div class="card card-body">
-    <form id="form_insert_order" method="post" action="{{route('orders.store', null, false)}}" enctype="multipart/form-data">
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    <form id="form_insert_order" method="post" action="{{ route('orders.store', null, false) }}"
+        enctype="multipart/form-data">
         @csrf
         <span class="titulo medio">Informe os dados para cadastro</span><br>
         <div class="row">
