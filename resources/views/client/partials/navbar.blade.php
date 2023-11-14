@@ -11,7 +11,7 @@
                 <a class="nav-link" href=".">Início<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
+                <a class="nav-link" href="./?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
             </li>
 
         </ul>

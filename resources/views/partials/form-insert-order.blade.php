@@ -1,5 +1,5 @@
 <div class="card card-body">
-    <form id="form_insert_order" method="post" action="{{route('orders.store')}}" enctype="multipart/form-data">
+    <form id="form_insert_order" method="post" action="{{route('orders.store', null, false)}}" enctype="multipart/form-data">
         @csrf
         <span class="titulo medio">Informe os dados para cadastro</span><br>
         <div class="row">
