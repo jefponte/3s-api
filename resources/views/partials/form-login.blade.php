@@ -19,7 +19,7 @@
 
 
 
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" action="{{ route('login', null, false) }}">
                         @csrf
                         <div class="form-group">
                             <input autofocus type="text" size="350" name="login" class="form-control"
