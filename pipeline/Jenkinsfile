@@ -38,7 +38,7 @@ pipeline {
     INGRESS_NAME = "app3s-laravel"
     IMAGE_PREFIX_NAME = "app-3s"
     APP_EP_PROD = "3s.unilab.edu.br"
-    APP_EP_STAG = "3shomologacao.unilab.edu.br"
+    APP_EP_STAG = "3s-staging.unilab.edu.br"
     TAG = sh(returnStdout: true, script: "git describe --tags --abbrev=0").trim()
     APP_VERSION = "${env.TAG}"
     DOCKER_IMAGE = "dti-registro.unilab.edu.br/unilab/${IMAGE_PREFIX_NAME}"
