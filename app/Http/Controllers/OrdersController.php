@@ -90,10 +90,9 @@ class OrdersController extends Controller
                 'message' => 'Ocorrência liberada para que qualquer técnico possa atender.',
                 'user_id' => auth()->user()->id,
             ]);
+
             DB::commit();
-
             Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, 'Sua solicitação foi realizada com sucesso.'));
-
             return redirect('/?page=ocorrencia&selecionar='.$order->id);
         } catch (\Exception $e) {
             DB::rollback();
