@@ -27,7 +27,7 @@ class OrdersController extends Controller
      */
     public function store(Request $request)
     {
-
+        dd(env('DB_USERNAME'));
         $allowedExtensions = [
             'image/jpeg', 'image/png', 'application/pdf',
             'xlsx', 'xlsm', 'xlsb', 'xltx', 'xltm', 'xls',
@@ -91,7 +91,7 @@ class OrdersController extends Controller
                 'user_id' => auth()->user()->id,
             ]);
             DB::commit();
-            dd(env('DB_USERNAME'));
+
             Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, 'Sua solicitação foi realizada com sucesso.'));
 
             return redirect('/?page=ocorrencia&selecionar='.$order->id);
