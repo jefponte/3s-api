@@ -9,6 +9,7 @@ use App\Models\OrderStatusLog;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
@@ -27,7 +28,6 @@ class OrdersController extends Controller
      */
     public function store(Request $request)
     {
-        dd(env('DB_USERNAME'));
         $allowedExtensions = [
             'image/jpeg', 'image/png', 'application/pdf',
             'xlsx', 'xlsm', 'xlsb', 'xltx', 'xltm', 'xls',
@@ -97,7 +97,7 @@ class OrdersController extends Controller
             return redirect('/?page=ocorrencia&selecionar='.$order->id);
         } catch (\Exception $e) {
             DB::rollback();
-
+            Log::error('Erro ao enviar e-mail: ' . $e->getMessage());
             return redirect()->back()->withErrors(['flash_message' => 'Falha ao inserir dados.']);
         }
     }
