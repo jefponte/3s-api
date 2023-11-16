@@ -92,7 +92,7 @@ class OrdersController extends Controller
             ]);
 
             DB::commit();
-            Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, 'Sua solicitação foi realizada com sucesso.'));
+            // Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, 'Sua solicitação foi realizada com sucesso.'));
             return redirect('/?page=ocorrencia&selecionar='.$order->id);
         } catch (\Exception $e) {
             DB::rollback();
