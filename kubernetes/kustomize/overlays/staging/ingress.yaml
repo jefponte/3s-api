@@ -4,7 +4,7 @@ metadata:
   name: app3s-laravel
 spec:
   rules:
-  - host: 3s-staging.unilab.edu.br
+  - host: 3shomologacao.unilab.edu.br
     http:
       paths:
       - pathType: Prefix
