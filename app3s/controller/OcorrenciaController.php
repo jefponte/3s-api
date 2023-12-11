@@ -571,11 +571,11 @@ class OcorrenciaController
 
         //cutomer
         $saldacao = '<p>Prezado(a) '.$order->customer->name.' ,</p>';
-        $mail->enviarEmail($order->email, $order->customer->name, $assunto, $saldacao.$corpo);
+        $mail->send($order->email, $order->customer->name, $assunto, $saldacao.$corpo);
         if ($order->provider != null) {
             //Provider
             $saldacao = '<p>Prezado(a) '.$order->provider->name.' ,</p>';
-            $mail->enviarEmail($order->provider->email, $order->provider->name, $assunto, $saldacao.$corpo);
+            $mail->send($order->provider->email, $order->provider->name, $assunto, $saldacao.$corpo);
         }
     }
 
@@ -912,7 +912,7 @@ class OcorrenciaController
                 break;
         }
         if ($status) {
-            $this->enviarEmail($order, $mensagem);
+            $this->send($order, $mensagem);
         }
     }
 
@@ -1324,7 +1324,7 @@ class OcorrenciaController
         return true;
     }
 
-    public function enviarEmail($order, $mensagem = '')
+    public function send($order, $mensagem = '')
     {
         $mail = new Mail();
         $assunto = '[3S] - Chamado Nº '.$order->id;
@@ -1346,17 +1346,17 @@ class OcorrenciaController
         $destinatario = $order->email;
         $nome = $order->customer->name;
         //Cliente do chamado
-        $mail->enviarEmail(auth()->user()->email, auth()->user()->name, $assunto, $saldacao.$corpo);
+        $mail->send(auth()->user()->email, auth()->user()->name, $assunto, $saldacao.$corpo);
 
         //Area responsável
         $destinatario = $order->division->email;
         $nome = $order->division->name;
-        $mail->enviarEmail($destinatario, $nome, $assunto, $saldacao.$corpo); //Email para area responsavel
+        $mail->send($destinatario, $nome, $assunto, $saldacao.$corpo); //Email para area responsavel
         if ($order->provider != null) {
             //O atendente;
             $destinatario = $order->provider->email;
             $nome = $order->provider->name;
-            $mail->enviarEmail($destinatario, $nome, $assunto, $saldacao.$corpo);
+            $mail->send($destinatario, $nome, $assunto, $saldacao.$corpo);
         }
     }
 

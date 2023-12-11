@@ -7,7 +7,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 class Mail
 {
-    public function enviarEmail($destinatario, $nome, $assunto, $corpo)
+    public function send($destinatario, $nome, $assunto, $corpo)
     {
 
         $retorno = false;
