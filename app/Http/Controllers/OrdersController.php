@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use app3s\util\Mail;
 use App\Enums\OrderStatus;
-use App\Mail\OrderUpdated;
 use App\Models\Order;
 use App\Models\OrderStatusLog;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class OrdersController extends Controller
@@ -92,7 +91,23 @@ class OrdersController extends Controller
             ]);
 
             DB::commit();
-            Mail::to(auth()->user()->email)->send(new OrderUpdated(auth()->user()->name, $order, 'Sua solicitação foi realizada com sucesso.'));
+
+            $mail = new Mail();
+            $text = 'Sua solicitação foi realizada com sucesso.';
+
+            $body = '    <p>Prezado(a) '. auth()->user()->name.',</p>
+            <p>'. $text.'</p>
+            <p><a href="'. env('APP_URL').'">Ocorrência Nº '.$order->id.'</a></p>
+            <ul>
+                <li>Serviço Solicitado: '. $order->service->name .'</li>
+                <li>Descrição do Problema: '. $order->description .'</li>
+                <li>Setor Responsável: '. $order->service->division->name .' - '. $order->service->division->description .'</li>
+                <li>Cliente: '. $order->customer->name .'</li>
+            </ul><br>
+            <p>Mensagem enviada pelo sistema 3S. Favor não responder.</p>';
+
+
+            $mail->send(auth()->user()->email, auth()->user()->name, '[3S] - Chamado Nº '.$order->id, $body);
             return redirect('/?page=ocorrencia&selecionar='.$order->id);
         } catch (\Exception $e) {
             DB::rollback();
