@@ -38,7 +38,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev locales curl nano unzip \
-  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* 
+  && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN docker-php-ext-install pdo pdo_pgsql
 RUN docker-php-ext-configure opcache --enable-opcache
@@ -114,13 +114,13 @@ RUN composer install --prefer-dist --no-interaction --no-dev
 
 RUN chown -R www-data:www-data /var/www/html/storage && chmod -R 775 /var/www/html/storage
 
-RUN php artisan route:cache && \
-  php artisan cache:clear && \
-  php artisan config:clear && \
-  php artisan view:clear && \
-  php artisan storage:link && \
-  php artisan key:generate && \
-  a2enmod rewrite
+RUN php artisan route:cache
+RUN   php artisan cache:clear
+RUN   php artisan config:clear
+RUN   php artisan view:clear
+RUN   php artisan storage:link
+RUN   php artisan key:generate
+RUN   a2enmod rewrite
 
 EXPOSE 80
 
