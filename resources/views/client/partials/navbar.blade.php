@@ -11,7 +11,7 @@
                 <a class="nav-link" href=".">Início<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
+                <a class="nav-link" href="./?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
             </li>
 
         </ul>
@@ -43,16 +43,16 @@
                     Perfil Cliente
                 </button>
 
-                @if($originalLevel === 'a')
-                <button type="button" nivel="a" class="dropdown-item change-level">
-                    Perfil Admin
-                </button>
+                @if ($originalLevel === 'administrator')
+                    <button type="button" nivel="administrator" class="dropdown-item change-level">
+                        Perfil Admin
+                    </button>
                 @endif
-                @if($originalLevel === 'a' || $originalLevel === 't')
-                <button type="button" nivel="t" id="change-to-tec" ' . $disabled . '
-                    class="dropdown-item change-level">
-                    Perfil Técnico
-                </button>
+                @if ($originalLevel === 'administrator' || $originalLevel === 'provider')
+                    <button type="button" nivel="provider" id="change-to-tec"
+                        class="dropdown-item change-level">
+                        Perfil Técnico
+                    </button>
                 @endif
                 <hr>
                 <a href="?sair=1" id="botao-avaliar" acao="avaliar" class="dropdown-item">

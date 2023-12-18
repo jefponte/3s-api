@@ -1,5 +1,16 @@
 <div class="card card-body">
-    <form id="insert_form_ocorrencia" method="post" action="" enctype="multipart/form-data">
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    <form id="form_insert_order" method="post" action="{{ route('orders.store', null, false) }}"
+        enctype="multipart/form-data">
+        @csrf
         <span class="titulo medio">Informe os dados para cadastro</span><br>
         <div class="row">
             <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
@@ -8,10 +19,10 @@
                         <label for="select-demanda">Serviço*</label>
                     </div>
                     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
-                        <select id="select-servicos" name="servico" required>
+                        <select id="select-servicos" name="service_id" required>
                             <option value="" selected="selected">Selecione um serviço</option>
                             @foreach ($services as $servico)
-                                <option value="{{ $servico->id }}">{{ $servico->nome }} - {{ $servico->descricao }}
+                                <option value="{{ $servico->id }}">{{ $servico->name }} - {{ $servico->description }}
                                 </option>
                             @endforeach
                         </select>
@@ -20,7 +31,7 @@
                 <div class="row">
                     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                         <label for="descricao">Descrição*</label>
-                        <textarea class="form-control" rows="3" name="descricao" id="descricao" required></textarea>
+                        <textarea class="form-control" rows="3" name="description" id="descricao" required></textarea>
                     </div>
                 </div>
                 <br>
@@ -28,7 +39,7 @@
                 <div class="row">
                     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" name="anexo" id="anexo"
+                            <input type="file" class="custom-file-input" name="attachment" id="anexo"
                                 accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint, text/plain, application/pdf, image/*, application/zip,application/rar, .ovpn, .xlsx">
                             <label class="custom-file-label" for="anexo" data-browse="Anexar">Anexar um
                                 Arquivo</label>
@@ -54,18 +65,18 @@
                 </div>
                 <div class="row">
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
-                        <label for="local_sala">Local/Sala</label>
-                        <input class="form-control" type="text" name="local_sala" id="local_sala" value="">
+                        <label for="place">Local/Sala</label>
+                        <input class="form-control" type="text" name="place" id="local_sala" value="">
                     </div>
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
                         <label for="patrimonio">Patrimônio</label>
-                        <input class="form-control" type="number" name="patrimonio" id="patrimonio" value="" />
+                        <input class="form-control" type="number" name="tag" id="patrimonio" value="" />
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
                         <label for="ramal">Ramal</label>
-                        <input class="form-control" type="number" name="ramal" id="ramal" value="">
+                        <input class="form-control" type="number" name="phone_number" id="ramal" value="">
                     </div>
 
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12">
@@ -84,7 +95,7 @@
 
 </div><br><br>
 <div class="d-flex justify-content-center m-3">
-    <button id="btn-inserir-ocorrencia" form="insert_form_ocorrencia" type="submit" class="btn btn-primary">Cadastrar
+    <button form="form_insert_order" type="submit" class="btn btn-primary">Cadastrar
         Ocorrência</button>
 
 </div><br><br>
