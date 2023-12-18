@@ -134,7 +134,6 @@ RUN composer install --prefer-dist --no-interaction --no-dev \
   && php artisan config:clear \
   && php artisan view:clear \
   && php artisan storage:link \
-  && php artisan key:generate \
   && a2enmod rewrite
 
 EXPOSE 80
