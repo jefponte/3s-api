@@ -37,27 +37,48 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev locales curl nano unzip \
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  libpq-dev=13* \
+  locales=2* \
+  curl=7* \
+  nano=5* \
+  unzip=6* \
+  sudo=1* \
+  gnupg=2* \
+  ca-certificates=20210119* \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN docker-php-ext-install pdo pdo_pgsql
-RUN docker-php-ext-configure opcache --enable-opcache
-RUN curl -fsSLk https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs
+COPY . /var/www/html
+
+WORKDIR /var/www/html
+
+RUN docker-php-ext-install pdo pdo_pgsql \
+  && docker-php-ext-configure opcache --enable-opcache \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && curl -SLO https://deb.nodesource.com/nsolid_setup_deb.sh \
+  && chmod 500 nsolid_setup_deb.sh \
+  && ./nsolid_setup_deb.sh 16 \
+  && apt-get install -y --no-install-recommends nodejs=16* \
+  && npm install \
+  && chown -Rf www-data:www-data /var/www/html/public \
+  && chmod -Rf 755 /var/www/html/public \
+  && npm run build
 
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
   curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256" && \
-  chmod u+x ./kubectl && install -o root -g root -m 0755 kubectl /usr/bin/kubectl
-
-RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
+  chmod u+x ./kubectl && install -o root -g root -m 0755 kubectl /usr/bin/kubectl \
+  && rm -f /lib/systemd/system/multi-user.target.wants/* \
   /etc/systemd/system/*.wants/* \
   /lib/systemd/system/local-fs.target.wants/* \
   /lib/systemd/system/sockets.target.wants/*udev* \
   /lib/systemd/system/sockets.target.wants/*initctl* \
   /lib/systemd/system/sysinit.target.wants/systemd-tmpfiles-setup* \
-  /lib/systemd/system/systemd-update-utmp*
-
-RUN echo "pt_BR.UTF-8 UTF-8" > /etc/locale.gen && locale-gen pt_BR.UTF-8 && \
-    update-locale LANG=pt_BR.UTF-8
+  /lib/systemd/system/systemd-update-utmp* \
+  && echo "pt_BR.UTF-8 UTF-8" > /etc/locale.gen && locale-gen pt_BR.UTF-8 \
+  && update-locale LANG=pt_BR.UTF-8
 
 ARG COMMIT_SHA
 ARG VERSION
@@ -69,30 +90,24 @@ ENV LANGUAGE pt_BR:pt:en
 ENV APACHE_RUN_USER www-data
 ENV APACHE_RUN_GROUP www-data
 
-RUN cd /tmp \
-  && curl -sS https://getcomposer.org/installer -o composer-setup.php \
+RUN curl -sS https://getcomposer.org/installer -o composer-setup.php \
   && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
-  && composer
-
-COPY . /var/www/html
+  && composer self-update
 
 RUN composer install --ignore-platform-reqs --no-interaction --no-progress --no-scripts --optimize-autoloader
 
-RUN sed -i "s/'default' => env('DB_CONNECTION', 'mysql'),/'default' => env('DB_CONNECTION', 'pgsql'),/g" config/database.php
-RUN sed -i "s/        \/\//        '*',/g" app/Http/Middleware/VerifyCsrfToken.php
-RUN cp bash/apache/000-default.conf /etc/apache2/sites-available/000-default.conf \
-  && apachectl configtest
+RUN cp bash/apache/000-default.conf /etc/apache2/sites-available/000-default.conf && apachectl configtest
 
 RUN adduser --no-create-home --disabled-password --shell /bin/bash --gecos "" --force-badname 3s \
   && echo "3s ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-RUN php artisan config:clear && \
-  php artisan config:cache && \
-  php artisan route:cache && \
-  php artisan cache:clear && \
-  chmod 777 -R /var/www/html/storage/ && \
-  chown -Rf www-data:www-data /var/www/ && \
-  a2enmod rewrite
+RUN php artisan config:clear \
+  && php artisan config:cache \
+  && php artisan route:cache \
+  && php artisan cache:clear \
+  && chmod 777 -R /var/www/html/storage/ \
+  && chown -Rf www-data:www-data /var/www/ \
+  && a2enmod rewrite
 
 # Stage 2 - Prod
 FROM dev as production
@@ -101,25 +116,26 @@ ENV APP_ENV=production
 ENV APP_DEBUG=false
 
 RUN cp bash/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/opcache.ini \
-  && ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/default.conf
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
-
-RUN cp bash/k8s/health-check.sh / && chmod +x /health-check.sh
+  && a2enmod rewrite \
+  && ln -s /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-enabled/default.conf \
+  && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+  && cp bash/k8s/health-check.sh / \
+  && chmod +x /health-check.sh
 
 COPY --from=dev /var/www/html /var/www/html
 
 WORKDIR /var/www/html
 
-RUN composer install --prefer-dist --no-interaction --no-dev
-
-RUN chown -R www-data:www-data /var/www/html/storage && chmod -R 775 /var/www/html/storage
-
-RUN php artisan route:cache
-RUN   php artisan cache:clear
-RUN   php artisan config:clear
-RUN   php artisan view:clear
-RUN   php artisan storage:link
-RUN   a2enmod rewrite
+RUN composer install --prefer-dist --no-interaction --no-dev \
+  && chown -R www-data:www-data /var/www/html/storage \
+  && chmod -R 775 /var/www/html/storage \
+  && php artisan route:cache \
+  && php artisan cache:clear \
+  && php artisan config:clear \
+  && php artisan view:clear \
+  && php artisan storage:link \
+  && php artisan key:generate \
+  && a2enmod rewrite
 
 EXPOSE 80
 
