@@ -119,7 +119,6 @@ RUN   php artisan cache:clear
 RUN   php artisan config:clear
 RUN   php artisan view:clear
 RUN   php artisan storage:link
-RUN   php artisan key:generate
 RUN   a2enmod rewrite
 
 EXPOSE 80
