@@ -118,11 +118,15 @@ pipeline {
       steps {
         script {
           sh '''
+            # Instala compose
             curl -sS https://getcomposer.org/installer -o composer-setup.php
             php composer-setup.php --install-dir=/usr/local/bin --filename=composer
             chown -R www-data:www-data /usr/local/bin/composer
             composer install --ignore-platform-reqs --no-interaction --no-progress --no-scripts --optimize-autoloader
             mv .env.example .env
+            ls -la .
+            ls -la public/
+            ls -la storage/
           '''
         }
       }
