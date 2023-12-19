@@ -14,12 +14,25 @@ class TrustHosts
      */
     public function handle($request, Closure $next)
     {
-        $allowedHosts = ['https://app3s-staging.web.app/', 'https://app3s-staging.web.app'];
+        $headers = [
+            'Access-Control-Allow-Origin'      => '*',
+            'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE',
+            'Access-Control-Allow-Credentials' => 'true',
+            'Access-Control-Max-Age'           => '86400',
+            'Access-Control-Allow-Headers'     => 'Content-Type, Authorization, X-Requested-With'
+        ];
 
-        if (!in_array($request->getHost(), $allowedHosts)) {
-            abort(403);
+        if ($request->isMethod('OPTIONS'))
+        {
+            return response()->json('{"method":"OPTIONS"}', 200, $headers);
         }
 
-        return $next($request);
+        $response = $next($request);
+        foreach($headers as $key => $value)
+        {
+            $response->header($key, $value);
+        }
+
+        return $response;
     }
 }
