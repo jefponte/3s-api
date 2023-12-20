@@ -10,10 +10,10 @@
 
                 <select id="select-nivel" required name="nivel">
                     <option value="">Nível de Acesso</option>
-                    <option value="c" {{ $user->nivel == 'c' ? 'selected' : '' }}>Comum</option>
-                    <option value="t" {{ $user->nivel == 't' ? 'selected' : '' }}>Técnico</option>
-                    <option value="a" {{ $user->nivel == 'a' ? 'selected' : '' }}>Administrador</option>
-                    <option value="d" {{ $user->nivel == 'd' ? 'selected' : '' }}>Desativado</option>
+                    <option value="customer" {{ $user->nivel == 'customer' ? 'selected' : '' }}>Comum</option>
+                    <option value="provider" {{ $user->nivel == 'provider' ? 'selected' : '' }}>Técnico</option>
+                    <option value="administrator" {{ $user->nivel == 'administrator' ? 'selected' : '' }}>Administrador</option>
+                    <option value="disabled" {{ $user->nivel == 'disabled' ? 'selected' : '' }}>Desativado</option>
                 </select>
             </div>
             <div class="form-group">
@@ -22,7 +22,7 @@
                     <option value="">Selecione a Unidade</option>
                     @foreach ($divisions as $area)
                         <option value="{{ $area->id }}"
-                            {{ $user->id_setor === $area->id ? 'selected' : '' }}>{{ $area->nome }}
+                            {{ $user->division_id === $area->id ? 'selected' : '' }}>{{ $area->nome }}
                         </option>
                     @endforeach
 
