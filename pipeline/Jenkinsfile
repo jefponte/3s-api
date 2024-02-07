@@ -147,12 +147,13 @@ pipeline {
       steps {
         container('maven') {
           script {
+            def exclusions = 'aa.txt,bb.txt,pipeline/**,kubernetes/**,node_modules/**,public/**,vendor/**'
             sh 'curl -fsSLk https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs'
             def branchName = env.BRANCH_NAME
             def scannerHome = tool 'SonarScanner'
             def projectKey = env.SONAR_PROJECT_KEY
             withSonarQubeEnv('SonarQube') {
-              sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.sources=./app -Dsonar.exclusions=vendor/** -Dsonar.language=php -Dsonar.sourceEncoding=UTF-8"
+              sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${projectKey} -Dsonar.sources=./ -Dsonar.exclusions=${exclusions} -Dsonar.language=php -Dsonar.sourceEncoding=UTF-8"
               def props = readProperties  file: '.scannerwork/report-task.txt'
               def sonarServerUrl=props['serverUrl']
               def ceTaskUrl= props['ceTaskUrl']
