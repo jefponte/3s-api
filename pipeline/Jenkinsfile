@@ -147,7 +147,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            def exclusions = 'aa.txt,bb.txt,composer-setup.php,pipeline/**,kubernetes/**,database/**,resources/**,node_modules/**,public/**,vendor/**'
+            def exclusions = 'composer-setup.php,pipeline/**,kubernetes/**,database/**,resources/**,node_modules/**,public/**,vendor/**'
             sh 'curl -fsSLk https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs'
             def branchName = env.BRANCH_NAME
             def scannerHome = tool 'SonarScanner'

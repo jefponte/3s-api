@@ -5,9 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', '3s') }}</title>
-    <title>3s | Sistema de Solicitação de Ocorrências</title>
-    <!-- Desenvolvido por Jefferson Uchôa Ponte-->
+    <title>3s|Sistema de Solicitação de Ocorrências</title>
+    <!-- Desenvolvido por Jefferson Uchôa Ponte -->
     <style>
         {!! Vite::content('resources/css/app.css') !!}
     </style>
