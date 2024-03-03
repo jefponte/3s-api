@@ -84,6 +84,7 @@ class OrdersController extends Controller
     }
 
 
+
     public function kanban(Request $request)
     {
         $divisions = $request->input('division', []);
