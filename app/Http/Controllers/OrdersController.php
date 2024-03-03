@@ -52,7 +52,7 @@ class OrdersController extends Controller
             )->orderByDesc('orders.id');
         $penddingList = $queryPendding->limit(120)->get();
         $matrix = array();
-        foreach($penddingList as $order) {
+        foreach ($penddingList as $order) {
 
             if (!isset($matrix[$order->campus][$order->division_name])) {
                 $matrix[$order->campus][$order->division_name] = 1;
@@ -69,7 +69,7 @@ class OrdersController extends Controller
             'matrix' => $matrix
         ];
 
-        if($request->just_content === "1") {
+        if ($request->just_content === "1") {
             return view('admin.partials.table-panel-content', $data);
         } else {
             return view('admin.table-panel', $data);
@@ -79,6 +79,8 @@ class OrdersController extends Controller
 
     public function kanban(Request $request)
     {
+        $divisions = $request->input('division', []);
+
         $sessao = new Sessao();
         $firstName = $sessao->getNome();
         $arr = explode(' ', $sessao->getNome());
@@ -98,7 +100,7 @@ class OrdersController extends Controller
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
             ->whereIn(
-                'status',
+                'orders.status',
                 [
                     OrderStatus::opened()->value,
                     OrderStatus::reopened()->value,
@@ -106,22 +108,22 @@ class OrdersController extends Controller
                 ]
             )->orderByDesc('orders.id');
         $queryProgress = Order::select(
-                'orders.id as id',
-                'orders.description as descricao',
-                'services.sla as tempo_sla',
-                'orders.created_at as data_abertura',
-                'orders.status as status'
-            )
-                ->join('services', 'orders.service_id', '=', 'services.id')
-                ->whereIn(
-                    'status',
-                    [
+            'orders.id as id',
+            'orders.description as descricao',
+            'services.sla as tempo_sla',
+            'orders.created_at as data_abertura',
+            'orders.status as status'
+        )
+            ->join('services', 'orders.service_id', '=', 'services.id')
+            ->whereIn(
+                'status',
+                [
 
-                        OrderStatus::pendingResource()->value,
-                        OrderStatus::pendingCustomerResponse()->value,
-                        OrderStatus::inProgress()->value
-                    ]
-                )->orderByDesc('orders.id');
+                    OrderStatus::pendingResource()->value,
+                    OrderStatus::pendingCustomerResponse()->value,
+                    OrderStatus::inProgress()->value
+                ]
+            )->orderByDesc('orders.id');
         $queryFinished = Order::select(
             'orders.id as id',
             'orders.description as descricao',
@@ -137,6 +139,12 @@ class OrdersController extends Controller
             ])->orderByDesc('orders.id');
 
 
+        if ($request->has('division') && is_array($request->input('division'))) {
+            $divisions = $request->input('division');
+            $queryPendding->whereIn('orders.division_id', $divisions);
+            $queryProgress->whereIn('orders.division_id', $divisions);
+            $queryFinished->whereIn('orders.division_id', $divisions);
+        }
         $penddingList = $queryPendding->limit(120)->get();
         $progressList = $queryProgress->limit(120)->get();
         $finishedList = $queryFinished->limit(120)->get();
@@ -149,12 +157,11 @@ class OrdersController extends Controller
             'finishedList' => $finishedList
         ];
 
-        if($request->just_content === "1") {
+        if ($request->just_content === "1") {
             return view('admin.partials.kanban-panel-content', $data);
         } else {
             return view('admin.kanban-panel', $data);
         }
-
     }
     /**
      * Store a newly created resource in storage.

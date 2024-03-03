@@ -23,45 +23,42 @@
     <script>
         $(document).ready(function(e) {
 
-            modificarTela();
+            fullScreenTable();
 
-            var urlTabela = '?just_content=1';
-            var urlSelecionada = urlTabela;
+            var urlQuery = '?just_content=1';
 
-            $("#select-setores").change(function() {
-                var dados = $("#select-setores").val();
-                var setores = '&setores=';
-                setores += dados.join(',');
-                urlSelecionada = urlTabela + setores;
 
-            });
-
-            $('#select-setores').selectize({
-                maxItems: 50
+            var selectSetores = $('#select-setores').selectize({
+                maxItems: 50,
+                onChange: function(selectedDivisions) {
+                    var queryString = selectedDivisions.map(function(value) {
+                        return 'division[]=' + value;
+                    }).join('&');
+                    urlQuery = '?just_content=1&'+queryString;
+                    console.log(urlQuery);
+                }
             });
 
             $("#btn-expandir-tela").on('click', function(e) {
-                modificarTela();
+                fullScreenTable();
             });
 
-            function modificarTela() {
+            function fullScreenTable() {
                 $("main").toggleClass("container");
                 $("#cabecalho").toggleClass("escondido");
             }
 
             function carregarDados(url2) {
-
                 $.ajax({
                     type: 'GET',
                     url: url2,
                     success: function(response) {
-
                         $('#quadro-kamban').html(response);
                     }
                 });
             }
             setInterval(function() {
-                carregarDados(urlSelecionada);
+                carregarDados(urlQuery);
             }, 2000);
 
         });
