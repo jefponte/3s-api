@@ -26,8 +26,6 @@
             fullScreenTable();
 
             var urlQuery = '?just_content=1';
-
-
             var selectSetores = $('#select-setores').selectize({
                 maxItems: 50,
                 onChange: function(selectedDivisions) {
@@ -35,7 +33,6 @@
                         return 'division[]=' + value;
                     }).join('&');
                     urlQuery = '?just_content=1&'+queryString;
-                    console.log(urlQuery);
                 }
             });
 

@@ -12,11 +12,17 @@
         </tr>
     </thead>
     <tbody>
+
         @foreach ($divisions as $division)
             <tr>
-                <th scope="row"> {{ $division->name }}</th>
+
+                @if ($division->name != null)
+                    <th scope="row"> {{ $division->name }}</th>
+                @endif
                 @foreach ($matrix as $key => $value)
-                    <td>{{isset($value[$division->name]) ? $value[$division->name] : "0" }}</td>
+                    @if ($division->name != null)
+                        <td>{{ isset($value[$division->name]) ? $value[$division->name] : '0' }}</td>
+                    @endif
                 @endforeach
             </tr>
         @endforeach

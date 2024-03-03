@@ -22,25 +22,28 @@
     <script>
         $(document).ready(function(e) {
 
-            var urlTabela = '?just_content=1';
-            var urlSelecionada = urlTabela;
-            $("#select-setores").change(function() {
-                var dados = $("#select-setores").val();
-                var setores = '&setores=';
-                setores += dados.join(',');
-                urlSelecionada = urlTabela + setores;
 
+            var urlQuery = '?just_content=1';
+            var selectSetores = $('#select-setores').selectize({
+                maxItems: 50,
+                onChange: function(selectedDivisions) {
+                    var queryString = selectedDivisions.map(function(value) {
+                        return 'division[]=' + value;
+                    }).join('&');
+                    urlQuery = '?just_content=1&'+queryString;
+                }
             });
 
-            $('#select-setores').selectize({
-                maxItems: 50
-            });
+
             $("#btn-expandir-tela").on('click', function(e) {
+                fullScreenTable();
+            });
+
+            function fullScreenTable() {
                 $("main").toggleClass("container");
                 $("#cabecalho").toggleClass("escondido");
                 $("#tabela-quadro").toggleClass("display-3");
-            });
-
+            }
 
             function carregarDados(url2) {
                 $.ajax({
@@ -52,7 +55,7 @@
                 });
             }
             setInterval(function() {
-                carregarDados(urlSelecionada);
+                carregarDados(urlQuery);
             }, 3000);
 
         });

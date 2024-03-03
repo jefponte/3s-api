@@ -29,7 +29,7 @@ class OrdersController extends Controller
             $firstName = $arr[0];
         }
         $firstName = ucfirst(strtolower($firstName));
-        $divisions = Division::select('id', 'name')->get();
+        $divisionsQuery = Division::select('id', 'name');
 
         $queryPendding = Order::select(
             'orders.id as id',
@@ -50,6 +50,13 @@ class OrdersController extends Controller
                     OrderStatus::reserved()->value,
                 ]
             )->orderByDesc('orders.id');
+
+        if ($request->has('division') && is_array($request->input('division'))) {
+            $divisionsFilter = $request->input('division');
+            $queryPendding->whereIn('orders.division_id', $divisionsFilter);
+            $divisionsQuery->whereIn('id', $divisionsFilter);
+        }
+        $divisions = $divisionsQuery->get();
         $penddingList = $queryPendding->limit(120)->get();
         $matrix = array();
         foreach ($penddingList as $order) {
@@ -116,7 +123,7 @@ class OrdersController extends Controller
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
             ->whereIn(
-                'status',
+                'orders.status',
                 [
 
                     OrderStatus::pendingResource()->value,
@@ -132,7 +139,7 @@ class OrdersController extends Controller
             'orders.status as status'
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
-            ->whereIn('status', [
+            ->whereIn('orders.status', [
                 OrderStatus::closed()->value,
                 OrderStatus::committed()->value,
                 OrderStatus::canceled()->value,
