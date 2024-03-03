@@ -102,10 +102,15 @@ class OrdersController extends Controller
             'orders.id as id',
             'orders.description as descricao',
             'services.sla as tempo_sla',
-            'orders.created_at as data_abertura',
-            'orders.status as status'
+            'orders.created_at',
+            'orders.status as status',
+            'customer.name as customer_name',
+            'provider.name as provider_name',
+            'orders.finished_at'
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
+            ->join('users as customer', 'orders.customer_user_id', '=', 'customer.id')
+            ->join('users as provider', 'orders.provider_user_id', '=', 'provider.id')
             ->whereIn(
                 'orders.status',
                 [
@@ -118,10 +123,15 @@ class OrdersController extends Controller
             'orders.id as id',
             'orders.description as descricao',
             'services.sla as tempo_sla',
-            'orders.created_at as data_abertura',
-            'orders.status as status'
+            'orders.created_at',
+            'orders.status as status',
+            'customer.name as customer_name',
+            'provider.name as provider_name',
+            'orders.finished_at'
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
+            ->join('users as customer', 'orders.customer_user_id', '=', 'customer.id')
+            ->join('users as provider', 'orders.provider_user_id', '=', 'provider.id')
             ->whereIn(
                 'orders.status',
                 [
@@ -135,10 +145,15 @@ class OrdersController extends Controller
             'orders.id as id',
             'orders.description as descricao',
             'services.sla as tempo_sla',
-            'orders.created_at as data_abertura',
-            'orders.status as status'
+            'orders.created_at',
+            'orders.status as status',
+            'customer.name as customer_name',
+            'provider.name as provider_name',
+            'orders.finished_at'
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
+            ->join('users as customer', 'orders.customer_user_id', '=', 'customer.id')
+            ->join('users as provider', 'orders.provider_user_id', '=', 'provider.id')
             ->whereIn('orders.status', [
                 OrderStatus::closed()->value,
                 OrderStatus::committed()->value,
@@ -155,6 +170,8 @@ class OrdersController extends Controller
         $penddingList = $queryPendding->limit(120)->get();
         $progressList = $queryProgress->limit(120)->get();
         $finishedList = $queryFinished->limit(120)->get();
+
+
         $data = [
             'userFirstName' => ucfirst(strtolower($firstName)),
             'divisionSig' => $sessao->getUnidade(),
