@@ -2,9 +2,6 @@
 
 @section('content')
     @include('admin.partials.navbar')
-    <link rel="stylesheet" href="https://3s.unilab.edu.br/css/style_kamban.css">
-
-
     <div class="card mb-4">
         <div class="card-header pb-4 mb-4 font-italic">
             Tabela de Chamados Não Atendidos
