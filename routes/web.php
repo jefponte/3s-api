@@ -3,6 +3,8 @@
 use App\Http\Controllers\OrdersController;
 use app3s\controller\MainIndex;
 use app3s\util\Sessao;
+use App\Http\Controllers\KanbanPanelController;
+use App\Http\Controllers\TablePanelController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,7 +30,7 @@ Route::post('/', function () {
     return $main->main();
 })->name('root-post');
 
-Route::get('/kamban', function () {
+Route::get('/welcome', function () {
     $sessao = new Sessao();
     $firstName = $sessao->getNome();
     $arr = explode(' ', $sessao->getNome());
@@ -38,9 +40,11 @@ Route::get('/kamban', function () {
     $firstName = ucfirst(strtolower($firstName));
 
     return view('welcome', ['userFirstName' => $firstName, 'divisionSig' => $sessao->getUnidade()]);
-})->name('kamban');
+})->name('welcome');
 
 Route::middleware('auth')->group(function () {
+    Route::get('kanban-panel', [OrdersController::class, 'kanban'])->name('kanban-panel');
+    Route::get('table-panel', [OrdersController::class, 'panelTable'])->name('table-panel');
     Route::resources(
         [
             'orders' => OrdersController::class,

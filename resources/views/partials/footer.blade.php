@@ -54,5 +54,8 @@
 <script>
     {!! Vite::content('resources/js/app.js') !!}
 </script>
+@yield('scripts')
+
+
 
 </html>
