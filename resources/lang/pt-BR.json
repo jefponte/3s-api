@@ -139,7 +139,7 @@
     "reserved": "Reservado",
     "in progress": "Em Atendimento",
     "pending customer response": "Aguardando Usuário",
-    "pending it resource": "Aguardando Ativo",
+    "pending resource": "Aguardando Ativo",
     "closed": "Fechado",
     "committed": "Confirmado",
     "canceled": "Cancelado",
