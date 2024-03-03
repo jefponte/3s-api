@@ -5,7 +5,7 @@ metadata:
 data:
   APP_VERSION: 'alfa1'
   DB_HOST: '10.130.0.154'
-  DB_DATABASE: 'staging-3s'
+  DB_DATABASE: '3s-staging'
   MAIL_FROM_ADDRESS: '3s-staging@noreply.unilab.edu.br'
   MAIL_FROM_NAME: '[HOMOLOGAÇÃO] 3S - Sistema de Solicitação de Serviço'
   APP_URL: 'https://3shomologacao.unilab.edu.br'
