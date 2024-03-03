@@ -160,6 +160,7 @@ vc_hdrs.h
 [._]sw[a-p]
 
 # Session
+
 Session.vim
 Sessionx.vim
 

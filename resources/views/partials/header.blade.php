@@ -1,31 +1,15 @@
-{{-- Este modelo poderá ser utilizado depois --}}
 <!doctype html>
 <html lang="pt-br">
 
 <head>
-
-    <meta http-equiv="cache-control" content="max-age=0" />
-    <meta http-equiv="cache-control" content="no-cache" />
-    <meta http-equiv="expires" content="0" />
-    <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
-    <meta http-equiv="pragma" content="no-cache" />
-
-    <link rel="icon" type="image/x-icon" href="img/favicon.ico">
     <meta charset="utf-8">
-    <title>3s | Sistema de Solicitação de Ocorrências</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="vendor/bootstrap-4.6.0/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/style.css?a=123" />
-    <link rel="stylesheet" type="text/css" href="css/style_kamban.css" />
-    <link rel="stylesheet" type="text/css" href="css/list.css" />
-    <link rel="stylesheet" type="text/css" href="css/chat.css" />
-    <link rel="stylesheet" type="text/css" href="css/selectize.default.css" />
-    <link href="plugins/font-awesome-4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-
-    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-    <link href="css/style_form_login.css" rel="stylesheet">
-    <!-- Desenvolvido por Jefferson Uchôa Ponte-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>3s|Sistema de Solicitação de Ocorrências</title>
+    <!-- Desenvolvido por Jefferson Uchôa Ponte -->
+    <style>
+        {!! Vite::content('resources/css/app.css') !!}
+    </style>
     <meta http-equiv="Cache-control" content="no-cache">
 </head>
 

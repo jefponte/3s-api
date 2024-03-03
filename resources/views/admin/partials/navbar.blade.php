@@ -11,7 +11,7 @@
                 <a class="nav-link" href=".">Início<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
+                <a class="nav-link" href="./?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
             </li>
 
 
@@ -21,8 +21,8 @@
                     Paineis
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="?page=painel_kamban">Kanban</a>
-                    <a class="dropdown-item" href="?page=painel_tabela">Tabela</a>
+                    <a class="dropdown-item" href="{{route('kanban-panel')}}">Kanban</a>
+                    <a class="dropdown-item" href="{{route('table-panel')}}">Tabela</a>
                 </div>
             </li>
 
@@ -33,18 +33,16 @@
                     Gerenciamento
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="?page=servico">Serviços</a>
-
-
+                    <a class="dropdown-item" href="{{route('welcome')}}">Serviços</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="?page=area_responsavel">Unidades</a>
-                    <a class="dropdown-item" href="?page=usuario">Usuários</a>
+                    <a class="dropdown-item" href="{{route('welcome')}}">Unidades</a>
+                    <a class="dropdown-item" href="{{route('welcome')}}">Usuários</a>
                 </div>
             </li>
         </ul>
 
         <form action="" method="get">
-
+            @csrf
             <div class="input-group">
                 <input type="hidden" name="page" value="ocorrencia">
                 <input type="text" name="selecionar" class="form-control" placeholder="Número do chamado"
@@ -70,12 +68,12 @@
                 <button type="button" disabled class="dropdown-item change-level">
                     Perfil Admin
                 </button>
-                <button type="button" nivel="t" id="change-to-tec" ' . $disabled . '
+                <button type="button" nivel="provider" id="change-to-tec" ' . $disabled . '
                     class="dropdown-item change-level">
                     Perfil Técnico
                 </button>
 
-                <button type="button" nivel="c" id="change-to-default"
+                <button type="button" nivel="customer" id="change-to-default"
                     class="dropdown-item change-level">
                     Perfil Cliente
                 </button>
