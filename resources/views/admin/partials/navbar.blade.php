@@ -11,7 +11,7 @@
                 <a class="nav-link" href=".">Início<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
+                <a class="nav-link" href="./?page=ocorrencia&cadastrar=1">Abrir Chamado</a>
             </li>
 
 
@@ -21,8 +21,8 @@
                     Paineis
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="{{route('kamban')}}">Kanban</a>
-                    <a class="dropdown-item" href="{{route('kamban')}}">Tabela</a>
+                    <a class="dropdown-item" href="{{route('kanban-panel')}}">Kanban</a>
+                    <a class="dropdown-item" href="{{route('table-panel')}}">Tabela</a>
                 </div>
             </li>
 
@@ -33,10 +33,10 @@
                     Gerenciamento
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="{{route('kamban')}}">Serviços</a>
+                    <a class="dropdown-item" href="{{route('welcome')}}">Serviços</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{{route('kamban')}}">Unidades</a>
-                    <a class="dropdown-item" href="{{route('kamban')}}">Usuários</a>
+                    <a class="dropdown-item" href="{{route('welcome')}}">Unidades</a>
+                    <a class="dropdown-item" href="{{route('welcome')}}">Usuários</a>
                 </div>
             </li>
         </ul>
