@@ -110,8 +110,8 @@ class OrdersController extends Controller
             'orders.finished_at'
         )
             ->join('services', 'orders.service_id', '=', 'services.id')
-            ->join('users as customer', 'orders.customer_user_id', '=', 'customer.id')
-            ->join('users as provider', 'orders.provider_user_id', '=', 'provider.id')
+            ->leftJoin('users as customer', 'orders.customer_user_id', '=', 'customer.id')
+            ->leftJoin('users as provider', 'orders.provider_user_id', '=', 'provider.id')
             ->whereIn(
                 'orders.status',
                 [
