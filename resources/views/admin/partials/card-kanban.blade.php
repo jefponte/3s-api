@@ -75,7 +75,7 @@
             <p class="{{ $texto }}">
                 {{ substr($order->descricao, 0, 75) }}[...]
             </p>
-            @if($customerName != null)
+            @if ($customerName != null)
                 <small class="{{ $texto }}">Demandante: {{ $customerName }}</small><br>
             @endif
 
@@ -85,8 +85,11 @@
             @endif
             <br><small class="{{ $texto }}">Aberto em {{ date('d/m/Y G:i:s', strtotime($order->created_at)) }}
             </small>
-            <br><small class="{{ $texto }}">Fechado em
-                {{ date('d/m/Y G:i:s', strtotime($order->finished_at)) }}</small>
+            @if ($order->finished_at != null)
+                <br><small class="{{ $texto }}">Fechado em
+                    {{ date('d/m/Y G:i:s', strtotime($order->finished_at)) }}</small>
+            @endif
+
         </div>
     </div>
 </div>

@@ -39,7 +39,7 @@
                             $strClass = 'alert-warning';
                         } elseif ($order->status == 'pending customer response') {
                             $strClass = 'alert-danger';
-                        } elseif ($order->status == 'pending it resource') {
+                        } elseif ($order->status == 'pending resource') {
                             $strClass = 'alert-danger';
                         }
                     @endphp
