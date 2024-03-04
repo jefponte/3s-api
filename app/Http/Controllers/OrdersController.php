@@ -266,7 +266,7 @@ class OrdersController extends Controller
 
             $body = '    <p>Prezado(a) ' . auth()->user()->name . ',</p>
             <p>' . $text . '</p>
-            <p><a href="' . env('APP_URL') . '">Ocorrência Nº ' . $order->id . '</a></p>
+            <p><a href="' . env('APP_URL') . '?page=ocorrencia&selecionar='.$order->id.'">Ocorrência Nº ' . $order->id . '</a></p>
             <ul>
                 <li>Serviço Solicitado: ' . $order->service->name . '</li>
                 <li>Descrição do Problema: ' . $order->description . '</li>
